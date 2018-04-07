@@ -3,6 +3,7 @@ import json
 def bsRequest(id):
     from bs4 import BeautifulSoup
     import requests
+    
     returnlist = {}
     print(id)
     r_comments = requests.get('http://forum.mfd.ru/forum/poster/comments/?id={id}'.format(id=id)).content
@@ -18,9 +19,10 @@ def bsRequest(id):
     print(returnlist)
     return returnlist
 
-
 def newMessageCheck(bot, update):
     import database
+    from settings import my_id
+    
     with open('data.json') as json_input:
         data = json.load(json_input)
         json_input.close()
@@ -28,12 +30,12 @@ def newMessageCheck(bot, update):
         bsdata = bsRequest(j)
         if "post" in bsdata:
             if data[j]["post_hex"] != database.makeMD5(bsdata["post"]):
-                bot.sendMessage(chat_id=-192662319,
+                bot.sendMessage(chat_id=my_id,
                                 text='New post from {id}:{post}'.format(id=j, post=bsdata["post"]))
                 data[j]["post_hex"] = database.makeMD5(bsdata["post"])
         if "comment" in bsdata:
             if data[j]["comment_hex"] != database.makeMD5(bsdata["comment"]):
-                bot.sendMessage(chat_id=-192662319,
+                bot.sendMessage(chat_id=my_id,
                                 text='New comment from {id}:{post}'.format(id=j, post=bsdata["post"]))
                 data[j]["comment_hex"] = database.makeMD5(bsdata["comment"])
     with open('data.json','w') as json_export:
