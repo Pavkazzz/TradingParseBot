@@ -2,3 +2,8 @@ __pycache__
 .idea
 plot.png
 settings.py
+bin/*
+lib/*
+lib64
+pyvenv.cfg
+pip-selfcheck.json
