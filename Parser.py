@@ -5,19 +5,22 @@ def bsRequest(id):
     import requests
     
     returnlist = {}
-    print(id)
-    r_comments = requests.get('http://forum.mfd.ru/forum/poster/comments/?id={id}'.format(id=id)).content
-    r_posts = requests.get('http://forum.mfd.ru/forum/poster/posts/?id={id}'.format(id=id)).content
-    soup_comments = BeautifulSoup(r_comments, "html.parser")
-    soup_posts = BeautifulSoup(r_posts, "html.parser")
-    comments = [p.text for p in soup_comments.find_all("div", {"class": "mfd-quote-text"})]
-    posts = [p.text for p in soup_posts.find_all("div", {"class": "mfd-quote-text"})]
-    if len(comments) != 0:
-        returnlist["comment"] = comments[len(comments)-1]
-    if len(posts) != 0:
-        returnlist["post"] = posts[len(posts)-1]
-    print(returnlist)
-    return returnlist
+    try:
+        r_comments = requests.get('http://forum.mfd.ru/forum/poster/comments/?id={id}'.format(id=id)).content
+        r_posts = requests.get('http://forum.mfd.ru/forum/poster/posts/?id={id}'.format(id=id)).content
+        soup_comments = BeautifulSoup(r_comments, "html.parser")
+        soup_posts = BeautifulSoup(r_posts, "html.parser")
+        comments = [p.text for p in soup_comments.find_all("div", {"class": "mfd-quote-text"})]
+        posts = [p.text for p in soup_posts.find_all("div", {"class": "mfd-quote-text"})]
+        if len(comments) != 0:
+            returnlist["comment"] = comments[len(comments) - 1]
+        if len(posts) != 0:
+            returnlist["post"] = posts[len(posts) - 1]
+        print(returnlist)
+        return returnlist
+    except:
+        return -1
+
 
 def newMessageCheck(bot, update):
     import database
@@ -38,7 +41,7 @@ def newMessageCheck(bot, update):
                 bot.sendMessage(chat_id=my_id,
                                 text='New comment from {id}:{post}'.format(id=j, post=bsdata["post"]))
                 data[j]["comment_hex"] = database.makeMD5(bsdata["comment"])
-    with open('data.json','w') as json_export:
+    with open('data.json', 'w') as json_export:
         json.dump(data, json_export)
         json_export.close()
 
