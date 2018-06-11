@@ -7,3 +7,5 @@ lib/*
 lib64
 pyvenv.cfg
 pip-selfcheck.json
+nohup.out
+data.json
