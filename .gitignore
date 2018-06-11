@@ -4,6 +4,7 @@ plot.png
 settings.py
 bin/*
 lib/*
+share/*
 lib64
 pyvenv.cfg
 pip-selfcheck.json

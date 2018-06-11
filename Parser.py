@@ -38,7 +38,7 @@ def newMessageCheck(bot, update):
         if "comment" in bsdata:
             if data[j]["comment_hex"] != database.makeMD5(bsdata["comment"]):
                 bot.sendMessage(chat_id=my_id,
-                                text='New comment from {id}:{comment}'.format(id=j, post=bsdata["comment"]))
+                                text='New comment from {id}:{comment}'.format(id=j, comment=bsdata["comment"]))
                 data[j]["comment_hex"] = database.makeMD5(bsdata["comment"])
     with open('data.json', 'w') as json_export:
         json.dump(data, json_export)
