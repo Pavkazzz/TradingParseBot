@@ -1,20 +1,19 @@
 # -*- coding: utf-8 -*-
-
 import logging
 from telegram.ext import Updater, CommandHandler
 from settings import token
-import manager
+
 
 # Функция старта
 def start(bot, update):
-    id = update.message.chat_id
-    bot.send_message(chat_id=id, text="Привет это бот для отслеживания блога mfd.ru")
-    manager.Manager()
+    chat_id = update.message.chat_id
+    bot.send_message(chat_id=chat_id, text="Привет это бот для отслеживания блога mfd.ru")
 
 
 # функция добавления
 def add_new(bot, update):
-    pass
+    chat_id = update.message.chat_id
+    bot.send_message(chat_id=chat_id, text="Кого желаете добавить?")
 
 
 def check_new():
