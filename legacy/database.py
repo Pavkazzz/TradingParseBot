@@ -5,7 +5,7 @@ def makeMD5(text):
     text_hex = text_hex.hexdigest()
     return text_hex
 
-def addToDatabase(bot, update):
+def addToDatabase(update):
     from Parser import bsRequest
     import json
     try:
