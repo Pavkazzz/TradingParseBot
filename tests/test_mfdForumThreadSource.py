@@ -14,7 +14,7 @@ class TestMfdForumThreadSource(TestCase):
         self.assertEqual(page.posts[0].title, "Спокойный Скрудж Макдак")
         for x in page.posts:
             self.assertNotEqual(len(x.title), 0)
-            self.assertNotEqual(len(x.text), 0)
+            self.assertNotEqual(len(x.md), 0)
 
     def test_online_generator(self):
         post = MfdForumThreadSource()
@@ -23,6 +23,4 @@ class TestMfdForumThreadSource(TestCase):
         self.assertGreater(len(page.posts), 0)
         for x in page.posts:
             self.assertNotEqual(len(x.title), 0)
-            self.assertNotEqual(len(x.text), 0)
-
-
+            self.assertNotEqual(len(x.md), 0)

@@ -6,10 +6,15 @@ from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass, field
 from bs4 import BeautifulSoup
 
+
 @dataclass
 class SinglePost:
     title: str = field(default_factory=str)
-    text: str = field(default_factory=str)
+    md: str = field(default_factory=str)
+
+    def format(self) -> str:
+        return self.title + "\n" + self.md
+
 
 @dataclass
 class Page:
@@ -27,6 +32,12 @@ class AbstractSource(metaclass=ABCMeta):
     @abstractmethod
     def check_update(self) -> Page:
         pass
+
+    def pretty_text(self, html, baseurl) -> str:
+        import html2text
+        h = html2text.HTML2Text(baseurl=baseurl, bodywidth=40)
+        # Небольшие изощрения с li
+        return h.handle(str(html).replace('<li', '<div').replace("</li>", "</div>")).strip()
 
 
 class DataSource(AbstractSource):
@@ -49,67 +60,49 @@ class DataSource(AbstractSource):
             print("Ошибка удаления")
 
 
-class MfdUserPostSource(DataSource):
-    def __init__(self):
-        super().__init__(lambda x: requests.get(self.url.format(id=x)).content)
+class MfdSource(DataSource):
+    def __init__(self, generator, title_selector):
+        super().__init__(generator)
+        self.title_selector = title_selector
+
+    def check_update(self) -> Page:
+        page_num = 0
+        res = []
+        for data in self.data_list:
+            bs = BeautifulSoup(self.generator(data), "html.parser")
+            title = [self.pretty_text(p, "http://mfd.ru") for p in bs.select(self.title_selector)]
+            posts = [self.pretty_text(p, "http://mfd.ru") for p in bs.select("div.mfd-post-body-right")]
+            page_num = int(bs.select_one("a.mfd-paginator-selected").text)
+
+            if len(title) == len(posts) and len(title) > 0:
+                for i in range(len(title)):
+                    res.append(SinglePost(title[i], posts[i]))
+
+        return Page(page_num, res)
+
+
+class MfdUserPostSource(MfdSource):
+    def __init__(self, data=None):
+        super().__init__(lambda x: requests.get(self.url.format(id=x)).content, "h3.mfd-post-thread-subject > a")
         self.url = "http://lite.mfd.ru/forum/poster/posts/?id={id}"
-
-    def check_update(self) -> Page:
-        page_num = 0
-        res = []
-        for data in self.data_list:
-            bs = BeautifulSoup(self.generator(data), "html.parser")
-            title = [p.text.strip() for p in bs.select("h3.mfd-post-thread-subject > a")]
-            posts = [p.text.strip() for p in bs.select("div.mfd-post-body-right")]
-            page_num = int(bs.select_one("a.mfd-paginator-selected").text)
-
-            if len(title) == len(posts) and len(title) > 0:
-                for i in range(len(title)):
-                    res.append(SinglePost(title[i], posts[i]))
-
-        return Page(page_num, res)
+        if data is not None:
+            self.add_data(data)
 
 
-class MfdUserCommentSource(DataSource):
-    def __init__(self):
-        super().__init__(lambda x: requests.get(self.url.format(id=x)).content)
+class MfdUserCommentSource(MfdSource):
+    def __init__(self, data=None):
+        super().__init__(lambda x: requests.get(self.url.format(id=x)).content, "h3.mfd-post-thread-subject > a")
         self.url = "http://lite.mfd.ru/forum/poster/comments/?id={id}"
-
-    def check_update(self) -> Page:
-        res = []
-        page_num = 0
-        for data in self.data_list:
-            bs = BeautifulSoup(self.generator(data), "html.parser")
-            title = [p.text.strip() for p in bs.select("h3.mfd-post-thread-subject > a")]
-            posts = [p.text.strip() for p in bs.select("div.mfd-post-body-right")]
-            page_num = int(bs.select_one("a.mfd-paginator-selected").text)
-
-            if len(title) == len(posts) and len(title) > 0:
-                for i in range(len(title)):
-                    res.append(SinglePost(title[i], posts[i]))
-
-        return Page(page_num, res)
+        if data is not None:
+            self.add_data(data)
 
 
-class MfdForumThreadSource(DataSource):
-    def __init__(self):
-        super().__init__(lambda x: requests.get(self.url.format(id=x)).content)
+class MfdForumThreadSource(MfdSource):
+    def __init__(self, data=None):
+        super().__init__(lambda x: requests.get(self.url.format(id=x)).content, "div.mfd-post-top-0 > a")
         self.url = "http://lite.mfd.ru/forum/thread/?id={id}"
-
-    def check_update(self) -> Page:
-        res = []
-        page_num = 0
-        for data in self.data_list:
-            bs = BeautifulSoup(self.generator(data), "html.parser")
-            title = [p.text.strip() for p in bs.select("div.mfd-post-top-0 > a")]
-            posts = [p.text.strip() for p in bs.select("div.mfd-post-body-right")]
-            page_num = int(bs.select_one("a.mfd-paginator-selected").text)
-
-            if len(title) == len(posts) and len(title) > 0:
-                for i in range(len(title)):
-                    res.append(SinglePost(title[i], posts[i]))
-
-        return Page(page_num, res)
+        if data is not None:
+            self.add_data(data)
 
 
 class AlenkaNews(AbstractSource):
@@ -119,7 +112,9 @@ class AlenkaNews(AbstractSource):
 
     def check_update(self) -> Page:
         bs = BeautifulSoup(self.generator(), "html.parser")
-        return Page(posts=[p.text.strip() for p in bs.select("h2.news__name > a")])
+        title = "ALЁNKA CAPITAL News: "
+        el = [SinglePost(md=self.pretty_text(p, self.url).strip(), title=title) for p in bs.select("li.news__item")]
+        return Page(posts=el)
 
 
 class AlenkaPost(AbstractSource):
@@ -129,4 +124,6 @@ class AlenkaPost(AbstractSource):
 
     def check_update(self) -> Page:
         bs = BeautifulSoup(self.generator(), "html.parser")
-        return Page(posts=[p.text.strip() for p in bs.select("h2.feed__text > a")])
+        title = "ALЁNKA CAPITAL Post: "
+        el = [SinglePost(md=self.pretty_text(p, self.url).strip(), title=title) for p in bs.select("div.feed__content")]
+        return Page(posts=el)

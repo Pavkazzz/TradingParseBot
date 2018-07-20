@@ -10,5 +10,5 @@ venv/
 pyvenv.cfg
 pip-selfcheck.json
 nohup.out
-data.json
-
+database.json
+users.pkl
