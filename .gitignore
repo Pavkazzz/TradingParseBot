@@ -7,6 +7,8 @@ lib/*
 share/*
 lib64
 venv/
+man/*
+src/*
 pyvenv.cfg
 pip-selfcheck.json
 nohup.out
