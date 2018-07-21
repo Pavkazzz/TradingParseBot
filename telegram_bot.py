@@ -40,7 +40,8 @@ def check_new(bot, update):
 def send_data(bot, chat_id, data):
     for msg in data:
         try:
-            bot.send_message(chat_id=chat_id, text=msg, parse_mode=telegram.ParseMode.MARKDOWN)
+            bot.send_message(chat_id=chat_id, text=msg, parse_mode=telegram.ParseMode.MARKDOWN,
+                             disable_web_page_preview=True)
         except Exception as e:
             print(e, msg)
 
