@@ -11,7 +11,8 @@ class TestMfdForumThreadSource(TestCase):
         thread.add_data(84424)
         page = thread.check_update()
         self.assertEqual(len(page.posts), 33)
-        self.assertEqual(page.posts[0].title, "Спокойный Скрудж Макдак")
+        self.assertEqual(page.posts[0].title,
+                         "[Спокойный Скрудж Макдак](http://mfd.ru/forum/poster/?id=88887)")
         for x in page.posts:
             self.assertNotEqual(len(x.title), 0)
             self.assertNotEqual(len(x.md), 0)

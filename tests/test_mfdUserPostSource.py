@@ -41,7 +41,7 @@ class TestUserMfdPostSource(TestCase):
         post.add_data(71921)
         page = post.check_update()
         self.assertEqual(len(page.posts), 4)
-        self.assertEqual(page.posts[0].title, "ФА и немного ТА")
+        self.assertEqual(page.posts[0].title, "[ФА и немного ТА](http://mfd.ru/forum/post/?id=14765341)")
         self.assertEqual(page.posts[0].md, res)
         self.assertEqual(page.num, 686)
         for x in page.posts:

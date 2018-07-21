@@ -13,7 +13,7 @@ class SinglePost:
     md: str = field(default_factory=str)
 
     def format(self) -> str:
-        return self.title + "\n" + self.md
+        return f"{self.title}\n{self.md}"
 
 
 @dataclass
@@ -33,7 +33,8 @@ class AbstractSource(metaclass=ABCMeta):
     def check_update(self) -> Page:
         pass
 
-    def pretty_text(self, html, baseurl) -> str:
+    @staticmethod
+    def pretty_text(html, baseurl) -> str:
         import html2text
         h = html2text.HTML2Text(baseurl=baseurl, bodywidth=40)
         # Небольшие изощрения с li
@@ -113,7 +114,12 @@ class AlenkaNews(AbstractSource):
     def check_update(self) -> Page:
         bs = BeautifulSoup(self.generator(), "html.parser")
         title = "ALЁNKA CAPITAL News: "
-        el = [SinglePost(md=self.pretty_text(p, self.url).strip(), title=title) for p in bs.select("li.news__item")]
+        items = [item for item in bs.select("li.news__item")]
+        el = []
+        for item in items:
+            parse = [str(p) for p in item.select('.news__side, .news__name')]
+            el.append(SinglePost(md=self.pretty_text(''.join(parse), self.url), title=title))
+
         return Page(posts=el)
 
 

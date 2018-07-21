@@ -23,6 +23,6 @@ class TestDataBase(TestCase):
             thread.set_generator(lambda x: text)
 
         thread.add_data(84424)
-        print(db.update("test", thread.check_update()))
+        db.update("test", thread.check_update())
         for i in range(5):
-            print(db.update("test", thread.check_update()))
+            self.assertEqual(db.update("test", thread.check_update()), [])
