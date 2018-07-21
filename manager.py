@@ -17,11 +17,12 @@ class Data:
 
 
 class Manager:
-    ADD_ALENKA = "add_alenka"               # Включить новости с аленки
-    REMOVE_ALENKA = "remove_alenka"         # Выключить новости с аленки
-    ADD_MFD_USER = "add_mfd_user"           # + id - Добавить mfd пользователя по id
-    REMOVE_MFD_USER = "remove_mfd_user"     # + id - Удалить mfd пользователя по id
-    ADD_MFD_THREAD = "add_mfd_thread"       # + id - Добавить mfd форум по id
+    db: DataBase
+    ADD_ALENKA = "add_alenka"  # Включить новости с аленки
+    REMOVE_ALENKA = "remove_alenka"  # Выключить новости с аленки
+    ADD_MFD_USER = "add_mfd_user"  # + id - Добавить mfd пользователя по id
+    REMOVE_MFD_USER = "remove_mfd_user"  # + id - Удалить mfd пользователя по id
+    ADD_MFD_THREAD = "add_mfd_thread"  # + id - Добавить mfd форум по id
     REMOVE_MFD_THREAD = "remove_mfd_tread"  # + id - Удалить mfd форум по id
 
     def __init__(self):

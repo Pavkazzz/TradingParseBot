@@ -38,7 +38,12 @@ class AbstractSource(metaclass=ABCMeta):
         import html2text
         h = html2text.HTML2Text(baseurl=baseurl, bodywidth=40)
         # Небольшие изощрения с li
-        return h.handle(str(html).replace('<li', '<div').replace("</li>", "</div>")).strip()
+
+        html_to_parse = str(html).replace('<li', '<div').replace("</li>", "</div>")
+        if '[' in html_to_parse and ']' in html_to_parse:
+            html_to_parse = html_to_parse.replace('[', '{').replace(']', '}')
+
+        return h.handle(html_to_parse).strip()
 
 
 class DataSource(AbstractSource):
@@ -92,7 +97,7 @@ class MfdUserPostSource(MfdSource):
 
 class MfdUserCommentSource(MfdSource):
     def __init__(self, data=None):
-        super().__init__(lambda x: requests.get(self.url.format(id=x)).content, "h3.mfd-post-thread-subject > a")
+        super().__init__(lambda x: requests.get(self.url.format(id=x)).content, 'h3.mfd-post-thread-subject > a')
         self.url = "http://lite.mfd.ru/forum/poster/comments/?id={id}"
         if data is not None:
             self.add_data(data)

@@ -79,6 +79,6 @@ dispatcher.add_handler(CommandHandler('settings', settings))
 dispatcher.add_handler(CommandHandler('test', formation_text))
 dispatcher.add_handler(CommandHandler('check_new', check_new))
 j = updater.job_queue
-# job_minute = j.run_repeating(check_update, interval=60, first=0)
+job_minute = j.run_repeating(check_update, interval=60, first=0)
 updater.start_polling()
 updater.idle()

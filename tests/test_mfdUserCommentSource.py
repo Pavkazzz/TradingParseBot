@@ -12,7 +12,7 @@ class TestMfdUserCommentSource(TestCase):
         post.add_data(71921)
         page = post.check_update()
         self.assertEqual(len(page.posts), 4)
-        self.assertEqual(page.posts[0].title, "[[Блоги] Июль](http://lite.mfd.ru/blogs/posts/view/?id=37688)")
+        self.assertEqual(page.posts[0].title, "[{Блоги} Июль](http://lite.mfd.ru/blogs/posts/view/?id=37688)")
         for x in page.posts:
             self.assertNotEqual(len(x.title), 0)
             self.assertNotEqual(len(x.md), 0)
