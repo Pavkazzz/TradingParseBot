@@ -5,7 +5,6 @@ from hashlib import blake2s
 import json
 import pickle
 
-
 class DataBase:
     def __init__(self):
         self.data_file = "database.json"
@@ -37,11 +36,12 @@ class DataBase:
 
     # Создаем файл бд и приводим в изначальное состояние
     def init_database(self):
-        with open(self.data_file, 'r+') as database:
-            try:
+        try:
+            with open(self.data_file, 'r') as database:
                 json.load(database)
-            except json.decoder.JSONDecodeError:
-                print(f"Не могу прочитать {self.data_file}, создаю новый")
+        except (json.decoder.JSONDecodeError, FileNotFoundError) as e:
+            print(f"Не могу прочитать {self.data_file}, создаю новый")
+            with open(self.data_file, 'w+') as database:
                 init = {}
                 json.dump(init, database)
 
@@ -54,7 +54,7 @@ class DataBase:
         try:
             with open(self.user_file, 'rb') as f:
                 res = pickle.load(f)
-        except Exception as e:
-            print(e)
+        except FileNotFoundError as e:
+            self.save_user_data(res)
 
         return res

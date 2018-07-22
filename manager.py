@@ -6,7 +6,6 @@ from typing import List
 from database import DataBase
 import sources
 import typing
-import sys
 
 
 @dataclass
