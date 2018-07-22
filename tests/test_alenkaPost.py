@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from typing import Callable
+import time
 from unittest import TestCase
 from sources import AlenkaPost, Page
 
@@ -33,3 +33,13 @@ class TestAlenkaNews(TestCase):
         self.assertGreater(len(page.posts), 0)
         for x in page.posts:
             self.assertNotEqual(len(x.md), 0)
+
+    def test_cache(self):
+        post = AlenkaPost()
+        t = time.time()
+        post.check_update()
+        t_load = time.time()
+        for _ in range(10):
+            post.check_update()
+        t_cache = time.time()
+        self.assertLess(t_load - t, t_cache - t_load)

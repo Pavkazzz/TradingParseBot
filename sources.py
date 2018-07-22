@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 
 import requests
+import requests_cache
 import typing
 from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass, field
 from bs4 import BeautifulSoup
-
 
 @dataclass
 class SinglePost:
@@ -23,11 +23,16 @@ class Page:
 
 
 class AbstractSource(metaclass=ABCMeta):
-    def __init__(self, generator):
+    def __init__(self, generator, time_cache=60):
         self.generator = generator
+        self.time_cache = time_cache
 
     def set_generator(self, generator):
         self.generator = generator
+
+    @property
+    def session(self):
+        return requests_cache.CachedSession(backend='sqlite', expire_after=self.time_cache)
 
     @abstractmethod
     def check_update(self) -> Page:
@@ -88,32 +93,26 @@ class MfdSource(DataSource):
 
 
 class MfdUserPostSource(MfdSource):
-    def __init__(self, data=None):
-        super().__init__(lambda x: requests.get(self.url.format(id=x)).content, "h3.mfd-post-thread-subject > a")
+    def __init__(self):
+        super().__init__(lambda x: self.session.get(self.url.format(id=x)).content, "h3.mfd-post-thread-subject > a")
         self.url = "http://lite.mfd.ru/forum/poster/posts/?id={id}"
-        if data is not None:
-            self.add_data(data)
 
 
 class MfdUserCommentSource(MfdSource):
-    def __init__(self, data=None):
-        super().__init__(lambda x: requests.get(self.url.format(id=x)).content, 'h3.mfd-post-thread-subject > a')
+    def __init__(self):
+        super().__init__(lambda x: self.session.get(self.url.format(id=x)).content, 'h3.mfd-post-thread-subject > a')
         self.url = "http://lite.mfd.ru/forum/poster/comments/?id={id}"
-        if data is not None:
-            self.add_data(data)
 
 
 class MfdForumThreadSource(MfdSource):
-    def __init__(self, data=None):
-        super().__init__(lambda x: requests.get(self.url.format(id=x)).content, "div.mfd-post-top-0 > a")
+    def __init__(self):
+        super().__init__(lambda x: self.session.get(self.url.format(id=x)).content, "div.mfd-post-top-0 > a")
         self.url = "http://lite.mfd.ru/forum/thread/?id={id}"
-        if data is not None:
-            self.add_data(data)
 
 
 class AlenkaNews(AbstractSource):
     def __init__(self):
-        super().__init__(lambda: requests.get(self.url).content)
+        super().__init__(lambda: self.session.get(self.url).content)
         self.url = "https://alenka.capital"
 
     def check_update(self) -> Page:
@@ -130,7 +129,7 @@ class AlenkaNews(AbstractSource):
 
 class AlenkaPost(AbstractSource):
     def __init__(self):
-        super().__init__(lambda: requests.get(self.url).content)
+        super().__init__(lambda: self.session.get(self.url).content, 60*5)
         self.url = "https://alenka.capital"
 
     def check_update(self) -> Page:

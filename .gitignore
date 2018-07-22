@@ -9,6 +9,7 @@ lib64
 venv/
 man/*
 src/*
+*.sqlite
 pyvenv.cfg
 pip-selfcheck.json
 nohup.out

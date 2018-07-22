@@ -61,6 +61,12 @@ class Manager:
 
         return res
 
+    def settings(self, chat_id):
+        if chat_id in self.users_subscription:
+            return self.users_subscription[chat_id]
+        else:
+            return "Пользователь не найден"
+
     def check_new(self, chat_id) -> List[str]:
         res: List[str] = []
         if chat_id in self.users_subscription:
@@ -76,12 +82,6 @@ class Manager:
         # remove duplicates
         res = list(set(res))
         return res
-
-    def settings(self, chat_id):
-        if chat_id in self.users_subscription:
-            return self.users_subscription[chat_id]
-        else:
-            return "Пользователь не найден"
 
     def check_all(self):
         chat_list = []
