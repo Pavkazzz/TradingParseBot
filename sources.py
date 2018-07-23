@@ -32,7 +32,7 @@ class AbstractSource(metaclass=ABCMeta):
 
     @property
     def session(self):
-        return requests_cache.CachedSession(backend='sqlite', expire_after=self.time_cache)
+        return requests_cache.CachedSession(cache_name='data/cache', backend='sqlite', expire_after=self.time_cache)
 
     @abstractmethod
     def check_update(self) -> Page:

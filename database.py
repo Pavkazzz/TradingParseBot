@@ -7,8 +7,8 @@ import pickle
 
 class DataBase:
     def __init__(self, clear=False):
-        self.data_file = "database.json"
-        self.user_file = "users.pkl"
+        self.data_file = "data/database.json"
+        self.user_file = "data/users.pkl"
         self.init_database()
         if clear:
             self.create_db()
