@@ -6,10 +6,13 @@ import json
 import pickle
 
 class DataBase:
-    def __init__(self):
+    def __init__(self, clear=False):
         self.data_file = "database.json"
         self.user_file = "users.pkl"
         self.init_database()
+        if clear:
+            self.create_db()
+            self.save_user_data({})
 
     def update(self, key, page: Page) -> typing.List[str]:
         posts = [md.format() for md in page.posts]
@@ -41,9 +44,12 @@ class DataBase:
                 json.load(database)
         except (json.decoder.JSONDecodeError, FileNotFoundError) as e:
             print(f"Не могу прочитать {self.data_file}, создаю новый")
-            with open(self.data_file, 'w+') as database:
-                init = {}
-                json.dump(init, database)
+            self.create_db()
+
+    def create_db(self):
+        with open(self.data_file, 'w+') as database:
+            init = {}
+            json.dump(init, database)
 
     def save_user_data(self, users):
         with open(self.user_file, 'wb') as f:

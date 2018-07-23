@@ -24,8 +24,8 @@ class Manager:
     ADD_MFD_THREAD = "add_mfd_thread"  # + id - Добавить mfd форум по id
     REMOVE_MFD_THREAD = "remove_mfd_tread"  # + id - Удалить mfd форум по id
 
-    def __init__(self):
-        self.db = DataBase()
+    def __init__(self, clear_start=False):
+        self.db = DataBase(clear_start)
         self.users_subscription = self.db.load_user_data()
 
     def start(self, chat_id):
@@ -54,8 +54,8 @@ class Manager:
             if self.REMOVE_MFD_THREAD in text:
                 thread_id = int(text.split(self.REMOVE_MFD_THREAD)[1])
                 self.users_subscription[chat_id].mfd_thread.remove(thread_id)
-        except Exception as e:
-            print("Unexpected error:", text, e)
+        except KeyError as e:
+            print(f"Unexpected key error: text={text}")
 
         self.db.save_user_data(self.users_subscription)
 
@@ -71,23 +71,18 @@ class Manager:
         res: List[str] = []
         if chat_id in self.users_subscription:
             if self.users_subscription[chat_id].alenka:
-                res += self.db.update("alenka_news", sources.AlenkaNews().check_update())
-                res += self.db.update("alenka_post", sources.AlenkaPost().check_update())
+                res += self.db.update(f"alenka_news {chat_id}", sources.AlenkaNews().check_update())
+                res += self.db.update(f"alenka_post {chat_id}", sources.AlenkaPost().check_update())
             for user in self.users_subscription[chat_id].mfd_user:
-                res += self.db.update("mfd_user_comment", sources.MfdUserCommentSource().add_data(user).check_update())
-                res += self.db.update("mfd_user_post", sources.MfdUserPostSource().add_data(user).check_update())
+                res += self.db.update(f"mfd_user_comment {chat_id}", sources.MfdUserCommentSource().add_data(user).check_update())
+                res += self.db.update(f"mfd_user_post {chat_id}", sources.MfdUserPostSource().add_data(user).check_update())
             for thread in self.users_subscription[chat_id].mfd_thread:
-                res += self.db.update("mfd_thread", sources.MfdForumThreadSource().add_data(thread).check_update())
+                res += self.db.update(f"mfd_thread {chat_id}", sources.MfdForumThreadSource().add_data(thread).check_update())
 
         # remove duplicates
         res = list(set(res))
         return res
 
     def check_all(self):
-        chat_list = []
-        data_list = []
         for user in self.users_subscription:
-            chat_list.append(user)
-            data_list.append(self.check_new(user))
-
-        return chat_list, data_list
+            yield user, self.check_new(user)

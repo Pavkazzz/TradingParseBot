@@ -2,10 +2,8 @@
 import logging
 import telegram
 from telegram.ext import Updater, CommandHandler
-from settings import token
+from settings import token, REQUEST_KWARGS
 from manager import Manager
-
-import sources
 
 manager = Manager()
 
@@ -25,11 +23,8 @@ def new_command(bot, update):
 
 
 def check_update(bot, job):
-    chat_list, data_list = manager.check_all()
-    assert len(chat_list), len(data_list)
-
-    for i in range(len(chat_list)):
-        send_data(bot, chat_list[i], data_list[i])
+    for chat, data in manager.check_all():
+        send_data(bot, chat, data)
 
 def check_new(bot, update):
     chat_id = update.message.chat_id
@@ -66,7 +61,7 @@ def settings(bot, update):
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     level=logging.INFO)
 logger = logging.getLogger(__name__)
-updater = Updater(token)
+updater = Updater(token, request_kwargs=REQUEST_KWARGS)
 dispatcher = updater.dispatcher
 dispatcher.add_handler(CommandHandler('start', start))
 dispatcher.add_handler(CommandHandler(manager.ADD_ALENKA, new_command))
