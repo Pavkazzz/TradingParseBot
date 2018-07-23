@@ -63,6 +63,7 @@ class DataSource(AbstractSource):
     def add_data(self, data):
         if self.data_list.count(data) == 0:
             self.data_list.append(data)
+        return self
 
     def remove_data(self, data):
         try:

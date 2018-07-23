@@ -74,10 +74,10 @@ class Manager:
                 res += self.db.update("alenka_news", sources.AlenkaNews().check_update())
                 res += self.db.update("alenka_post", sources.AlenkaPost().check_update())
             for user in self.users_subscription[chat_id].mfd_user:
-                res += self.db.update("mfd_user_comment", sources.MfdUserCommentSource(user).check_update())
-                res += self.db.update("mfd_user_post", sources.MfdUserPostSource(user).check_update())
+                res += self.db.update("mfd_user_comment", sources.MfdUserCommentSource().add_data(user).check_update())
+                res += self.db.update("mfd_user_post", sources.MfdUserPostSource().add_data(user).check_update())
             for thread in self.users_subscription[chat_id].mfd_thread:
-                res += self.db.update("mfd_thread", sources.MfdForumThreadSource(thread).check_update())
+                res += self.db.update("mfd_thread", sources.MfdForumThreadSource().add_data(thread).check_update())
 
         # remove duplicates
         res = list(set(res))
