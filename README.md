@@ -4,7 +4,7 @@ Telegram bot for parsing web
 # Todo: 
 pass the telegram token throw env
 
-# Requiments
+# Requirements
 - Python 3.7+
 
 # Usage:
