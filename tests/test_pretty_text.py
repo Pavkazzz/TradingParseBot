@@ -52,5 +52,10 @@ class TestAbstractSource(TestCase):
 
     def test_link_text(self):
         html = '<div><div class="mfd-quote-text">от нзт, как скинули и на смарте поддержите плюсиками: <br>  <br> <a href="https://vk.com/nztrusfond?w=wall-165878204_639" rel="nofollow" target="_blank">https://vk.com/nztrusfond?w=wall-165878204_639</a> <br> <a href="https://smart-lab.ru/blog/483422.php" rel="nofollow" target="_blank">https://smart-lab.ru/blog/483422.php</a></div></div><button class="mfd-button-attention" data-id="14792209" name="reportAbuse" title="Пожаловаться на это сообщение" type="button"></button>'
+        text = ("от нзт, как скинули и на смарте\n"
+                "поддержите плюсиками: \n"
+                " \n"
+                "[https://vk.com/nztrusfond?w=wall-165878204_639](https://vk.com/nztrusfond?w=wall-165878204_639)   \n"
+                "[https://smart-lab.ru/blog/483422.php](https://smart-lab.ru/blog/483422.php)")
         res = AbstractSource.pretty_text(html, "http://mfd.ru")
-        print(res)
+        self.assertLess(text, res)
