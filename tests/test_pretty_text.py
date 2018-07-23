@@ -23,7 +23,7 @@ class TestAbstractSource(TestCase):
         res = "[Спокойный Скрудж Макдак](http://mfd.ru/forum/poster/?id=88887)"
         self.assertEqual(text, res)
 
-    def test_title_comment(self):
+    def test_alenka_title_comment(self):
         html = ("<li class=\"news__item\">\n"
                 "<div class=\"news__counter\">\n"
                 "<a href=\"/post/h5_i_magnit_dvigayut_figuryi_39017/?comment\" title=\"1 комментарий\">1</a>\n"
@@ -44,9 +44,13 @@ class TestAbstractSource(TestCase):
                "##  [ Х5 и \"Магнит\" двигают фигуры](https://alenka.capital/post/h5_i_magnit_dvigayut_figuryi_39017/)")
         self.assertEqual(res, text)
 
-    def test_title_comment(self):
+    def test_mfd_title_comment(self):
         html = """<a href="http://forum.mfd.ru/blogs/posts/view/?id=37688" rel="nofollow">[Блоги] Июль</a>"""
-        html = html.replace('[', '{').replace(']', '}')
         res = AbstractSource.pretty_text(html, "http://mfd.ru")
         text = """[{Блоги} Июль](http://forum.mfd.ru/blogs/posts/view/?id=37688)"""
         self.assertEqual(res, text)
+
+    def test_link_text(self):
+        html = '<div><div class="mfd-quote-text">от нзт, как скинули и на смарте поддержите плюсиками: <br>  <br> <a href="https://vk.com/nztrusfond?w=wall-165878204_639" rel="nofollow" target="_blank">https://vk.com/nztrusfond?w=wall-165878204_639</a> <br> <a href="https://smart-lab.ru/blog/483422.php" rel="nofollow" target="_blank">https://smart-lab.ru/blog/483422.php</a></div></div><button class="mfd-button-attention" data-id="14792209" name="reportAbuse" title="Пожаловаться на это сообщение" type="button"></button>'
+        res = AbstractSource.pretty_text(html, "http://mfd.ru")
+        print(res)
