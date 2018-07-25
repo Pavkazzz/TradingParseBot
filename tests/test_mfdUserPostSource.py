@@ -3,6 +3,7 @@
 from unittest import TestCase
 from sources import MfdUserPostSource
 
+
 class TestUserMfdPostSource(TestCase):
     def test_local_generator(self):
         res = (
@@ -58,4 +59,34 @@ class TestUserMfdPostSource(TestCase):
             self.assertNotEqual(len(x.title), 0)
             self.assertNotEqual(len(x.md), 0)
 
+    def test_resolve(self):
+        post = MfdUserPostSource()
+        links = ["http://lite.mfd.ru/forum/poster/?id=71921", "http://lite.mfd.ru/forum/poster/posts/?id=71921",
+                 "http://lite.mfd.ru/forum/poster/comments/?id=71921",
+                 "http://lite.mfd.ru/forum/poster/rating/?id=71921",
+                 "http://lite.mfd.ru/forum/poster/chart/?id=71921"]
+        for link in links:
+            tid, name = post.resolve_link(link)
+            self.assertEqual(tid, 71921)
+            self.assertEqual(name, "malishok")
 
+    def test_exact_find(self):
+        post = MfdUserPostSource()
+        user = "malishok"
+        res = post.find_user(user)
+        self.assertEqual(len(res), 1)
+        self.assertEqual(res[0][1], user)
+
+    def test_exact_find2(self):
+        post = MfdUserPostSource()
+        user = "анонимный 666"
+        res = post.find_user(user)
+        self.assertEqual(len(res), 1)
+        self.assertEqual(res[0][1], user)
+
+    def test_find(self):
+        post = MfdUserPostSource()
+        user = "анонимный"
+        text = ((70935, 'Анонимный 100', 14, 3), (65352, 'анонимный 666', 3832, 41600), (39202, 'Анонимный-1', 42, 6))
+        res = post.find_user(user)
+        self.assertEqual(res, text)

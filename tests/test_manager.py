@@ -1,5 +1,5 @@
 from unittest import TestCase
-from manager import Manager
+from manager import Manager, SingleData
 import random
 
 class TestManager(TestCase):
@@ -14,15 +14,17 @@ class TestManager(TestCase):
         self.assertEqual(manager.settings(chat_id).alenka, False)
 
         user_id = random.randint(0, 10000)
-        manager.new_command(chat_id, f"{Manager.ADD_MFD_USER} {user_id}")
-        self.assertEqual(manager.settings(chat_id).mfd_user, [user_id])
-        manager.new_command(chat_id, f"{Manager.REMOVE_MFD_USER} {user_id}")
+        user_string = "Название пользователя"
+        manager.new_command(chat_id, Manager.ADD_MFD_USER, SingleData(user_id, user_string))
+        self.assertEqual(manager.settings(chat_id).mfd_user, [SingleData(user_id, user_string)])
+        manager.new_command(chat_id, Manager.REMOVE_MFD_USER, SingleData(user_id, user_string))
         self.assertEqual(manager.settings(chat_id).mfd_user, [])
 
         thread_id = random.randint(0, 10000)
-        manager.new_command(chat_id, f"{Manager.ADD_MFD_THREAD} {thread_id}")
-        self.assertEqual(manager.settings(chat_id).mfd_thread, [thread_id])
-        manager.new_command(chat_id, f"{Manager.REMOVE_MFD_THREAD} {thread_id}")
+        thread_string = "Название треда"
+        manager.new_command(chat_id, Manager.ADD_MFD_THREAD, SingleData(thread_id, thread_string))
+        self.assertEqual(manager.settings(chat_id).mfd_thread, [SingleData(thread_id, thread_string)])
+        manager.new_command(chat_id, Manager.REMOVE_MFD_THREAD, SingleData(thread_id, thread_string))
         self.assertEqual(manager.settings(chat_id).mfd_thread, [])
 
     def test_me(self):
@@ -30,15 +32,15 @@ class TestManager(TestCase):
         chat_id = random.randint(0, 1000)
         manager.start(chat_id)
         manager.new_command(chat_id, Manager.ADD_ALENKA)
-        manager.new_command(chat_id, f"/{Manager.ADD_MFD_USER} 71921")
-        manager.new_command(chat_id, f"/{Manager.ADD_MFD_THREAD} 84424")
+        manager.new_command(chat_id, Manager.ADD_MFD_USER, SingleData(71921, "malishok"))
+        manager.new_command(chat_id, Manager.ADD_MFD_THREAD, SingleData(84424, "ФА и немного ТА"))
         manager.check_new(chat_id)
 
     def test_all(self):
         self.maxDiff = None
         manager = Manager(clear_start=True)
         n = 10
-        chats_id = [random.randint(i*n, i*n+n) for i in range(n)]
+        chats_id = [random.randint(i*n+1, i*n+n) for i in range(n)]
         for chat in chats_id:
             manager.start(chat)
             manager.new_command(chat, Manager.ADD_ALENKA)

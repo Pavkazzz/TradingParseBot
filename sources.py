@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
-
-import requests
+from typing import List, Tuple
+from urllib.parse import quote
 import requests_cache
 import typing
 from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass, field
 from bs4 import BeautifulSoup
+
 
 @dataclass
 class SinglePost:
@@ -98,6 +99,24 @@ class MfdUserPostSource(MfdSource):
         super().__init__(lambda x: self.session.get(self.url.format(id=x)).content, "h3.mfd-post-thread-subject > a")
         self.url = "http://lite.mfd.ru/forum/poster/posts/?id={id}"
 
+    def resolve_link(self, url):
+        bs = BeautifulSoup(self.session.get(url).content, "html.parser")
+        name = bs.select_one("div.mfd-header h1").text.strip().split(' ')[-1]
+        tid = int(bs.select_one("div.mfd-header div a").attrs['href'].split('?id=')[1])
+        return tid, name
+
+    def find_user(self, param) -> Tuple[Tuple[int, str, int, int]]:
+        url = f"http://lite.mfd.ru/forum/users/?search={quote(param)}"
+        bs = BeautifulSoup(self.session.get(url).content, "html.parser")
+        ids = [int(user.next) for user in bs.select("tbody tr td.mfd-item-id")]
+        names = [str(user.next.text) for user in bs.select("tbody tr td.mfd-item-nickname")]
+        post_counts = [int(user.next.text) for user in bs.select("tbody tr td.mfd-item-postcount")]
+        rating = [int(user.next.text) for user in bs.select("tbody tr td.mfd-item-rating")]
+
+        users = tuple(zip(ids, names, post_counts, rating))
+        active_users = tuple(filter(lambda x: x[2] > 0 and x[3] > 0, users))
+        return active_users
+
 
 class MfdUserCommentSource(MfdSource):
     def __init__(self):
@@ -109,6 +128,25 @@ class MfdForumThreadSource(MfdSource):
     def __init__(self):
         super().__init__(lambda x: self.session.get(self.url.format(id=x)).content, "div.mfd-post-top-0 > a")
         self.url = "http://lite.mfd.ru/forum/thread/?id={id}"
+
+    def resolve_link(self, url):
+        bs = BeautifulSoup(self.session.get(url).content, "html.parser")
+        tid = int(bs.select_one("a.mfd-link-dotted").attrs['href'].split('?threadId=')[1])
+        name = bs.select_one("div.mfd-header").text.strip()
+        return tid, name
+
+    def find_thread(self, param):
+        url = f"http://lite.mfd.ru/forum/search/?query=1+2+3+4+5+6+7+8+9+0+%D0%B0+%D0%B1+%D0%B2+%D0%B3+%D0%B4&method" \
+              f"=Or&userQuery=&threadQuery={quote(param)}&from=&till= "
+        bs = BeautifulSoup(self.session.get(url).content, "html.parser")
+        title = [post.text for post in bs.select("h3.mfd-post-thread-subject > a")]
+        title = list(set(title))
+        if len(title) == 1:
+            href = "http://lite.mfd.ru"
+            href += bs.select_one("h3.mfd-post-thread-subject > a").attrs['href']
+            tid, name = self.resolve_link(href)
+            return title, tid, name
+        return title, None, None
 
 
 class AlenkaNews(AbstractSource):
@@ -130,7 +168,7 @@ class AlenkaNews(AbstractSource):
 
 class AlenkaPost(AbstractSource):
     def __init__(self):
-        super().__init__(lambda: self.session.get(self.url).content, 60*5)
+        super().__init__(lambda: self.session.get(self.url).content, 60 * 5)
         self.url = "https://alenka.capital"
 
     def check_update(self) -> Page:
