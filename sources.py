@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 from typing import List, Tuple
 from urllib.parse import quote
-import requests_cache
-import typing
 from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass, field
 from bs4 import BeautifulSoup
+from itertools import zip_longest
+import requests_cache
+import typing
 
 
 @dataclass
@@ -19,7 +20,6 @@ class SinglePost:
 
 @dataclass
 class Page:
-    num: int = field(default=0)
     posts: typing.List[SinglePost] = field(default_factory=list)
 
 
@@ -74,29 +74,30 @@ class DataSource(AbstractSource):
 
 
 class MfdSource(DataSource):
-    def __init__(self, generator, title_selector):
+    def __init__(self, generator, thread_selector=""):
         super().__init__(generator)
-        self.title_selector = title_selector
+        self.thread_selector = thread_selector
 
     def check_update(self) -> Page:
-        page_num = 0
         res = []
         for data in self.data_list:
             bs = BeautifulSoup(self.generator(data), "html.parser")
-            title = [self.pretty_text(p, "http://mfd.ru") for p in bs.select(self.title_selector)]
+            thread = [self.pretty_text(p, "http://mfd.ru") for p in bs.select(self.thread_selector)]
+            user = [self.pretty_text(p, "http://mfd.ru") for p in bs.select("div.mfd-post-top-0 > a",)]
+            link = [self.pretty_text(p, "http://mfd.ru") for p in bs.select("div.mfd-post-top-1",)]
             posts = [self.pretty_text(p, "http://mfd.ru") for p in bs.select("div.mfd-post-body-right")]
-            page_num = int(bs.select_one("a.mfd-paginator-selected").text)
 
-            if len(title) == len(posts) and len(title) > 0:
-                for i in range(len(title)):
-                    res.append(SinglePost(title[i], posts[i]))
+            tuple_title = tuple(zip_longest(thread, user, link, fillvalue=thread[0]))
+            title = [f"{title[0]}\n{title[1]}\n{title[2]}" for title in tuple_title]
+            res += [SinglePost(data[0], data[1]) for data in list(zip(title, posts))]
 
-        return Page(page_num, res)
+        return Page(res)
 
 
 class MfdUserPostSource(MfdSource):
     def __init__(self):
         super().__init__(lambda x: self.session.get(self.url.format(id=x)).content, "h3.mfd-post-thread-subject > a")
+
         self.url = "http://lite.mfd.ru/forum/poster/posts/?id={id}"
 
     def resolve_link(self, url):
@@ -120,13 +121,13 @@ class MfdUserPostSource(MfdSource):
 
 class MfdUserCommentSource(MfdSource):
     def __init__(self):
-        super().__init__(lambda x: self.session.get(self.url.format(id=x)).content, 'h3.mfd-post-thread-subject > a')
+        super().__init__(lambda x: self.session.get(self.url.format(id=x)).content, "h3.mfd-post-thread-subject > a")
         self.url = "http://lite.mfd.ru/forum/poster/comments/?id={id}"
 
 
 class MfdForumThreadSource(MfdSource):
     def __init__(self):
-        super().__init__(lambda x: self.session.get(self.url.format(id=x)).content, "div.mfd-post-top-0 > a")
+        super().__init__(lambda x: self.session.get(self.url.format(id=x)).content, ".mfd-header > h1")
         self.url = "http://lite.mfd.ru/forum/thread/?id={id}"
 
     def resolve_link(self, url):
@@ -163,7 +164,7 @@ class AlenkaNews(AbstractSource):
             parse = [str(p) for p in item.select('.news__side, .news__name')]
             el.append(SinglePost(md=self.pretty_text(''.join(parse), self.url), title=title))
 
-        return Page(posts=el)
+        return Page(el)
 
 
 class AlenkaPost(AbstractSource):
@@ -175,4 +176,4 @@ class AlenkaPost(AbstractSource):
         bs = BeautifulSoup(self.generator(), "html.parser")
         title = "ALЁNKA CAPITAL Post: "
         el = [SinglePost(md=self.pretty_text(p, self.url).strip(), title=title) for p in bs.select("div.feed__content")]
-        return Page(posts=el)
+        return Page(el)

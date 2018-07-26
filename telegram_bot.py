@@ -4,7 +4,7 @@ import telegram
 from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove, Bot
 from telegram.ext import Updater, CommandHandler, RegexHandler, Filters, MessageHandler
 from settings import token, REQUEST_KWARGS
-from manager import Manager, SingleData
+from manager import Manager
 
 manager = Manager()
 
@@ -29,7 +29,7 @@ def start(bot, update):
     chat_id = update.message.chat_id
     bot.send_message(chat_id=chat_id, text="Привет это бот для отслеживания блога mfd.ru и alenka.capital")
     manager.start(chat_id)
-    settings(bot, update)
+    key(bot, update)
 
 
 def check_update(bot, job):
@@ -61,7 +61,7 @@ dispatcher.add_handler(CommandHandler('start', start))
 
 # dispatcher.add_handler(CommandHandler('test', formation_text))
 
-
+# Начальная настройка клавиатуры
 def key(bot, update):
     global state
     state = IDLE

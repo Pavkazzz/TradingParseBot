@@ -42,9 +42,10 @@ class TestUserMfdPostSource(TestCase):
         post.add_data(71921)
         page = post.check_update()
         self.assertEqual(len(page.posts), 4)
-        self.assertEqual(page.posts[0].title, "[ФА и немного ТА](http://mfd.ru/forum/post/?id=14765341)")
+        self.assertEqual(page.posts[0].title, ("[ФА и немного ТА](http://mfd.ru/forum/post/?id=14765341)\n"
+                                               "[malishok](http://mfd.ru/forum/poster/?id=71921)\n"
+                                               "[17.07.2018 13:48](http://lite.mfd.ru/forum/post/?id=14765341)"))
         self.assertEqual(page.posts[0].md, res)
-        self.assertEqual(page.num, 686)
         for x in page.posts:
             self.assertNotEqual(len(x.title), 0)
             self.assertNotEqual(len(x.md), 0)
@@ -54,7 +55,6 @@ class TestUserMfdPostSource(TestCase):
         post.add_data(71921)
         page = post.check_update()
         self.assertGreater(len(page.posts), 0)
-        self.assertGreater(page.num, 0)
         for x in page.posts:
             self.assertNotEqual(len(x.title), 0)
             self.assertNotEqual(len(x.md), 0)
@@ -87,6 +87,5 @@ class TestUserMfdPostSource(TestCase):
     def test_find(self):
         post = MfdUserPostSource()
         user = "анонимный"
-        text = ((70935, 'Анонимный 100', 14, 3), (65352, 'анонимный 666', 3832, 41600), (39202, 'Анонимный-1', 42, 6))
         res = post.find_user(user)
-        self.assertEqual(res, text)
+        self.assertGreater(len(res), 0)

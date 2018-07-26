@@ -4,6 +4,8 @@ from sources import MfdForumThreadSource
 
 class TestMfdForumThreadSource(TestCase):
     def test_local_generator(self):
+        import sys
+        sys.setrecursionlimit(20000)
         thread = MfdForumThreadSource()
         with open("html/test_mfdForumThreadSourcePage.html", 'r', encoding="utf8") as html_page:
             text = html_page.read()
@@ -12,7 +14,9 @@ class TestMfdForumThreadSource(TestCase):
         page = thread.check_update()
         self.assertEqual(len(page.posts), 33)
         self.assertEqual(page.posts[0].title,
-                         "[Спокойный Скрудж Макдак](http://mfd.ru/forum/poster/?id=88887)")
+                         ("# ФА и немного ТА\n"
+                          "[Спокойный Скрудж Макдак](http://mfd.ru/forum/poster/?id=88887)\n"
+                          "[17.07.2018 12:02](http://lite.mfd.ru/forum/post/?id=14764606)"))
         for x in page.posts:
             self.assertNotEqual(len(x.title), 0)
             self.assertNotEqual(len(x.md), 0)

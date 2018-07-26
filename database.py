@@ -5,6 +5,7 @@ from hashlib import blake2s
 import json
 import pickle
 
+
 class DataBase:
     def __init__(self, clear=False):
         self.data_file = "data/database.json"

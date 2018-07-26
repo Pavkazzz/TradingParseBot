@@ -53,9 +53,26 @@ class TestAbstractSource(TestCase):
     def test_link_text(self):
         html = '<div><div class="mfd-quote-text">от нзт, как скинули и на смарте поддержите плюсиками: <br>  <br> <a href="https://vk.com/nztrusfond?w=wall-165878204_639" rel="nofollow" target="_blank">https://vk.com/nztrusfond?w=wall-165878204_639</a> <br> <a href="https://smart-lab.ru/blog/483422.php" rel="nofollow" target="_blank">https://smart-lab.ru/blog/483422.php</a></div></div><button class="mfd-button-attention" data-id="14792209" name="reportAbuse" title="Пожаловаться на это сообщение" type="button"></button>'
         text = ("от нзт, как скинули и на смарте\n"
-                "поддержите плюсиками: \n"
-                " \n"
+                "поддержите плюсиками:  \n"
+                "  \n"
                 "[https://vk.com/nztrusfond?w=wall-165878204_639](https://vk.com/nztrusfond?w=wall-165878204_639)   \n"
                 "[https://smart-lab.ru/blog/483422.php](https://smart-lab.ru/blog/483422.php)")
         res = AbstractSource.pretty_text(html, "http://mfd.ru")
-        self.assertLess(text, res)
+        self.assertEqual(text, res)
+
+    def test_link_title_text(self):
+        html = """<a class="mfd-poster-link" href="/forum/poster/?id=106833" rel="nofollow" title="ID: 106833">wolf_rider</a>"""
+        res = AbstractSource.pretty_text(html, "http://mfd.ru")
+        self.assertEqual(res, "[wolf_rider](http://mfd.ru/forum/poster/?id=106833)")
+
+    def test_dash(self):
+        html = """<div>@Discl_Bot - бот, не канал, но удобный </div>"""
+        text = AbstractSource.pretty_text(html, "https://alenka.capital")
+        res = "@Discl\_Bot - бот, не канал, но удобный"
+        self.assertEqual(text, res)
+
+    def test_smiles(self):
+        html = """<div><blockquote class="mfd-quote-14812030"><div class="mfd-quote-info"><a href="/forum/poster/?id=71921" rel="nofollow">malishok</a> @ <a href="/forum/post/?id=14812030" rel="nofollow">26.07.2018 11:04</a></div><blockquote class="mfd-quote-14811924"><div class="mfd-quote-info"><a href="/forum/poster/?id=99135" rel="nofollow">foxxx</a> @ <a href="/forum/post/?id=14811924" rel="nofollow">26.07.2018 10:56</a></div><div class="mfd-quote-text">Сергей, как оцениваете эффект от падения Facebook'a на амеров и на нас?</div></blockquote><div class="mfd-quote-text">для распадской плохо канеч, а в целом норм</div></blockquote><div class="mfd-quote-text"><span class="mfd-emoticon mfd-emoticon-grin"></span><span class="mfd-emoticon mfd-emoticon-grin"></span><span class="mfd-emoticon mfd-emoticon-grin"></span><span class="mfd-emoticon mfd-emoticon-grin"></span><span class="mfd-emoticon mfd-emoticon-grin"></span></div></div><button class="mfd-button-attention" data-id="14812062" name="reportAbuse" title="Пожаловаться на это сообщение" type="button"></button>"""
+        text = AbstractSource.pretty_text(html, "https://mfd.ru")
+        # TODO:
+        # print(text)
