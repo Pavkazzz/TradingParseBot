@@ -7,7 +7,7 @@ from bs4 import BeautifulSoup
 from itertools import zip_longest
 import requests_cache
 import typing
-
+import utils
 
 @dataclass
 class SinglePost:
@@ -49,6 +49,7 @@ class AbstractSource(metaclass=ABCMeta):
         if '[' in html_to_parse and ']' in html_to_parse:
             html_to_parse = html_to_parse.replace('[', '{').replace(']', '}')
 
+        html_to_parse = utils.transform_emoji(html_to_parse)
         return h.handle(html_to_parse).strip()
 
 

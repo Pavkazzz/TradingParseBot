@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from unittest import TestCase
 from sources import AbstractSource
 from bs4 import BeautifulSoup
@@ -7,13 +8,14 @@ class TestAbstractSource(TestCase):
     def test_pretty_text(self):
         html = """<div class="mfd-quote-text"><span class="mfd-emoticon mfd-emoticon-grin"></span><span class="mfd-emoticon mfd-emoticon-grin"></span><span class="mfd-emoticon mfd-emoticon-grin"></span></div><blockquote class="mfd-quote-14778526"><div class="mfd-quote-info"><a href="/forum/poster/?id=99552" rel="nofollow">chromatin</a> @ <a href="/forum/post/?id=14778526" rel="nofollow">19.07.2018 16:54</a></div><div class="mfd-quote-text">*TRUMP SAYS LOOKS FORWARD TO SECOND MEETING WITH PUTIN <br> Может быть, не надо. Второй такой встречи наш ФР может и не пережить 😁</div></blockquote>"""
         text = AbstractSource.pretty_text(html, "http://mfd.ru")
-        res = (
-            "| [chromatin](http://mfd.ru/forum/poster/?id=99552) @ [19.07.2018 16:54](http://mfd.ru/forum/post/?id=14778526)\n"
-            "|  \n"
-            "|  *TRUMP SAYS LOOKS FORWARD TO SECOND*\n"
-            "| MEETING WITH PUTIN  \n"
-            "| Может быть, не надо. Второй такой\n"
-            "| встречи наш ФР может и не пережить 😁")
+        res = ("😁😁😁\n"
+               "\n"
+               "| [chromatin](http://mfd.ru/forum/poster/?id=99552) @ [19.07.2018 16:54](http://mfd.ru/forum/post/?id=14778526)\n"
+               "|  \n"
+               "|  *TRUMP SAYS LOOKS FORWARD TO SECOND*\n"
+               "| MEETING WITH PUTIN  \n"
+               "| Может быть, не надо. Второй такой\n"
+               "| встречи наш ФР может и не пережить 😁")
 
         self.assertEqual(text, res)
 
@@ -72,7 +74,7 @@ class TestAbstractSource(TestCase):
         self.assertEqual(text, res)
 
     def test_smiles(self):
-        html = """<div><blockquote class="mfd-quote-14812030"><div class="mfd-quote-info"><a href="/forum/poster/?id=71921" rel="nofollow">malishok</a> @ <a href="/forum/post/?id=14812030" rel="nofollow">26.07.2018 11:04</a></div><blockquote class="mfd-quote-14811924"><div class="mfd-quote-info"><a href="/forum/poster/?id=99135" rel="nofollow">foxxx</a> @ <a href="/forum/post/?id=14811924" rel="nofollow">26.07.2018 10:56</a></div><div class="mfd-quote-text">Сергей, как оцениваете эффект от падения Facebook'a на амеров и на нас?</div></blockquote><div class="mfd-quote-text">для распадской плохо канеч, а в целом норм</div></blockquote><div class="mfd-quote-text"><span class="mfd-emoticon mfd-emoticon-grin"></span><span class="mfd-emoticon mfd-emoticon-grin"></span><span class="mfd-emoticon mfd-emoticon-grin"></span><span class="mfd-emoticon mfd-emoticon-grin"></span><span class="mfd-emoticon mfd-emoticon-grin"></span></div></div><button class="mfd-button-attention" data-id="14812062" name="reportAbuse" title="Пожаловаться на это сообщение" type="button"></button>"""
+        html = """<span class="mfd-emoticon mfd-emoticon-grin"></span><span class="mfd-emoticon mfd-emoticon-grin"></span><span class="mfd-emoticon mfd-emoticon-grin"></span><span class="mfd-emoticon mfd-emoticon-grin"></span><span class="mfd-emoticon mfd-emoticon-grin"></span>"""
         text = AbstractSource.pretty_text(html, "https://mfd.ru")
-        # TODO:
-        # print(text)
+        res = "😁😁😁😁😁"
+        self.assertEqual(text, res)
