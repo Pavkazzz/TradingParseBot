@@ -65,12 +65,6 @@ class TestManager(TestCase):
         res2 = [post for post in manager.check_new_all()]
         res3 = [post for post in manager.check_new_all()]
 
-        print(res1)
-        print(res2)
-        print(res3)
-
         self.assertEqual(res1[0][1], [])
         self.assertEqual(res2[0][1], [])
         self.assertEqual(res3[0][1], [])
-
-        # self.assertEqual(len(res2), 0)

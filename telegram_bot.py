@@ -5,6 +5,7 @@ from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove, Bot
 from telegram.ext import Updater, CommandHandler, RegexHandler, Filters, MessageHandler
 from settings import token, REQUEST_KWARGS
 from manager import Manager
+from sources import SmartLab
 
 manager = Manager()
 
@@ -27,7 +28,7 @@ def build_menu(buttons,
 # Функция старта
 def start(bot, update):
     chat_id = update.message.chat_id
-    bot.send_message(chat_id=chat_id, text="Привет это бот для отслеживания блога mfd.ru и alenka.capital")
+    # bot.send_message(chat_id=chat_id, text="Привет это бот для отслеживания блога mfd.ru и alenka.capital")
     manager.start(chat_id)
     key(bot, update)
 
@@ -46,9 +47,32 @@ def send_data(bot, chat_id, data):
             print(e, msg)
 
 
-def print_settings(bot, update):
+def print_settings(bot: Bot, update):
     chat_id = update.message.chat_id
-    bot.send_message(chat_id=chat_id, text=str(manager.settings(chat_id)))
+    current_settings = manager.settings(chat_id)
+    msg = ""
+    if current_settings.alenka:
+        msg += "Вы подписаны на новости с [https://alenka.capital](alenka.capital)\n\n"
+
+    if len(current_settings.mfd_user) == 1:
+        for user in current_settings.mfd_user:
+            msg += f"На пользователя [{user.name}](http://forum.mfd.ru/forum/poster/?id={user.id})\n"
+    if len(current_settings.mfd_user) > 1:
+        msg += "На пользователей: \n"
+        for user in current_settings.mfd_user:
+            msg += f"[{user.name}](http://forum.mfd.ru/forum/poster/?id={user.id})\n"
+
+    msg += "\n"
+
+    if len(current_settings.mfd_thread) == 1:
+        for thread in current_settings.mfd_thread:
+            msg += f"На тему [{thread.name}](http://forum.mfd.ru/forum/thread/?id={thread.id})"
+    if len(current_settings.mfd_thread) > 1:
+        msg += f"На темы: \n"
+        for thread in current_settings.mfd_thread:
+            msg += f"[{thread.name}](http://forum.mfd.ru/forum/thread/?id={thread.id})\n"
+
+    bot.send_message(chat_id=chat_id, text=msg, parse_mode=telegram.ParseMode.MARKDOWN)
 
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -66,9 +90,9 @@ def key(bot, update):
     global state
     state = IDLE
 
-    options = ["Настройки", "About"]
+    options = ["Подписки", "About"]
     reply_markup = ReplyKeyboardMarkup(build_menu(options, n_cols=2, header_buttons=["Смартлаб топ 24 часа"]))
-    bot.send_message(chat_id=update.message.chat_id, text="Клавиатура", reply_markup=reply_markup)
+    bot.send_message(chat_id=update.message.chat_id, text="Привет", reply_markup=reply_markup)
 
 
 def keyboard_markup(options=None, header=None, n_col=2):
@@ -77,6 +101,20 @@ def keyboard_markup(options=None, header=None, n_col=2):
     else:
         return ReplyKeyboardMarkup(build_menu(options, n_cols=n_col, footer_buttons=["Отмена"], header_buttons=header))
 
+
+def smartlab(bot: Bot, update):
+    cid = update.message.chat_id
+    sl = SmartLab()
+
+    bot.send_message(cid, sl.check_update().posts[0].format(), parse_mode=telegram.ParseMode.MARKDOWN,
+                     disable_web_page_preview=True)
+
+def about(bot: Bot, update):
+    cid = update.message.chat_id
+    bot.send_message(cid, "Привет. Я бот для оповещения. Не обижайте меня и я буду верно вам служить. \n"
+                          "Умею искать пользователей и темы. Оповещать о новых сообщениях пользователей и в темах. \n"
+                          "Могу расказать когда появляется новая тема на алёнке. \n"
+                          "Пользуйтесь на здоровье!")
 
 def settings(bot, update):
     user = manager.settings(update.message.chat_id)
@@ -88,7 +126,7 @@ def settings(bot, update):
 
     options = [alenka, "MFD.ru тема", "MFD.ru пользователи"]
 
-    bot.send_message(update.message.chat_id, 'Настройки: ',
+    bot.send_message(update.message.chat_id, 'Подписки: ',
                      reply_markup=keyboard_markup(options, ["Текущие подписки"], 3))
 
 
@@ -249,7 +287,10 @@ def mfd_add_thread(bot, update):
 
 dispatcher.add_handler(CommandHandler('key', key))
 
-dispatcher.add_handler(RegexHandler('^Настройки$', settings))
+dispatcher.add_handler(RegexHandler('^Смартлаб топ 24 часа$', smartlab))
+dispatcher.add_handler(RegexHandler('^About', about))
+
+dispatcher.add_handler(RegexHandler('^Подписки$', settings))
 dispatcher.add_handler(RegexHandler('^Текущие подписки$', print_settings))
 
 dispatcher.add_handler(RegexHandler('^Отмена$', key))

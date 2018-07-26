@@ -9,6 +9,7 @@ import requests_cache
 import typing
 import utils
 
+
 @dataclass
 class SinglePost:
     title: str = field(default_factory=str)
@@ -84,8 +85,8 @@ class MfdSource(DataSource):
         for data in self.data_list:
             bs = BeautifulSoup(self.generator(data), "html.parser")
             thread = [self.pretty_text(p, "http://mfd.ru") for p in bs.select(self.thread_selector)]
-            user = [self.pretty_text(p, "http://mfd.ru") for p in bs.select("div.mfd-post-top-0 > a",)]
-            link = [self.pretty_text(p, "http://mfd.ru") for p in bs.select("div.mfd-post-top-1",)]
+            user = [self.pretty_text(p, "http://mfd.ru") for p in bs.select("div.mfd-post-top-0 > a", )]
+            link = [self.pretty_text(p, "http://mfd.ru") for p in bs.select("div.mfd-post-top-1", )]
             posts = [self.pretty_text(p, "http://mfd.ru") for p in bs.select("div.mfd-post-body-right")]
 
             if len(thread) > 0:
@@ -179,3 +180,15 @@ class AlenkaPost(AbstractSource):
         title = "ALЁNKA CAPITAL Post:"
         el = [SinglePost(md=self.pretty_text(p, self.url).strip(), title=title) for p in bs.select("div.feed__content")]
         return Page(el)
+
+
+class SmartLab(AbstractSource):
+    def __init__(self):
+        super().__init__(lambda: self.session.get(self.url).content, 60 * 60)
+        self.url = "https://smart-lab.ru"
+
+    def check_update(self) -> Page:
+        bs = BeautifulSoup(self.generator(), "html.parser")
+        title = "Smartlab топ 24 часа"
+        post = bs.select_one("div.trt")
+        return Page([SinglePost(md=self.pretty_text(post, self.url).strip(), title=title)])
