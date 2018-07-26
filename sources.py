@@ -74,7 +74,7 @@ class DataSource(AbstractSource):
 
 
 class MfdSource(DataSource):
-    def __init__(self, generator, thread_selector=""):
+    def __init__(self, generator, thread_selector):
         super().__init__(generator)
         self.thread_selector = thread_selector
 
@@ -87,9 +87,10 @@ class MfdSource(DataSource):
             link = [self.pretty_text(p, "http://mfd.ru") for p in bs.select("div.mfd-post-top-1",)]
             posts = [self.pretty_text(p, "http://mfd.ru") for p in bs.select("div.mfd-post-body-right")]
 
-            tuple_title = tuple(zip_longest(thread, user, link, fillvalue=thread[0]))
-            title = [f"{title[0]}\n{title[1]}\n{title[2]}" for title in tuple_title]
-            res += [SinglePost(data[0], data[1]) for data in list(zip(title, posts))]
+            if len(thread) > 0:
+                tuple_title = tuple(zip_longest(thread, user, link, fillvalue=thread[0]))
+                title = [f"{title[0]}\n{title[1]}\n{title[2]}" for title in tuple_title]
+                res += [SinglePost(data[0], data[1]) for data in list(zip(title, posts))]
 
         return Page(res)
 
@@ -157,7 +158,7 @@ class AlenkaNews(AbstractSource):
 
     def check_update(self) -> Page:
         bs = BeautifulSoup(self.generator(), "html.parser")
-        title = "ALЁNKA CAPITAL News: "
+        title = "ALЁNKA CAPITAL News:"
         items = [item for item in bs.select("li.news__item")]
         el = []
         for item in items:
@@ -174,6 +175,6 @@ class AlenkaPost(AbstractSource):
 
     def check_update(self) -> Page:
         bs = BeautifulSoup(self.generator(), "html.parser")
-        title = "ALЁNKA CAPITAL Post: "
+        title = "ALЁNKA CAPITAL Post:"
         el = [SinglePost(md=self.pretty_text(p, self.url).strip(), title=title) for p in bs.select("div.feed__content")]
         return Page(el)

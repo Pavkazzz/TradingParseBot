@@ -2,6 +2,7 @@ from unittest import TestCase
 from manager import Manager, SingleData
 import random
 
+
 class TestManager(TestCase):
     def test_start(self):
         manager = Manager(clear_start=True)
@@ -40,7 +41,7 @@ class TestManager(TestCase):
         self.maxDiff = None
         manager = Manager(clear_start=True)
         n = 10
-        chats_id = [random.randint(i*n+1, i*n+n) for i in range(n)]
+        chats_id = [random.randint(i * n + 1, i * n + n) for i in range(n)]
         for chat in chats_id:
             manager.start(chat)
             manager.new_command(chat, Manager.ADD_ALENKA)

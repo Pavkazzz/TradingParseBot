@@ -44,6 +44,7 @@ class Manager:
             # Alenka
             if command == self.ADD_ALENKA:
                 self.users_subscription[chat_id].alenka = True
+                self.check_new_alenka(chat_id)
                 result = "Теперь вы подписаны на https://alenka.capital"
             if command == self.REMOVE_ALENKA:
                 self.users_subscription[chat_id].alenka = False
@@ -53,6 +54,7 @@ class Manager:
             if command == self.ADD_MFD_USER:
                 if data not in self.users_subscription[chat_id].mfd_user:
                     self.users_subscription[chat_id].mfd_user.append(data)
+                    self.check_mfd_user(data, chat_id)
                     result = f"Подписка на mfd пользователя {data.name}"
                 else:
                     result = f"Вы уже подписаны на пользователя {data.name}"
@@ -63,6 +65,7 @@ class Manager:
             if command == self.ADD_MFD_THREAD:
                 if data not in self.users_subscription[chat_id].mfd_thread:
                     self.users_subscription[chat_id].mfd_thread.append(data)
+                    self.check_mfd_thread(data, chat_id)
                     result = f"Подписка на mfd тему {data.name}"
                 else:
                     result = f"Вы уже подписаны на тему {data.name}"
@@ -86,20 +89,33 @@ class Manager:
         res: List[str] = []
         if chat_id in self.users_subscription:
             if self.users_subscription[chat_id].alenka:
-                res += self.db.update(f"alenka_news {chat_id}", sources.AlenkaNews().check_update())
-                res += self.db.update(f"alenka_post {chat_id}", sources.AlenkaPost().check_update())
+                res += self.check_new_alenka(chat_id)
             for user in self.users_subscription[chat_id].mfd_user:
-                res += self.db.update(f"mfd_user_comment {chat_id}",
-                                      sources.MfdUserCommentSource().add_data(user.id).check_update())
-                res += self.db.update(f"mfd_user_post {chat_id}",
-                                      sources.MfdUserPostSource().add_data(user.id).check_update())
+                res += self.check_mfd_user(user, chat_id)
             for thread in self.users_subscription[chat_id].mfd_thread:
-                res += self.db.update(f"mfd_thread {chat_id}",
-                                      sources.MfdForumThreadSource().add_data(thread.id).check_update())
+                res += self.check_mfd_thread(thread, chat_id)
 
         # remove duplicates
         res = list(set(res))
         return res
+
+    def check_new_alenka(self, chat_id):
+        res = []
+        res += self.db.update(f"alenka_news {chat_id}", sources.AlenkaNews().check_update())
+        res += self.db.update(f"alenka_post {chat_id}", sources.AlenkaPost().check_update())
+        return res
+
+    def check_mfd_user(self, user, chat_id):
+        res = []
+        res += self.db.update(f"mfd_user_comment {chat_id}",
+                              sources.MfdUserCommentSource().add_data(user.id).check_update())
+        res += self.db.update(f"mfd_user_post {chat_id}",
+                              sources.MfdUserPostSource().add_data(user.id).check_update())
+        return res
+
+    def check_mfd_thread(self, thread, chat_id):
+        return self.db.update(f"mfd_thread {chat_id}",
+                              sources.MfdForumThreadSource().add_data(thread.id).check_update())
 
     def check_all(self):
         for user in self.users_subscription:
