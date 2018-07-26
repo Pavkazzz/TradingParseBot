@@ -46,7 +46,7 @@ class TestManager(TestCase):
             manager.start(chat)
             manager.new_command(chat, Manager.ADD_ALENKA)
 
-        res = tuple([post for post in manager.check_all()])
+        res = tuple([post for post in manager.check_new_all()])
 
         self.assertEqual(len(res), n)
         prev_chat, prev_data = res[0]
@@ -54,3 +54,23 @@ class TestManager(TestCase):
             self.assertNotEqual(prev_chat, new_chat)
             self.assertEqual(prev_data, new_data)
             prev_chat, prev_data = new_chat, new_data
+
+    def test_some_user(self):
+        manager = Manager(clear_start=True)
+        chats_id = random.randint(0, 999)
+        manager.start(chats_id)
+        manager.new_command(chats_id, Manager.ADD_MFD_USER, SingleData(71921, "malishok"))
+        manager.new_command(chats_id, Manager.ADD_MFD_USER, SingleData(96540, "VVT5"))
+        res1 = [post for post in manager.check_new_all()]
+        res2 = [post for post in manager.check_new_all()]
+        res3 = [post for post in manager.check_new_all()]
+
+        print(res1)
+        print(res2)
+        print(res3)
+
+        self.assertEqual(res1[0][1], [])
+        self.assertEqual(res2[0][1], [])
+        self.assertEqual(res3[0][1], [])
+
+        # self.assertEqual(len(res2), 0)

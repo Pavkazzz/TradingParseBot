@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from dataclasses import dataclass, field
-from typing import List
+from typing import Tuple, List, Union
 
 from database import DataBase
 import sources
@@ -38,13 +38,14 @@ class Manager:
         if chat_id not in self.users_subscription:
             self.users_subscription[chat_id] = Data()
 
-    def new_command(self, chat_id, command, data: SingleData = SingleData()) -> str:
+    def new_command(self, chat_id, command, data: SingleData = SingleData()) -> Tuple[str, Union[List[str], list]]:
         result: str = "Команда не найдена"
+        current_data = []
         try:
             # Alenka
             if command == self.ADD_ALENKA:
                 self.users_subscription[chat_id].alenka = True
-                self.check_new_alenka(chat_id)
+                current_data = self.check_new_alenka(chat_id)
                 result = "Теперь вы подписаны на https://alenka.capital"
             if command == self.REMOVE_ALENKA:
                 self.users_subscription[chat_id].alenka = False
@@ -54,7 +55,7 @@ class Manager:
             if command == self.ADD_MFD_USER:
                 if data not in self.users_subscription[chat_id].mfd_user:
                     self.users_subscription[chat_id].mfd_user.append(data)
-                    self.check_mfd_user(data, chat_id)
+                    current_data = self.check_mfd_user(data, chat_id)
                     result = f"Подписка на mfd пользователя {data.name}"
                 else:
                     result = f"Вы уже подписаны на пользователя {data.name}"
@@ -65,7 +66,7 @@ class Manager:
             if command == self.ADD_MFD_THREAD:
                 if data not in self.users_subscription[chat_id].mfd_thread:
                     self.users_subscription[chat_id].mfd_thread.append(data)
-                    self.check_mfd_thread(data, chat_id)
+                    current_data = self.check_mfd_thread(data, chat_id)
                     result = f"Подписка на mfd тему {data.name}"
                 else:
                     result = f"Вы уже подписаны на тему {data.name}"
@@ -77,7 +78,7 @@ class Manager:
 
         self.db.save_user_data(self.users_subscription)
 
-        return result
+        return result, current_data
 
     def settings(self, chat_id) -> typing.Union[str, Data]:
         if chat_id in self.users_subscription:
@@ -107,17 +108,17 @@ class Manager:
 
     def check_mfd_user(self, user, chat_id):
         res = []
-        res += self.db.update(f"mfd_user_comment {chat_id}",
+        res += self.db.update(f"mfd_user_comment {user.id} {chat_id}",
                               sources.MfdUserCommentSource().add_data(user.id).check_update())
-        res += self.db.update(f"mfd_user_post {chat_id}",
+        res += self.db.update(f"mfd_user_post {user.id} {chat_id}",
                               sources.MfdUserPostSource().add_data(user.id).check_update())
         return res
 
     def check_mfd_thread(self, thread, chat_id):
-        return self.db.update(f"mfd_thread {chat_id}",
+        return self.db.update(f"mfd_thread {thread.id} {chat_id}",
                               sources.MfdForumThreadSource().add_data(thread.id).check_update())
 
-    def check_all(self):
+    def check_new_all(self):
         for user in self.users_subscription:
             yield user, self.check_new(user)
 
@@ -145,7 +146,7 @@ class Manager:
         try:
             title, tid, name = sources.MfdForumThreadSource().find_thread(text)
             if tid is not None and len(title) == 1:
-                res = self.new_command(cid, Manager.ADD_MFD_THREAD, SingleData(tid, name))
+                res, _ = self.new_command(cid, Manager.ADD_MFD_THREAD, SingleData(tid, name))
         except Exception as e:
             print(e)
         finally:
@@ -161,7 +162,7 @@ class Manager:
                 users = tuple(filter(lambda x: x[1] == text and x[3] == rating, users))
 
             if len(users) == 1:
-                res = self.new_command(cid, Manager.ADD_MFD_USER, SingleData(users[0][0], users[0][1]))
+                res, _ = self.new_command(cid, Manager.ADD_MFD_USER, SingleData(users[0][0], users[0][1]))
 
         except Exception as e:
             print(e)

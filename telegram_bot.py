@@ -33,7 +33,7 @@ def start(bot, update):
 
 
 def check_update(bot, job):
-    for chat, data in manager.check_all():
+    for chat, data in manager.check_new_all():
         send_data(bot, chat, data)
 
 
@@ -94,14 +94,14 @@ def settings(bot, update):
 
 def subscribe_alenka(bot, update):
     cid = update.message.chat_id
-    text = manager.new_command(cid, Manager.ADD_ALENKA)
+    text, _ = manager.new_command(cid, Manager.ADD_ALENKA)
     bot.send_message(cid, text)
     settings(bot, update)
 
 
 def unsubscribe_alenka(bot, update):
     cid = update.message.chat_id
-    text = manager.new_command(cid, Manager.REMOVE_ALENKA)
+    text, _ = manager.new_command(cid, Manager.REMOVE_ALENKA)
     bot.send_message(cid, text)
     settings(bot, update)
 
@@ -168,7 +168,7 @@ def mfd_remove_user(bot: Bot, update):
     res = ""
     for data in manager.settings(cid).mfd_user:
         if data.name == text:
-            res = manager.new_command(cid, Manager.REMOVE_MFD_USER, data)
+            res, _ = manager.new_command(cid, Manager.REMOVE_MFD_USER, data)
     if res:
         bot.send_message(cid, res)
         settings(bot, update)
@@ -182,7 +182,7 @@ def mfd_remove_thread(bot: Bot, update):
     res = ""
     for data in manager.settings(cid).mfd_thread:
         if data.name == text:
-            res = manager.new_command(cid, Manager.REMOVE_MFD_THREAD, data)
+            res, _ = manager.new_command(cid, Manager.REMOVE_MFD_THREAD, data)
 
     if res:
         bot.send_message(cid, res)
