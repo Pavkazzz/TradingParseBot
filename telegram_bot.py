@@ -72,7 +72,7 @@ def print_settings(bot: Bot, update):
         for thread in current_settings.mfd_thread:
             msg += f"[{thread.name}](http://forum.mfd.ru/forum/thread/?id={thread.id})\n"
 
-    if msg:
+    if not msg.strip():
         msg = "У вас нет активных подписок."
     bot.send_message(chat_id=chat_id, text=msg, parse_mode=telegram.ParseMode.MARKDOWN)
 
