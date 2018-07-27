@@ -51,29 +51,37 @@ def print_settings(bot: Bot, update):
     chat_id = update.message.chat_id
     current_settings = manager.settings(chat_id)
     msg = ""
+
+    if current_settings.alenka or len(current_settings.mfd_user) > 0 or len(current_settings.mfd_thread) > 0:
+        msg += "Вы подписаны на:\n"
+    else:
+        msg = "У вас нет активных подписок."
+        bot.send_message(chat_id=chat_id, text=msg, parse_mode=telegram.ParseMode.MARKDOWN)
+        return
+
     if current_settings.alenka:
-        msg += "Вы подписаны на новости с [https://alenka.capital](alenka.capital)\n\n"
+        msg += "  Новости с [https://alenka.capital](alenka.capital)"
+
+    msg += "\n\n"
 
     if len(current_settings.mfd_user) == 1:
         for user in current_settings.mfd_user:
-            msg += f"На пользователя [{user.name}](http://forum.mfd.ru/forum/poster/?id={user.id})\n"
+            msg += f"  Пользователя [{user.name}](http://forum.mfd.ru/forum/poster/?id={user.id})\n"
     if len(current_settings.mfd_user) > 1:
-        msg += "На пользователей: \n"
+        msg += "  На пользователей: \n"
         for user in current_settings.mfd_user:
-            msg += f"[{user.name}](http://forum.mfd.ru/forum/poster/?id={user.id})\n"
+            msg += f"    [{user.name}](http://forum.mfd.ru/forum/poster/?id={user.id})\n"
 
     msg += "\n"
 
     if len(current_settings.mfd_thread) == 1:
         for thread in current_settings.mfd_thread:
-            msg += f"На тему [{thread.name}](http://forum.mfd.ru/forum/thread/?id={thread.id})"
+            msg += f"  Тему [{thread.name}](http://forum.mfd.ru/forum/thread/?id={thread.id})\n"
     if len(current_settings.mfd_thread) > 1:
-        msg += f"На темы: \n"
+        msg += f"  На темы: \n"
         for thread in current_settings.mfd_thread:
-            msg += f"[{thread.name}](http://forum.mfd.ru/forum/thread/?id={thread.id})\n"
+            msg += f"    [{thread.name}](http://forum.mfd.ru/forum/thread/?id={thread.id})\n"
 
-    if not msg.strip():
-        msg = "У вас нет активных подписок."
     bot.send_message(chat_id=chat_id, text=msg, parse_mode=telegram.ParseMode.MARKDOWN)
 
 
