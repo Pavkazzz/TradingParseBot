@@ -42,7 +42,7 @@ class TestUserMfdPostSource(TestCase):
         post.add_data(71921)
         page = post.check_update()
         self.assertEqual(len(page.posts), 4)
-        self.assertEqual(page.posts[0].title, ("[ФА и немного ТА](http://mfd.ru/forum/post/?id=14765341)\n"
+        self.assertEqual(page.posts[0].title, ("ФА и немного ТА\n"
                                                "[malishok](http://mfd.ru/forum/poster/?id=71921)\n"
                                                "[17.07.2018 13:48](http://lite.mfd.ru/forum/post/?id=14765341)"))
         self.assertEqual(page.posts[0].md, res)

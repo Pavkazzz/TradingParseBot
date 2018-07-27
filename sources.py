@@ -76,15 +76,14 @@ class DataSource(AbstractSource):
 
 
 class MfdSource(DataSource):
-    def __init__(self, generator, thread_selector):
+    def __init__(self, generator):
         super().__init__(generator)
-        self.thread_selector = thread_selector
 
     def check_update(self) -> Page:
         res = []
         for data in self.data_list:
             bs = BeautifulSoup(self.generator(data), "html.parser")
-            thread = [self.pretty_text(p, "http://mfd.ru") for p in bs.select(self.thread_selector)]
+            thread = self.thread_selector(bs)
             user = [self.pretty_text(p, "http://mfd.ru") for p in bs.select("div.mfd-post-top-0 > a", )]
             link = [self.pretty_text(p, "http://mfd.ru") for p in bs.select("div.mfd-post-top-1", )]
             posts = [self.pretty_text(p, "http://mfd.ru") for p in bs.select("div.mfd-post-body-right")]
@@ -96,12 +95,19 @@ class MfdSource(DataSource):
 
         return Page(res)
 
+    @abstractmethod
+    def thread_selector(self, bs):
+        pass
+
 
 class MfdUserPostSource(MfdSource):
     def __init__(self):
-        super().__init__(lambda x: self.session.get(self.url.format(id=x)).content, "h3.mfd-post-thread-subject > a")
+        super().__init__(lambda x: self.session.get(self.url.format(id=x)).content)
 
         self.url = "http://lite.mfd.ru/forum/poster/posts/?id={id}"
+
+    def thread_selector(self, bs):
+        return [self.pretty_text(p.text, "http://mfd.ru") for p in bs.select("h3.mfd-post-thread-subject > a")]
 
     def resolve_link(self, url):
         bs = BeautifulSoup(self.session.get(url).content, "html.parser")
@@ -124,14 +130,20 @@ class MfdUserPostSource(MfdSource):
 
 class MfdUserCommentSource(MfdSource):
     def __init__(self):
-        super().__init__(lambda x: self.session.get(self.url.format(id=x)).content, "h3.mfd-post-thread-subject > a")
+        super().__init__(lambda x: self.session.get(self.url.format(id=x)).content)
         self.url = "http://lite.mfd.ru/forum/poster/comments/?id={id}"
+
+    def thread_selector(self, bs):
+        return [self.pretty_text(p, "http://mfd.ru") for p in bs.select("h3.mfd-post-thread-subject > a")]
 
 
 class MfdForumThreadSource(MfdSource):
     def __init__(self):
-        super().__init__(lambda x: self.session.get(self.url.format(id=x)).content, ".mfd-header > h1")
+        super().__init__(lambda x: self.session.get(self.url.format(id=x)).content)
         self.url = "http://lite.mfd.ru/forum/thread/?id={id}"
+
+    def thread_selector(self, bs):
+        return [self.pretty_text(p.text, "http://mfd.ru") for p in bs.select(".mfd-header > h1")]
 
     def resolve_link(self, url):
         bs = BeautifulSoup(self.session.get(url).content, "html.parser")

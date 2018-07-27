@@ -3,6 +3,7 @@
 from unittest import TestCase
 from sources import MfdUserCommentSource
 
+
 class TestMfdUserCommentSource(TestCase):
     def test_local_generator(self):
         post = MfdUserCommentSource()

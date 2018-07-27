@@ -14,7 +14,7 @@ class TestMfdForumThreadSource(TestCase):
         page = thread.check_update()
         self.assertEqual(len(page.posts), 33)
         self.assertEqual(page.posts[0].title,
-                         ("# ФА и немного ТА\n"
+                         ("ФА и немного ТА\n"
                           "[Спокойный Скрудж Макдак](http://mfd.ru/forum/poster/?id=88887)\n"
                           "[17.07.2018 12:02](http://lite.mfd.ru/forum/post/?id=14764606)"))
         for x in page.posts:

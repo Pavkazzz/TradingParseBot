@@ -72,6 +72,8 @@ def print_settings(bot: Bot, update):
         for thread in current_settings.mfd_thread:
             msg += f"[{thread.name}](http://forum.mfd.ru/forum/thread/?id={thread.id})\n"
 
+    if msg:
+        msg = "У вас нет активных подписок."
     bot.send_message(chat_id=chat_id, text=msg, parse_mode=telegram.ParseMode.MARKDOWN)
 
 
@@ -109,12 +111,14 @@ def smartlab(bot: Bot, update):
     bot.send_message(cid, sl.check_update().posts[0].format(), parse_mode=telegram.ParseMode.MARKDOWN,
                      disable_web_page_preview=True)
 
+
 def about(bot: Bot, update):
     cid = update.message.chat_id
-    bot.send_message(cid, "Привет. Я бот для оповещения. Не обижайте меня и я буду верно вам служить. \n"
-                          "Умею искать пользователей и темы. Оповещать о новых сообщениях пользователей и в темах. \n"
-                          "Могу расказать когда появляется новая тема на алёнке. \n"
+    bot.send_message(cid, "Привет. Я бот для оповещения. Не обижайте меня, я буду верно вам служить. \n"
+                          "Умею подписываться на пользователей и темы на форуме mfd.ru и оповещать о новых сообщениях\n"
+                          "Могу сообщить, когда появляется новая тема или новость на Алёнке. \n"
                           "Пользуйтесь на здоровье!")
+
 
 def settings(bot, update):
     user = manager.settings(update.message.chat_id)
@@ -158,7 +162,7 @@ def mfd_user(bot, update):
 
 def mfd_user_add(bot, update):
     cid = update.message.chat_id
-    bot.send_message(cid, "Введите имя темы или ссылку на пользователя: ", reply_markup=keyboard_markup())
+    bot.send_message(cid, "Введите имя темы или ссылку на пользователя.\nЕсли передумали, введите \"Отмена\" ", reply_markup=keyboard_markup())
     global state
     state = MFD_USER_ADD
 
@@ -173,7 +177,7 @@ def mfd_user_remove(bot, update):
 
 def mfd_forum_add(bot, update):
     cid = update.message.chat_id
-    bot.send_message(cid, "Введите имя темы или ссылку на тему или любое сообщение этой темы: ",
+    bot.send_message(cid, "Введите имя темы или ссылку на тему или любое сообщение этой темы ",
                      reply_markup=keyboard_markup())
     global state
     state = MFD_THREAD_ADD
