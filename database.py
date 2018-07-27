@@ -1,9 +1,9 @@
-import typing
-
-from sources import Page
-from hashlib import blake2s
 import json
 import pickle
+import typing
+from hashlib import blake2s
+
+from sources import Page
 
 
 class DataBase:
