@@ -102,21 +102,21 @@ class Manager:
 
     def check_new_alenka(self, chat_id):
         res = []
-        res += self.db.update(f"alenka_news {chat_id}", sources.AlenkaNews().check_update())
-        res += self.db.update(f"alenka_post {chat_id}", sources.AlenkaPost().check_update())
+        res += self.db.update(f"alenka_news {chat_id}", sources.AlenkaNews().check_update(), chat_id)
+        res += self.db.update(f"alenka_post {chat_id}", sources.AlenkaPost().check_update(), chat_id)
         return res
 
     def check_mfd_user(self, user, chat_id):
         res = []
         res += self.db.update(f"mfd_user_comment {user.id} {chat_id}",
-                              sources.MfdUserCommentSource().add_data(user.id).check_update())
+                              sources.MfdUserCommentSource().add_data(user.id).check_update(), chat_id)
         res += self.db.update(f"mfd_user_post {user.id} {chat_id}",
-                              sources.MfdUserPostSource().add_data(user.id).check_update())
+                              sources.MfdUserPostSource().add_data(user.id).check_update(), chat_id)
         return res
 
     def check_mfd_thread(self, thread, chat_id):
         return self.db.update(f"mfd_thread {thread.id} {chat_id}",
-                              sources.MfdForumThreadSource().add_data(thread.id).check_update())
+                              sources.MfdForumThreadSource().add_data(thread.id).check_update(), chat_id)
 
     def check_new_all(self):
         for user in self.users_subscription:

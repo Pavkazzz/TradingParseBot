@@ -1,31 +1,38 @@
 import json
 import pickle
 import typing
+from pathlib import Path
+import os
+
 from hashlib import blake2s
 
 from sources import Page
 
 
 class DataBase:
-    def __init__(self, clear=False):
-        self.data_file = "data/database.json"
+    def __init__(self, clear_start=False):
+        self.data_file = "data/database{id}.json"
         self.user_file = "data/users.pkl"
-        self.init_database()
-        if clear:
-            self.create_db()
-            self.save_user_data({})
+        self.init_database(clear_start)
+        for file in os.listdir("data"):
+            if file.endswith("json"):
+                self.create_db(f"data/{file}")
 
-    def update(self, key, page: Page) -> typing.List[str]:
+
+    def update(self, key, page: Page, chat_id) -> typing.List[str]:
         posts = [md.format() for md in page.posts]
         res = []
-        with open(self.data_file, 'r+') as database:
+        file = Path(self.data_file.format(id=chat_id))
+        if not file.is_file():
+            self.create_db(file)
+
+        with open(self.data_file.format(id=chat_id), 'r+') as database:
             data = json.load(database)
             database.truncate(0)
             hash_list = []
             for post in posts:
                 bhash = blake2s(post.encode('utf-8')).hexdigest()
                 hash_list.append(bhash)
-
                 try:
                     if bhash not in data[key]:
                         res.append(post)
@@ -35,20 +42,15 @@ class DataBase:
             data[key] = hash_list
             database.seek(0)
             json.dump(data, database)
-
         return res
 
     # Создаем файл бд и приводим в изначальное состояние
-    def init_database(self):
-        try:
-            with open(self.data_file, 'r') as database:
-                json.load(database)
-        except (json.decoder.JSONDecodeError, FileNotFoundError) as e:
-            print(f"Не могу прочитать {self.data_file}, создаю новый")
-            self.create_db()
+    def init_database(self, clear=False):
+        if clear:
+            self.save_user_data({})
 
-    def create_db(self):
-        with open(self.data_file, 'w+') as database:
+    def create_db(self, file):
+        with open(file, 'w+') as database:
             init = {}
             json.dump(init, database)
 

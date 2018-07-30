@@ -60,7 +60,7 @@ class DataSource(AbstractSource):
         pass
 
     def __init__(self, generator):
-        super().__init__(generator)
+        super().__init__(generator, 60*2)
         self.data_list = []
 
     def add_data(self, data):
@@ -184,7 +184,7 @@ class AlenkaNews(AbstractSource):
 
 class AlenkaPost(AbstractSource):
     def __init__(self):
-        super().__init__(lambda: self.session.get(self.url).content, 60 * 5)
+        super().__init__(lambda: self.session.get(self.url).content, 60)
         self.url = "https://alenka.capital"
 
     def check_update(self) -> Page:
