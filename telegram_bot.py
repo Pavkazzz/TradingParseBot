@@ -36,8 +36,9 @@ def start(bot, update):
 
 
 def check_update(bot, job):
-    for chat, data in manager.check_new_all():
-        send_data(bot, chat, data)
+    if manager.is_free():
+        for chat, data in manager.check_new_all():
+            send_data(bot, chat, data)
 
 
 def send_data(bot, chat_id, data):
@@ -88,7 +89,7 @@ def print_settings(bot: Bot, update):
 
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-                    level=logging.WARNING)
+                    level=logging.ERROR)
 logger = logging.getLogger(__name__)
 updater = Updater(token, request_kwargs=REQUEST_KWARGS)
 dispatcher = updater.dispatcher
@@ -172,7 +173,8 @@ def mfd_user(bot, update):
 
 def mfd_user_add(bot, update):
     cid = update.message.chat_id
-    bot.send_message(cid, "Введите имя темы или ссылку на пользователя.\nЕсли передумали, введите \"Отмена\" ", reply_markup=keyboard_markup())
+    bot.send_message(cid, "Введите имя темы или ссылку на пользователя.\nЕсли передумали, введите \"Отмена\" ",
+                     reply_markup=keyboard_markup())
     global state
     state = MFD_USER_ADD
 
@@ -299,6 +301,7 @@ def mfd_add_thread(bot, update):
             bot.send_message(cid, "Тема с таким именем не найдена. Введите новый запрос")
 
 
+dispatcher.add_handler(CommandHandler('about', about))
 dispatcher.add_handler(CommandHandler('key', key))
 
 dispatcher.add_handler(RegexHandler('^Смартлаб топ 24 часа$', smartlab))
