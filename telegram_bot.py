@@ -9,7 +9,8 @@ from sources import SmartLab
 
 manager = Manager()
 for posts in manager.check_new_all():
-    print(posts)
+    # print(posts)
+    pass
 
 IDLE, MFD_USER_ADD, MFD_USER_REMOVE, MFD_THREAD_ADD, MFD_THREAD_REMOVE = range(5)
 state = IDLE
@@ -36,9 +37,8 @@ def start(bot, update):
 
 
 def check_update(bot, job):
-    if manager.is_free():
-        for chat, data in manager.check_new_all():
-            send_data(bot, chat, data)
+    for chat, data in manager.check_new_all():
+        send_data(bot, chat, data)
 
 
 def send_data(bot, chat_id, data):

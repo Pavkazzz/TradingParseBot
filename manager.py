@@ -119,12 +119,8 @@ class Manager:
                               sources.MfdForumThreadSource().add_data(thread.id).check_update(), chat_id)
 
     def check_new_all(self):
-        self.free = False
-        for user in self.users_subscription:
+        for user in list(self.users_subscription):
             yield user, self.check_new(user)
-
-        self.free = True
-        yield 0, []
 
     def resolve_mfd_thread_link(self, cid, text):
         try:
@@ -173,5 +169,3 @@ class Manager:
         finally:
             return users, res
 
-    def is_free(self):
-        return self.free
