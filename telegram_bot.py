@@ -88,7 +88,7 @@ def print_settings(bot: Bot, update):
 
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-                    level=logging.INFO)
+                    level=logging.WARNING)
 logger = logging.getLogger(__name__)
 updater = Updater(token, request_kwargs=REQUEST_KWARGS)
 dispatcher = updater.dispatcher
