@@ -6,7 +6,9 @@ pass the telegram token throw env
 
 silent mode at night 
 
-improve caching 
+improve caching
+
+update message instead of sending new if data changes
 
 # Requirements
 - Python 3.7+
