@@ -42,4 +42,4 @@ class TestAlenkaNews(TestCase):
         for _ in range(10):
             post.check_update()
         t_cache = time.time()
-        self.assertLess(t_load - t, t_cache - t_load)
+        self.assertLess(t_cache - t_load, t_load - t)

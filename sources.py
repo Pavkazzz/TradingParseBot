@@ -8,7 +8,8 @@ from itertools import zip_longest
 import requests_cache
 import typing
 import utils
-
+import json
+from settings import alenka_url
 
 @dataclass
 class SinglePost:
@@ -168,16 +169,14 @@ class MfdForumThreadSource(MfdSource):
 class AlenkaNews(AbstractSource):
     def __init__(self):
         super().__init__(lambda: self.session.get(self.url).content)
-        self.url = "https://alenka.capital"
+        self.url = alenka_url
 
     def check_update(self) -> Page:
         bs = BeautifulSoup(self.generator(), "html.parser")
         title = "ALЁNKA CAPITAL News:"
-        items = [item for item in bs.select("li.news__item")]
-        el = []
-        for item in items:
-            parse = [str(p) for p in item.select('.news__side, .news__name')]
-            el.append(SinglePost(md=self.pretty_text(''.join(parse), self.url), title=title))
+        data = json.loads(self.generator())
+        posts = list(filter(lambda x: x['cat_name'] == "Лента новостей", data))
+        el = [SinglePost(md=f"{post['post_date']}\n\n[{post['post_name']}]({post['post_link']})", title=title) for post in posts]
 
         return Page(el)
 
@@ -185,12 +184,13 @@ class AlenkaNews(AbstractSource):
 class AlenkaPost(AbstractSource):
     def __init__(self):
         super().__init__(lambda: self.session.get(self.url).content, 60)
-        self.url = "https://alenka.capital"
+        self.url = alenka_url
 
     def check_update(self) -> Page:
-        bs = BeautifulSoup(self.generator(), "html.parser")
         title = "ALЁNKA CAPITAL Post:"
-        el = [SinglePost(md=self.pretty_text(p, self.url).strip(), title=title) for p in bs.select("div.feed__content")]
+        data = json.loads(self.generator())
+        posts = list(filter(lambda x: x['cat_name'] != "Лента новостей", data))
+        el = [SinglePost(md=f"{post['post_date']}\n\n[{post['cat_name']}]({post['cat_link']})\n\n[{post['post_name']}]({post['post_link']})", title=title) for post in posts]
         return Page(el)
 
 

@@ -33,6 +33,8 @@ class Manager:
     def __init__(self, clear_start=False):
         self.db = DataBase(clear_start)
         self.users_subscription = self.db.load_user_data()
+        self.alenka_current_news = []
+        self.alenka_current_post = []
 
     def start(self, chat_id):
         if chat_id not in self.users_subscription:
@@ -81,10 +83,9 @@ class Manager:
         return result, current_data
 
     def settings(self, chat_id) -> typing.Union[str, Data]:
-        if chat_id in self.users_subscription:
-            return self.users_subscription[chat_id]
-        else:
-            return "Пользователь не найден"
+        if chat_id not in self.users_subscription:
+            self.start(chat_id)
+        return self.users_subscription[chat_id]
 
     def check_new(self, chat_id) -> List[str]:
         res: List[str] = []
@@ -102,8 +103,8 @@ class Manager:
 
     def check_new_alenka(self, chat_id):
         res = []
-        res += self.db.update(f"alenka_news {chat_id}", sources.AlenkaNews().check_update(), chat_id)
-        res += self.db.update(f"alenka_post {chat_id}", sources.AlenkaPost().check_update(), chat_id)
+        res += self.db.update(f"alenka_news {chat_id}", self.alenka_current_news, chat_id)
+        res += self.db.update(f"alenka_post {chat_id}", self.alenka_current_post, chat_id)
         return res
 
     def check_mfd_user(self, user, chat_id):
@@ -119,6 +120,8 @@ class Manager:
                               sources.MfdForumThreadSource().add_data(thread.id).check_update(), chat_id)
 
     def check_new_all(self):
+        self.alenka_current_news = sources.AlenkaNews().check_update()
+        self.alenka_current_post = sources.AlenkaPost().check_update()
         for user in list(self.users_subscription):
             yield user, self.check_new(user)
 
