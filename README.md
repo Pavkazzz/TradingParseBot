@@ -4,6 +4,10 @@ Telegram bot for parsing web
 # Todo: 
 pass the telegram token throw env
 
+silent mode at night 
+
+improve caching 
+
 # Requirements
 - Python 3.7+
 
