@@ -12,6 +12,8 @@ update message instead of sending new if data changes
 
 after midnight site change today -> yesterday. mfd comments
 
+fix add user subscribe via url
+
 # Requirements
 - Python 3.7+
 
