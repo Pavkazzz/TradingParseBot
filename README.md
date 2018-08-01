@@ -4,6 +4,16 @@ Telegram bot for parsing web
 # Todo: 
 pass the telegram token throw env
 
+silent mode at night 
+
+improve caching
+
+update message instead of sending new if data changes
+
+after midnight site change today -> yesterday. mfd comments
+
+fix add user subscribe via url
+
 # Requirements
 - Python 3.7+
 
