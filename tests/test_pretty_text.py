@@ -12,10 +12,11 @@ class TestAbstractSource(TestCase):
                "\n"
                "| [chromatin](http://mfd.ru/forum/poster/?id=99552) @ [19.07.2018 16:54](http://mfd.ru/forum/post/?id=14778526)\n"
                "|  \n"
-               "|  *TRUMP SAYS LOOKS FORWARD TO SECOND*\n"
-               "| MEETING WITH PUTIN  \n"
+               "|  *TRUMP SAYS LOOKS FORWARD TO*\n"
+               "| SECOND MEETING WITH PUTIN  \n"
                "| Может быть, не надо. Второй такой\n"
-               "| встречи наш ФР может и не пережить 😁")
+               "| встречи наш ФР может и не пережить\n"
+               "| 😁")
 
         self.assertEqual(text, res)
 
@@ -70,7 +71,8 @@ class TestAbstractSource(TestCase):
     def test_dash(self):
         html = """<div>@Discl_Bot - бот, не канал, но удобный </div>"""
         text = AbstractSource.pretty_text(html, "https://alenka.capital")
-        res = "@Discl\_Bot - бот, не канал, но удобный"
+        res = ("@Discl\_Bot - бот, не канал, но\n"
+               "удобный")
         self.assertEqual(text, res)
 
     def test_smiles(self):
@@ -85,17 +87,44 @@ class TestAbstractSource(TestCase):
         res = ("Вот так просто взять и внести? 🙂  \n"
                "  \n"
                "[http://www.consultant.ru/document/cons_doc_LAW_...](http://www.consultant.ru/document/cons_doc_LAW_8743/9ca79eb480b2842d107d0fe21f8352b6b5e67916/)   \n"
-               "1. Уставный капитал общества может быть\n"
-               "увеличен путем увеличения номинальной\n"
-               "стоимости акций или размещения\n"
-               "дополнительных акций.")
+               "1. Уставный капитал общества может\n"
+               "быть увеличен путем увеличения\n"
+               "номинальной стоимости акций или\n"
+               "размещения дополнительных акций.")
 
         self.assertEqual(text, res)
 
     def test_quote(self):
         html = """<div><blockquote class="mfd-quote-14819322"><div class="mfd-quote-info"><a href="/forum/poster/?id=58730" rel="nofollow">DflbvSv</a> @ <a href="/forum/post/?id=14819322" rel="nofollow">27.07.2018 14:30</a></div><blockquote class="mfd-quote-14818813"><div class="mfd-quote-info"><a href="/forum/poster/?id=72299" rel="nofollow">Volshebnik</a> @ <a href="/forum/post/?id=14818813" rel="nofollow">27.07.2018 13:15</a></div><div class="mfd-quote-text">Тем не менее бяка по 4 коп фундаментально оч дешева, вопрос только в том когда в стакан придут большие кошельки...</div></blockquote><div class="mfd-quote-text">Открывашка попыталась, скупив почти 14% голосующих акций, но, судя по всему, надорвалась. После 24 мая у открывашки 7,8%, у собрата по несчастью (Бинбанка) - 5,99% (<a href="https://news.rambler.ru/business/39911599-bank-otkrytie-peredal-binbanku-aktsii-vtb-za-40-mlrd-rub/" rel="nofollow" target="_blank">https://news.rambler.ru/business/39911599-bank-...</a>). Исходя из свободного обращения на рынке 15% акций, то получается, что на рынке идет торговля 1,21% акций</div></blockquote><div class="mfd-quote-text">Sehr gut!!! <br> В нашем полку прибыло<span class="mfd-emoticon mfd-emoticon-smile"></span> <br> <a href="http://lite.mfd.ru/forum/post/?id=14635042" rel="nofollow" target="_blank">http://lite.mfd.ru/forum/post/?id=14635042</a> <br> <a href="http://lite.mfd.ru/forum/post/?id=14467774" rel="nofollow" target="_blank">http://lite.mfd.ru/forum/post/?id=14467774</a> <br> <a href="http://lite.mfd.ru/forum/post/?id=13651199" rel="nofollow" target="_blank">http://lite.mfd.ru/forum/post/?id=13651199</a> <br> я тут уже давно толкую, что ФФ не тот, что указан у аналов и на сайте мосбиржи <br>  <br> если этот факт признать, то ВТБ надо немедленно отправить в эшелон... <br> а последствия для капы очевидны</div></div><button class="mfd-button-attention" data-id="14819412" name="reportAbuse" title="Пожаловаться на это сообщение" type="button"></button>"""
         text = AbstractSource.pretty_text(html, "http://mfd.ru")
-        print(text)
+        res = (
+            "| [DflbvSv](http://mfd.ru/forum/poster/?id=58730) @ [27.07.2018 14:30](http://mfd.ru/forum/post/?id=14819322)\n"
+            "|\n"
+            "| \n"
+            "| | [Volshebnik](http://mfd.ru/forum/poster/?id=72299) @ [27.07.2018 13:15](http://mfd.ru/forum/post/?id=14818813)\n"
+            "| |  \n"
+            "| |  Тем не менее бяка по 4 коп\n"
+            "| | фундаментально оч дешева, вопрос\n"
+            "| | только в том когда в стакан придут\n"
+            "| | большие кошельки...\n"
+            "| | \n"
+            "|  \n"
+            "|  Открывашка попыталась, скупив почти 14% голосующих акций, но, судя по всему, надорвалась. После 24 мая у открывашки 7,8%, у собрата по несчастью (Бинбанка) - 5,99% ([https://news.rambler.ru/business/39911599-bank-...](https://news.rambler.ru/business/39911599-bank-otkrytie-peredal-binbanku-aktsii-vtb-za-40-mlrd-rub/)). Исходя из свободного обращения на рынке 15% акций, то получается, что на рынке идет торговля 1,21% акций\n"
+            "\n"
+            "Sehr gut!!!  \n"
+            "В нашем полку прибыло🙂  \n"
+            "[http://lite.mfd.ru/forum/post/?id=14635042](http://lite.mfd.ru/forum/post/?id=14635042)   \n"
+            "[http://lite.mfd.ru/forum/post/?id=14467774](http://lite.mfd.ru/forum/post/?id=14467774)   \n"
+            "[http://lite.mfd.ru/forum/post/?id=13651199](http://lite.mfd.ru/forum/post/?id=13651199)   \n"
+            "я тут уже давно толкую, что ФФ не\n"
+            "тот, что указан у аналов и на\n"
+            "сайте мосбиржи  \n"
+            "  \n"
+            "если этот факт признать, то ВТБ\n"
+            "надо немедленно отправить в\n"
+            "эшелон...  \n"
+            "а последствия для капы очевидны")
+        self.assertEqual(text, res)
 
     def test_dot2(self):
         html = """<div><blockquote class="mfd-quote-14819862"><div class="mfd-quote-info"><a href="/forum/poster/?id=79103" rel="nofollow">Камаз Доходов</a> @ <a href="/forum/post/?id=14819862" rel="nofollow">27.07.2018 15:44</a></div><blockquote class="mfd-quote-14819835"><div class="mfd-quote-info"><a href="/forum/poster/?id=74012" rel="nofollow">калита</a> @ <a href="/forum/post/?id=14819835" rel="nofollow">27.07.2018 15:39</a></div><div class="mfd-quote-text">добро пожаловать ПФ РФ</div></blockquote><div class="mfd-quote-text">- ПФ РФ недавно отдали на разграбление Игорю Шувалову. <br> С чего ради вдруг он переведёт ПФ РФ из своего банка в ВТБ?</div></blockquote><div class="mfd-quote-text">Не про перевод речь, а про размещение акций ВТБ.</div></div><button class="mfd-button-attention" data-id="14819872" name="reportAbuse" title="Пожаловаться на это сообщение" type="button"></button>"""
@@ -111,9 +140,9 @@ class TestAbstractSource(TestCase):
             "|  \n"
             "|  - ПФ РФ недавно отдали на\n"
             "| разграбление Игорю Шувалову.  \n"
-            "| С чего ради вдруг он переведёт ПФ РФ из\n"
-            "| своего банка в ВТБ?\n"
+            "| С чего ради вдруг он переведёт ПФ\n"
+            "| РФ из своего банка в ВТБ?\n"
             "\n"
-            "Не про перевод речь, а про размещение\n"
-            "акций ВТБ.")
+            "Не про перевод речь, а про\n"
+            "размещение акций ВТБ.")
         self.assertEqual(text, res)

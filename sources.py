@@ -44,7 +44,7 @@ class AbstractSource(metaclass=ABCMeta):
     @staticmethod
     def pretty_text(html, baseurl) -> str:
         import html2text
-        h = html2text.HTML2Text(baseurl=baseurl, bodywidth=36)
+        h = html2text.HTML2Text(baseurl=baseurl, bodywidth=34)
         # Небольшие изощрения с li
 
         html_to_parse = str(html).replace('<li', '<div').replace("</li>", "</div>")

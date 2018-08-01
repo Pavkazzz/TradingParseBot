@@ -33,8 +33,8 @@ class Manager:
     def __init__(self, clear_start=False):
         self.db = DataBase(clear_start)
         self.users_subscription = self.db.load_user_data()
-        self.alenka_current_news = []
-        self.alenka_current_post = []
+        self.alenka_current_news = sources.Page()
+        self.alenka_current_post = sources.Page()
 
     def start(self, chat_id):
         if chat_id not in self.users_subscription:

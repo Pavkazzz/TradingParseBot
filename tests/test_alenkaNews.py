@@ -7,18 +7,18 @@ from sources import AlenkaNews, Page
 class TestAlenkaNews(TestCase):
     def test_local_generator(self):
         alenka = AlenkaNews()
-        with open("html/test_alenkaPage.html", 'r', encoding="utf8") as html_page:
+        with open("html/test_alenkaResponse.json", 'r', encoding="utf8") as html_page:
             text = html_page.read()
             alenka.set_generator(lambda: text)
         page: Page = alenka.check_update()
-        self.assertEqual(len(page.posts), 20)
-        self.assertEqual(page.posts[0].md, ("18:33\n"
+        self.assertEqual(len(page.posts), 14)
+        self.assertEqual(page.posts[0].md, ("01.08.2018, 18:14\n"
                                             "\n"
-                                            "##  [Vale во II квартале увеличил выпуск железной руды на 15%, производство никеля снизил на 3% ](https://alenka.capital/post/vale_vo_ii_kvartale_uvelichil_vyipusk_jeleznoy_rudyi_na_15_proizvodstvo_nikelya_snizil_na_3_39168/)"))
+                                            "[ГАЗПРОМ В ИЮЛЕ УВЕЛИЧИЛ ЭКСПОРТ ](https://alenka.capital/post/gazprom_v_iyule_uvelichil_eksport_39397/)"))
 
-        self.assertEqual(page.posts[19].md, ("06:36\n"
+        self.assertEqual(page.posts[-1].md, ("01.08.2018, 11:01\n"
                                              "\n"
-                                             "##  [ Х5 и \"Магнит\" двигают фигуры](https://alenka.capital/post/h5_i_magnit_dvigayut_figuryi_39017/)"))
+                                             "[Банкам по-прежнему выгоднее выдавать потребительские займы, чем кредитовать предприятия - Орешкин](https://alenka.capital/post/bankam_po_prejnemu_vyigodnee_vyidavat_potrebitelskie_zaymyi_chem_kreditovat_predpriyatiya_oreshkin_39376/)"))
 
         for x in page.posts:
             self.assertNotEqual(len(x.md), 0)

@@ -248,7 +248,7 @@ def mfd_remove_thread(bot: Bot, update):
 def mfd_add_user(bot: Bot, update):
     text = str(update.message.text)
     rating = -1
-    if ':' in text:
+    if ': ' in text:
         try:
             spl = text.split(':')
             text = str(spl[0]).strip()
