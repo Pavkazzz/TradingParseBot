@@ -7,10 +7,17 @@ from settings import token, REQUEST_KWARGS
 from manager import Manager
 from sources import SmartLab
 
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+                    level=logging.ERROR)
+logger = logging.getLogger(__name__)
+updater = Updater(token, request_kwargs=REQUEST_KWARGS)
+dispatcher = updater.dispatcher
+
+# dispatcher.add_handler(CommandHandler('test', formation_text))
+
 manager = Manager()
-manager.recreate_users()
+manager.recreate_users(bot=dispatcher.bot)
 for posts in manager.check_new_all():
-    # print(posts)
     pass
 
 IDLE, MFD_USER_ADD, MFD_USER_REMOVE, MFD_THREAD_ADD, MFD_THREAD_REMOVE = range(5)
@@ -88,16 +95,6 @@ def print_settings(bot: Bot, update):
 
     bot.send_message(chat_id=chat_id, text=msg, parse_mode=telegram.ParseMode.MARKDOWN)
 
-
-logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-                    level=logging.ERROR)
-logger = logging.getLogger(__name__)
-updater = Updater(token, request_kwargs=REQUEST_KWARGS)
-dispatcher = updater.dispatcher
-dispatcher.add_handler(CommandHandler('start', start))
-
-
-# dispatcher.add_handler(CommandHandler('test', formation_text))
 
 # Начальная настройка клавиатуры
 def key(bot, update):
@@ -302,6 +299,7 @@ def mfd_add_thread(bot, update):
             bot.send_message(cid, "Тема с таким именем не найдена. Введите новый запрос")
 
 
+dispatcher.add_handler(CommandHandler('start', start))
 dispatcher.add_handler(CommandHandler('about', about))
 dispatcher.add_handler(CommandHandler('key', key))
 

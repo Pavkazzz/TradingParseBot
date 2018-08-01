@@ -3,6 +3,8 @@
 from dataclasses import dataclass, field
 from typing import Tuple, List, Union
 
+from telegram import Bot
+
 from database import DataBase
 import sources
 import typing
@@ -36,12 +38,14 @@ class Manager:
         self.alenka_current_news = sources.AlenkaNews().check_update()
         self.alenka_current_post = sources.AlenkaPost().check_update()
 
-
-    def recreate_users(self):
+    def recreate_users(self, bot: Bot):
         for user in self.db.user_list():
             if user not in self.users_subscription:
                 self.users_subscription[user] = Data()
+                bot.send_message(user, text="По причине переноса на бота на новые мощности, возникли проблемы с "
+                                            "востановлением подписок. Приношу извинения за доставленные неудобства.")
 
+        self.db.save_user_data(self.users_subscription)
 
     def start(self, chat_id):
         if chat_id not in self.users_subscription:
@@ -178,4 +182,3 @@ class Manager:
             print(e)
         finally:
             return users, res
-
