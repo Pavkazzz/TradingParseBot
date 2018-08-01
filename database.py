@@ -69,6 +69,8 @@ class DataBase:
         return res
 
     def user_list(self):
+        res = []
         for file in os.listdir("data"):
-            if file.endswith("json"):
-                print(file)
+            if file.endswith("json") and file.startswith("database"):
+                res.append(file.replace("database", "").replace(".json", ""))
+        return res
