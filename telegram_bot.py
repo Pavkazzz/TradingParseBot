@@ -8,6 +8,7 @@ from manager import Manager
 from sources import SmartLab
 
 manager = Manager()
+manager.recreate_users()
 for posts in manager.check_new_all():
     # print(posts)
     pass

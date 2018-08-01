@@ -67,3 +67,8 @@ class DataBase:
             self.save_user_data(res)
 
         return res
+
+    def user_list(self):
+        for file in os.listdir("data"):
+            if file.endswith("json"):
+                print(file)

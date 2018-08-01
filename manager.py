@@ -18,7 +18,7 @@ class SingleData:
 class Data:
     mfd_user: typing.List[SingleData] = field(default_factory=list)
     mfd_thread: typing.List[SingleData] = field(default_factory=list)
-    alenka: bool = field(default=False)
+    alenka: bool = field(default=True)
 
 
 class Manager:
@@ -33,8 +33,15 @@ class Manager:
     def __init__(self, clear_start=False):
         self.db = DataBase(clear_start)
         self.users_subscription = self.db.load_user_data()
-        self.alenka_current_news = sources.Page()
-        self.alenka_current_post = sources.Page()
+        self.alenka_current_news = sources.AlenkaNews().check_update()
+        self.alenka_current_post = sources.AlenkaPost().check_update()
+
+
+    def recreate_users(self):
+        for user in self.db.user_list():
+            if user not in self.users_subscription:
+                self.users_subscription[user] = Data()
+
 
     def start(self, chat_id):
         if chat_id not in self.users_subscription:
