@@ -68,3 +68,10 @@ class TestManager(TestCase):
         self.assertEqual(res1[0][1], [])
         self.assertEqual(res2[0][1], [])
         self.assertEqual(res3[0][1], [])
+
+    def test_alenka_unsubscr(self):
+        manager = Manager(clear_start=True)
+        manager.start(random.randint(0, 9999))
+        for user, post in manager.check_new_all():
+            print(post)
+       

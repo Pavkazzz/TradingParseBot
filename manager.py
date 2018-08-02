@@ -20,7 +20,7 @@ class SingleData:
 class Data:
     mfd_user: typing.List[SingleData] = field(default_factory=list)
     mfd_thread: typing.List[SingleData] = field(default_factory=list)
-    alenka: bool = field(default=True)
+    alenka: bool = field(default=False)
 
 
 class Manager:
@@ -42,8 +42,11 @@ class Manager:
         for user in self.db.user_list():
             if user not in self.users_subscription:
                 self.users_subscription[user] = Data()
-                bot.send_message(user, text="По причине переноса на бота на новые мощности, возникли проблемы с "
-                                            "востановлением подписок. Приношу извинения за доставленные неудобства.")
+                try:
+                    bot.send_message(user, text="По причине переноса на бота на новые мощности, возникли проблемы с "
+                                                "востановлением подписок. Приношу извинения за доставленные неудобства.")
+                except Exception as e:
+                    print(e, user)
 
         self.db.save_user_data(self.users_subscription)
 
