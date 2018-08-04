@@ -70,8 +70,10 @@ class TestManager(TestCase):
         self.assertEqual(res3[0][1], [])
 
     def test_alenka_unsubscr(self):
-        manager = Manager(clear_start=True)
-        manager.start(random.randint(0, 9999))
+        manager = Manager(True)
+        cid = random.randint(0, 9999)
+        manager.start(cid)
+        manager.new_command(cid, Manager.REMOVE_ALENKA)
         for user, post in manager.check_new_all():
-            print(post)
+            print(user, post)
        
