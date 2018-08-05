@@ -2,7 +2,7 @@
 import logging
 import telegram
 from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove, Bot
-from telegram.error import BadRequest, Unauthorized
+from telegram.error import BadRequest, Unauthorized, TimedOut, NetworkError, TelegramError
 from telegram.ext import Updater, CommandHandler, RegexHandler, Filters, MessageHandler
 from settings import token, REQUEST_KWARGS
 from manager import Manager
@@ -305,6 +305,20 @@ def mfd_add_thread(bot, update):
             bot.send_message(cid, "Тема с таким именем не найдена. Введите новый запрос")
 
 
+def error_callback(bot, update, error):
+    try:
+        raise error
+    except BadRequest:
+        pass
+    except TimedOut:
+        pass
+    except NetworkError:
+        pass
+    except TelegramError as tge:
+        logger.error(tge)
+
+
+dispatcher.add_error_handler(error_callback)
 dispatcher.add_handler(CommandHandler('start', start))
 dispatcher.add_handler(CommandHandler('start', stop))
 dispatcher.add_handler(CommandHandler('about', about))
