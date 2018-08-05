@@ -12,13 +12,12 @@ class TestMfdUser(TestCase):
         with open("html/test_mfdUserPostEq.html", 'r', encoding="utf8") as html:
             text = html.read()
             post.set_generator(lambda x: text)
-        post.add_data(71921)
         post_page = post.check_update()
 
         with open("html/test_mfdThreadEq.html", 'r', encoding="utf8") as html:
             text = html.read()
             thread.set_generator(lambda x: text)
-        thread.add_data(84424)
+
         thread_page = thread.check_update()
 
         self.assertEqual(len(thread_page.posts), 1)

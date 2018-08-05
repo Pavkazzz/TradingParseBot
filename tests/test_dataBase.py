@@ -25,7 +25,6 @@ class TestDataBase(TestCase):
             text = html_page.read()
             thread.set_generator(lambda x: text)
 
-        thread.add_data(84424)
         db.update("test", thread.check_update(), cid)
         for i in range(5):
             self.assertEqual(db.update("test", thread.check_update(), cid), [])

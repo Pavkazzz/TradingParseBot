@@ -71,9 +71,38 @@ class TestManager(TestCase):
 
     def test_alenka_unsubscr(self):
         manager = Manager(True)
-        cid = random.randint(0, 9999)
-        manager.start(cid)
-        manager.new_command(cid, Manager.REMOVE_ALENKA)
+        with open("html/test_alenkaResponse.json", 'r', encoding="utf8") as html_page:
+            text = html_page.read()
+            manager.config_sources("alenka_news", lambda: text)
+
+        cid_alenka = random.randint(1000, 9999)
+        cid_no = random.randint(0, 999)
+        manager.start(cid_alenka)
+        manager.start(cid_no)
+
+        manager.new_command(cid_alenka, Manager.ADD_ALENKA)
         for user, post in manager.check_new_all():
-            print(user, post)
-       
+            if user == cid_alenka:
+                self.assertEqual(post, [])
+            if user == cid_no:
+                self.assertEqual(post, [])
+
+        with open("html/test_alenkaResponseWithNewData.json", 'r', encoding="utf8") as html_page:
+            text = html_page.read()
+            manager.config_sources("alenka_news", lambda: text)
+
+        res = ("ALЁNKA CAPITAL\n"
+               "05.08.2018, 10:25\n"
+               "\n"
+               "[Media Markt начал ликвидацию ассортимента перед уходом из России](https://alenka.capital/post/media_markt_nachal_likvidatsiyu_assortimenta_pered_uhodom_iz_rossii_39469/)")
+
+        for user, post in manager.check_new_all():
+            if user == cid_alenka:
+                self.assertEqual(len(post), 1)
+                self.assertEqual(post[0], res)
+            if user == cid_no:
+                self.assertEqual(post, [])
+
+        for user, post in manager.check_new_all():
+            self.assertEqual(post, [])
+

@@ -12,7 +12,7 @@ class TestAbstractSource(TestCase):
                "\n"
                "| [chromatin](http://mfd.ru/forum/poster/?id=99552) @ [19.07.2018 16:54](http://mfd.ru/forum/post/?id=14778526)\n"
                "|  \n"
-               "|  *TRUMP SAYS LOOKS FORWARD TO*\n"
+               "|  \*TRUMP SAYS LOOKS FORWARD TO\n"
                "| SECOND MEETING WITH PUTIN  \n"
                "| Может быть, не надо. Второй такой\n"
                "| встречи наш ФР может и не пережить\n"
@@ -146,3 +146,4 @@ class TestAbstractSource(TestCase):
             "Не про перевод речь, а про\n"
             "размещение акций ВТБ.")
         self.assertEqual(text, res)
+

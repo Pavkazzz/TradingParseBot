@@ -14,4 +14,5 @@ requests-cache==0.4.13
 six==1.11.0
 telegram==0.0.1
 typed-ast==1.1.0
+ujson==1.35
 urllib3==1.23

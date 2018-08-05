@@ -2,6 +2,7 @@
 import logging
 import telegram
 from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove, Bot
+from telegram.error import BadRequest, Unauthorized
 from telegram.ext import Updater, CommandHandler, RegexHandler, Filters, MessageHandler
 from settings import token, REQUEST_KWARGS
 from manager import Manager
@@ -13,10 +14,8 @@ logger = logging.getLogger(__name__)
 updater = Updater(token, request_kwargs=REQUEST_KWARGS)
 dispatcher = updater.dispatcher
 
-# dispatcher.add_handler(CommandHandler('test', formation_text))
-
 manager = Manager()
-manager.recreate_users(bot=dispatcher.bot)
+# manager.recreate_users(bot=dispatcher.bot)
 for posts in manager.check_new_all():
     pass
 
@@ -36,11 +35,15 @@ def build_menu(buttons,
     return menu
 
 
-# Функция старта
 def start(bot, update):
     chat_id = update.message.chat_id
-    # bot.send_message(chat_id=chat_id, text="Привет это бот для отслеживания блога mfd.ru и alenka.capital")
     manager.start(chat_id)
+    key(bot, update)
+
+
+def stop(bot, update):
+    chat_id = update.message.chat_id
+    manager.stop(chat_id)
     key(bot, update)
 
 
@@ -54,8 +57,12 @@ def send_data(bot, chat_id, data):
         try:
             bot.send_message(chat_id=chat_id, text=msg, parse_mode=telegram.ParseMode.MARKDOWN,
                              disable_web_page_preview=True)
+        except BadRequest as bad:
+            pass
+        except Unauthorized as un:
+            manager.stop(chat_id)
         except Exception as e:
-            print(e, msg)
+            logger.error(f"Error when sending message: {e}")
 
 
 def print_settings(bot: Bot, update):
@@ -139,7 +146,7 @@ def settings(bot, update):
 
     options = [alenka, "MFD.ru тема", "MFD.ru пользователи"]
 
-    bot.send_message(update.message.chat_id, 'Подписки: ',
+    bot.send_message(update.message.chat_id, 'Управление подписками',
                      reply_markup=keyboard_markup(options, ["Текущие подписки"], 3))
 
 
@@ -252,7 +259,7 @@ def mfd_add_user(bot: Bot, update):
             text = str(spl[0]).strip()
             rating = int(spl[1])
         except Exception as e:
-            print(e)
+            rating = 0
 
     cid = update.message.chat_id
     if text.startswith('http'):
@@ -292,7 +299,6 @@ def mfd_add_thread(bot, update):
             bot.send_message(cid, res)
             settings(bot, update)
         if len(titles) > 1:
-            print(titles)
             bot.send_message(cid, "Найдено несколько тем. Уточните запрос или введите новый",
                              reply_markup=keyboard_markup(titles, n_col=1))
         if len(titles) == 0:
@@ -300,13 +306,14 @@ def mfd_add_thread(bot, update):
 
 
 dispatcher.add_handler(CommandHandler('start', start))
+dispatcher.add_handler(CommandHandler('start', stop))
 dispatcher.add_handler(CommandHandler('about', about))
 dispatcher.add_handler(CommandHandler('key', key))
 
 dispatcher.add_handler(RegexHandler('^Смартлаб топ 24 часа$', smartlab))
 dispatcher.add_handler(RegexHandler('^About', about))
 
-dispatcher.add_handler(RegexHandler('^Подписки$', settings))
+dispatcher.add_handler(RegexHandler('^Управление подписками$', settings))
 dispatcher.add_handler(RegexHandler('^Текущие подписки$', print_settings))
 
 dispatcher.add_handler(RegexHandler('^Отмена$', key))

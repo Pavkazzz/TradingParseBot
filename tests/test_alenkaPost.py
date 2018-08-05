@@ -11,18 +11,18 @@ class TestAlenkaNews(TestCase):
             text = html_page.read()
             alenka.set_generator(lambda: text)
         page: Page = alenka.check_update()
-        self.assertEqual(len(page.posts), 6)
-        self.assertEqual(page.posts[0].md, ("01.08.2018, 18:06\n"
+        self.assertEqual(len(page.posts), 4)
+        self.assertEqual(page.posts[0].md, ("04.08.2018, 12:23\n"
                                             "\n"
-                                            "[Кирилл Фомичев](https://alenka.capital/category/kirill_fomichev_67/)\n"
+                                            "💡 [Стратегия](https://alenka.capital/category/strategiya_624/)\n"
                                             "\n"
-                                            "[ПАО «НГК «Славнефть» отчет за I полугодие 2018 МСФО](https://alenka.capital/post/pao_ngk_slavneft_otchet_za_i_polugodie_2018_msfo_39396/)"))
+                                            "[Как покупать \"сникерсы\"?](https://alenka.capital/post/kak_pokupat_snikersyi_39465/)"))
 
-        self.assertEqual(page.posts[-1].md, ("01.08.2018, 11:11\n"
+        self.assertEqual(page.posts[-1].md, ("03.08.2018, 11:37\n"
                                              "\n"
-                                             "[Сникерсы](https://alenka.capital/category/snikersyi_857/)\n"
+                                             "💡 [Сникерсы](https://alenka.capital/category/snikersyi_857/)\n"
                                              "\n"
-                                             "[Arcelor Mittal отчет за 2-й квартал 2018 года](https://alenka.capital/post/arcelor_mittal_otchet_za_2_y_kvartal_2018_goda_39372/)"))
+                                             "[Tesla отчет за 2-й квартал 2018](https://alenka.capital/post/tesla_otchet_za_2_y_kvartal_2018_39423/)"))
 
         for x in page.posts:
             self.assertNotEqual(len(x.md), 0)

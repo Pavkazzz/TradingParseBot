@@ -3,7 +3,7 @@ import re
 
 _transform_smiles = {
     """<span class="mfd-emoticon mfd-emoticon-smile"></span>""": "\U0001f642",
-    """<span class="mfd-emoticon mfd-emoticon-sad"></span>""":  "\U0001f626",
+    """<span class="mfd-emoticon mfd-emoticon-sad"></span>""": "\U0001f626",
     """<span class="mfd-emoticon mfd-emoticon-angry"></span>""": "\U0001f620",
     """<span class="mfd-emoticon mfd-emoticon-blank"></span>""": "\U0001f610",
     """<span class="mfd-emoticon mfd-emoticon-blink"></span>""": "\U0001f632",
@@ -34,9 +34,25 @@ _transform_smiles = {
     """<span class="mfd-emoticon mfd-emoticon-wink"></span>""": "\U0001f609"
 }
 
+_transform_alert_news = {
+    0: "",
+    1: "\U00002757 ",
+    3: "\U000026A1 "
+}
+
 
 def transform_emoji(html):
     for key, val in _transform_smiles.items():
         html = html.replace(key, val)
 
     return html
+
+
+def alert(alert_level, post) -> str:
+    if post:
+        return "\U0001F4A1 "
+    try:
+        res = _transform_alert_news[alert_level]
+    except KeyError:
+        res = ""
+    return res

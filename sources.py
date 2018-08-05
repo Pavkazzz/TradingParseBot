@@ -55,46 +55,23 @@ class AbstractSource(metaclass=ABCMeta):
         return h.handle(html_to_parse).strip()
 
 
-class DataSource(AbstractSource):
-    @abstractmethod
-    def check_update(self) -> Page:
-        pass
-
+class MfdSource(AbstractSource):
     def __init__(self, generator):
         super().__init__(generator, 60*2)
-        self.data_list = []
 
-    def add_data(self, data):
-        if self.data_list.count(data) == 0:
-            self.data_list.append(data)
-        return self
+    def check_update(self, data=None) -> Page:
+        bs = BeautifulSoup(self.generator(data), "html.parser")
+        thread = self.thread_selector(bs)
+        user = [self.pretty_text(p, "http://mfd.ru") for p in bs.select("div.mfd-post-top-0 > a")]
+        link = [self.pretty_text(p, "http://mfd.ru") for p in bs.select("div.mfd-post-top-1")]
+        posts = [self.pretty_text(p, "http://mfd.ru") for p in bs.select("div.mfd-post-body-right")]
 
-    def remove_data(self, data):
-        try:
-            self.data_list.remove(data)
-        except ValueError:
-            print("Ошибка удаления")
+        if len(thread) > 0:
+            tuple_title = tuple(zip_longest(thread, user, link, fillvalue=thread[0]))
+            title = [f"{title[0]}\n{title[1]}\n{title[2]}" for title in tuple_title]
+            return Page([SinglePost(data[0], data[1]) for data in list(zip(title, posts))])
 
-
-class MfdSource(DataSource):
-    def __init__(self, generator):
-        super().__init__(generator)
-
-    def check_update(self) -> Page:
-        res = []
-        for data in self.data_list:
-            bs = BeautifulSoup(self.generator(data), "html.parser")
-            thread = self.thread_selector(bs)
-            user = [self.pretty_text(p, "http://mfd.ru") for p in bs.select("div.mfd-post-top-0 > a", )]
-            link = [self.pretty_text(p, "http://mfd.ru") for p in bs.select("div.mfd-post-top-1", )]
-            posts = [self.pretty_text(p, "http://mfd.ru") for p in bs.select("div.mfd-post-body-right")]
-
-            if len(thread) > 0:
-                tuple_title = tuple(zip_longest(thread, user, link, fillvalue=thread[0]))
-                title = [f"{title[0]}\n{title[1]}\n{title[2]}" for title in tuple_title]
-                res += [SinglePost(data[0], data[1]) for data in list(zip(title, posts))]
-
-        return Page(res)
+        return Page()
 
     @abstractmethod
     def thread_selector(self, bs):
@@ -172,11 +149,15 @@ class AlenkaNews(AbstractSource):
         self.url = alenka_url
 
     def check_update(self) -> Page:
-        bs = BeautifulSoup(self.generator(), "html.parser")
-        title = "ALЁNKA CAPITAL News:"
+        title = "ALЁNKA CAPITAL"
         data = json.loads(self.generator())
         posts = list(filter(lambda x: x['cat_name'] == "Лента новостей", data))
-        el = [SinglePost(md=f"{post['post_date']}\n\n[{post['post_name']}]({post['post_link']})", title=title) for post in posts]
+        el = []
+        for post in posts:
+            el.append(SinglePost(md=f"{post['post_date']}\n\n"
+                                    f"{utils.alert(post['post_alert'], False)}"
+                                    f"[{post['post_name']}]({post['post_link']})",
+                                 title=title))
 
         return Page(el)
 
@@ -187,10 +168,17 @@ class AlenkaPost(AbstractSource):
         self.url = alenka_url
 
     def check_update(self) -> Page:
-        title = "ALЁNKA CAPITAL Post:"
+        title = "ALЁNKA CAPITAL"
         data = json.loads(self.generator())
         posts = list(filter(lambda x: x['cat_name'] != "Лента новостей", data))
-        el = [SinglePost(md=f"{post['post_date']}\n\n[{post['cat_name']}]({post['cat_link']})\n\n[{post['post_name']}]({post['post_link']})", title=title) for post in posts]
+        el = []
+        for post in posts:
+            el.append(SinglePost(md=f"{post['post_date']}\n\n"
+                                    f"{utils.alert(post['post_alert'], True)}"
+                                    f"[{post['cat_name']}]({post['cat_link']})\n\n"
+                                    f"[{post['post_name']}]({post['post_link']})",
+                                 title=title))
+
         return Page(el)
 
 

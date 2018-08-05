@@ -18,7 +18,6 @@ class DataBase:
             if file.endswith("json"):
                 self.create_db(f"data/{file}")
 
-
     def update(self, key, page: Page, chat_id) -> typing.List[str]:
         posts = [md.format() for md in page.posts]
         res = []

@@ -33,10 +33,23 @@ class Manager:
     REMOVE_MFD_THREAD = "remove_mfd_tread"  # + id - Удалить mfd форум по id
 
     def __init__(self, clear_start=False):
+        self.sources = {}
+        self.current_data = {}
+
         self.db = DataBase(clear_start)
         self.users_subscription = self.db.load_user_data()
-        self.alenka_current_news = sources.AlenkaNews().check_update()
-        self.alenka_current_post = sources.AlenkaPost().check_update()
+
+        self.sources["alenka_post"] = sources.AlenkaPost()
+        self.sources["alenka_news"] = sources.AlenkaNews()
+        self.sources["mfd_user_post"] = sources.MfdUserPostSource()
+        self.sources["mfd_user_comment"] = sources.MfdUserCommentSource()
+        self.sources["mfd_thread"] = sources.MfdForumThreadSource()
+
+        self.update_alenka()
+
+    def update_alenka(self):
+        self.current_data["alenka_news"] = self.sources["alenka_news"].check_update()
+        self.current_data["alenka_post"] = self.sources["alenka_post"].check_update()
 
     def recreate_users(self, bot: Bot):
         for user in self.db.user_list():
@@ -53,6 +66,10 @@ class Manager:
     def start(self, chat_id):
         if chat_id not in self.users_subscription:
             self.users_subscription[chat_id] = Data()
+
+    def stop(self, chat_id):
+        if chat_id in self.users_subscription:
+            del self.users_subscription[chat_id]
 
     def new_command(self, chat_id, command, data: SingleData = SingleData()) -> Tuple[str, Union[List[str], list]]:
         result: str = "Команда не найдена"
@@ -117,31 +134,31 @@ class Manager:
 
     def check_new_alenka(self, chat_id):
         res = []
-        res += self.db.update(f"alenka_news {chat_id}", self.alenka_current_news, chat_id)
-        res += self.db.update(f"alenka_post {chat_id}", self.alenka_current_post, chat_id)
+        res += self.db.update(f"alenka_news {chat_id}", self.current_data["alenka_news"], chat_id)
+        res += self.db.update(f"alenka_post {chat_id}", self.current_data["alenka_post"], chat_id)
         return res
 
     def check_mfd_user(self, user, chat_id):
         res = []
         res += self.db.update(f"mfd_user_comment {user.id} {chat_id}",
-                              sources.MfdUserCommentSource().add_data(user.id).check_update(), chat_id)
+                              self.sources["mfd_user_comment"].check_update(user.id), chat_id)
         res += self.db.update(f"mfd_user_post {user.id} {chat_id}",
-                              sources.MfdUserPostSource().add_data(user.id).check_update(), chat_id)
+                              self.sources["mfd_user_post"].check_update(user.id), chat_id)
         return res
 
     def check_mfd_thread(self, thread, chat_id):
         return self.db.update(f"mfd_thread {thread.id} {chat_id}",
-                              sources.MfdForumThreadSource().add_data(thread.id).check_update(), chat_id)
+                              self.sources["mfd_thread"].check_update(thread.id), chat_id)
 
     def check_new_all(self):
-        self.alenka_current_news = sources.AlenkaNews().check_update()
-        self.alenka_current_post = sources.AlenkaPost().check_update()
+        self.update_alenka()
+
         for user in list(self.users_subscription):
             yield user, self.check_new(user)
 
     def resolve_mfd_thread_link(self, cid, text):
         try:
-            tid, name = sources.MfdForumThreadSource().resolve_link(text)
+            tid, name = self.sources["mfd_thread"].resolve_link(text)
             self.new_command(cid, Manager.ADD_MFD_THREAD, SingleData(tid, name))
             return name
         except Exception as e:
@@ -150,7 +167,7 @@ class Manager:
 
     def resolve_mfd_user_link(self, cid, text):
         try:
-            tid, name = sources.MfdUserPostSource().resolve_link(text)
+            tid, name = self.sources["mfd_user_post"].resolve_link(text)
             self.new_command(cid, Manager.ADD_MFD_USER, SingleData(tid, name))
             return name
         except Exception as e:
@@ -161,7 +178,7 @@ class Manager:
         title = []
         res = ""
         try:
-            title, tid, name = sources.MfdForumThreadSource().find_thread(text)
+            title, tid, name = self.sources["mfd_thread"].find_thread(text)
             if tid is not None and len(title) == 1:
                 res, _ = self.new_command(cid, Manager.ADD_MFD_THREAD, SingleData(tid, name))
         except Exception as e:
@@ -173,7 +190,7 @@ class Manager:
         users = ()
         res = ""
         try:
-            users = sources.MfdUserPostSource().find_user(text)
+            users = self.sources["mfd_user_post"].find_user(text)
             # Если есть рейтинг, пытаемся найти нашего(Нажали на кнопку)
             if rating > -1:
                 users = tuple(filter(lambda x: x[1] == text and x[3] == rating, users))
@@ -185,3 +202,7 @@ class Manager:
             print(e)
         finally:
             return users, res
+
+    def config_sources(self, source, generator=None):
+        self.sources[source].set_generator(generator)
+        self.update_alenka()
