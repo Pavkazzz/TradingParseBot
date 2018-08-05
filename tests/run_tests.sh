@@ -1,1 +1,1 @@
-nosetests --with-path .. test_manager.py
+nosetests --with-path .. 

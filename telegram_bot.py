@@ -327,7 +327,7 @@ dispatcher.add_handler(CommandHandler('key', key))
 dispatcher.add_handler(RegexHandler('^Смартлаб топ 24 часа$', smartlab))
 dispatcher.add_handler(RegexHandler('^About', about))
 
-dispatcher.add_handler(RegexHandler('^Управление подписками$', settings))
+dispatcher.add_handler(RegexHandler('^Подписки$', settings))
 dispatcher.add_handler(RegexHandler('^Текущие подписки$', print_settings))
 
 dispatcher.add_handler(RegexHandler('^Отмена$', key))
