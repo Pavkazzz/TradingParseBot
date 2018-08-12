@@ -1,11 +1,11 @@
+# -*- coding: utf-8 -*-
+import time
 from unittest import TestCase
 from sources import MfdForumThreadSource
 
 
 class TestMfdForumThreadSource(TestCase):
     def test_local_generator(self):
-        import sys
-        sys.setrecursionlimit(20000)
         thread = MfdForumThreadSource()
         with open("html/test_mfdForumThreadSourcePage.html", 'r', encoding="utf8") as html_page:
             text = html_page.read()
@@ -20,6 +20,7 @@ class TestMfdForumThreadSource(TestCase):
         for x in page.posts:
             self.assertNotEqual(len(x.title), 0)
             self.assertNotEqual(len(x.md), 0)
+            self.assertGreater(x.id, 0)
 
     def test_online_generator(self):
         post = MfdForumThreadSource()
@@ -28,6 +29,7 @@ class TestMfdForumThreadSource(TestCase):
         for x in page.posts:
             self.assertNotEqual(len(x.title), 0)
             self.assertNotEqual(len(x.md), 0)
+            self.assertGreater(x.id, 0)
 
     def test_resolve(self):
         post = MfdForumThreadSource()

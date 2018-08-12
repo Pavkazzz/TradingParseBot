@@ -52,7 +52,7 @@ def check_update(bot, job):
         send_data(bot, chat, data)
 
 
-def send_data(bot, chat_id, data):
+def send_data(bot: Bot, chat_id, data):
     for msg in data:
         try:
             bot.send_message(chat_id=chat_id, text=msg, parse_mode=telegram.ParseMode.MARKDOWN,

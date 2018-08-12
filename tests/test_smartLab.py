@@ -33,7 +33,6 @@ class TestSmartLab(TestCase):
         self.assertEqual(len(page.posts), 1)
         self.assertEqual(page.posts[0].md, res)
 
-
     def test_online_generator(self):
         sl = SmartLab()
         page = sl.check_update()
