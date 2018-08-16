@@ -58,7 +58,7 @@ def send_data(bot, chat_id, data):
             bot.send_message(chat_id=chat_id, text=msg, parse_mode=telegram.ParseMode.MARKDOWN,
                              disable_web_page_preview=True)
         except BadRequest as bad:
-            pass
+            logger.error(f"Error BadRequest: {bad}")
         except Unauthorized as un:
             manager.stop(chat_id)
         except Exception as e:
@@ -308,14 +308,14 @@ def mfd_add_thread(bot, update):
 def error_callback(bot, update, error):
     try:
         raise error
-    except BadRequest:
-        pass
-    except TimedOut:
-        pass
-    except NetworkError:
-        pass
+    except BadRequest as br:
+        logger.error(f"Error BadRequest: {br}")
+    except TimedOut as to:
+        logger.error(f"Error TimeOut: {to}")
+    except NetworkError as ne:
+        logger.error(f"Error NetworkError: {ne}")
     except TelegramError as tge:
-        logger.error(tge)
+        logger.error(f"Error TelegramError: {tge}")
 
 
 dispatcher.add_error_handler(error_callback)
