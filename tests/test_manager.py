@@ -1,5 +1,6 @@
 from unittest import TestCase
 from manager import Manager, SingleData
+from sources import SinglePost
 import random
 
 
@@ -101,7 +102,7 @@ class TestManager(TestCase):
         for user, post in manager.check_new_all():
             if user % 2:
                 self.assertEqual(len(post), 1)
-                self.assertEqual(post[0], res)
+                self.assertEqual(post[0][0].format(), res)
             else:
                 self.assertEqual(post, [])
 
@@ -118,3 +119,34 @@ class TestManager(TestCase):
         self.assertEqual(m.settings(cid).alenka, True)
         m.stop(cid)
         self.assertEqual(m.settings(cid).alenka, False)
+
+
+    def test_alenka_editing(self):
+        manager = Manager(clear_start=True)
+        with open("html/test_alenkaResponse.json", 'r', encoding="utf8") as html_page:
+            text = html_page.read()
+            manager.config_sources("alenka_news", lambda: text)
+
+        chats_id = random.randint(0, 100)
+        manager.start(chats_id)
+        _, data = manager.new_command(chats_id, Manager.ADD_ALENKA)
+
+        for post in data:
+            manager.set_message_id(message_id=random.randint(0, 1000), chat_id=chats_id, post_id=post.id)
+
+        for user, post in manager.check_new_all():
+            self.assertEqual(post, [])
+
+        with open("html/test_alenkaResponseEditing.json", 'r', encoding="utf8") as html_page:
+            text = html_page.read()
+            manager.config_sources("alenka_news", lambda: text)
+
+        for user, posts in manager.check_new_all():
+            post: SinglePost
+            for post, message_id in posts:
+                self.assertGreater(message_id, 0)
+                self.assertGreater(len(post.format()), 0)
+
+
+        for user, post in manager.check_new_all():
+            self.assertEqual(post, [])

@@ -47,16 +47,25 @@ def stop(bot, update):
     key(bot, update)
 
 
-def check_update(bot, job):
+def check_update(bot: Bot, job):
     for chat, data in manager.check_new_all():
         send_data(bot, chat, data)
 
 
 def send_data(bot: Bot, chat_id, data):
-    for msg in data:
+    for singlepost, message_id in data:
         try:
-            bot.send_message(chat_id=chat_id, text=msg, parse_mode=telegram.ParseMode.MARKDOWN,
-                             disable_web_page_preview=True)
+            if message_id == 0:
+                sended_msg = bot.send_message(chat_id=chat_id, text=singlepost.format(),
+                                              parse_mode=telegram.ParseMode.MARKDOWN,
+                                              disable_web_page_preview=True)
+            else:
+                sended_msg = bot.edit_message_text(chat_id=chat_id, text=singlepost.format(), message_id=message_id,
+                                                   parse_mode=telegram.ParseMode.MARKDOWN,
+                                                   disable_web_page_preview=True)
+
+            manager.set_message_id(sended_msg.message_id, chat_id, singlepost.id)
+
         except BadRequest as bad:
             logger.error(f"Error BadRequest: {bad}")
         except Unauthorized as un:
@@ -78,9 +87,7 @@ def print_settings(bot: Bot, update):
         return
 
     if current_settings.alenka:
-        msg += "  Новости с [https://alenka.capital](alenka.capital)"
-
-    msg += "\n\n"
+        msg += "  Новости с [https://alenka.capital](alenka.capital)\n\n"
 
     if len(current_settings.mfd_user) == 1:
         for user in current_settings.mfd_user:

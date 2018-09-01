@@ -12,7 +12,7 @@ class TestDataBase(TestCase):
         res = db.update("alenka_news", Page(), cid)
         self.assertEqual(res, [])
         res = db.update("alenka_news", Page(posts=[post]), cid)
-        self.assertEqual(res, ['123\nqwe'])
+        self.assertEqual(res, [SinglePost(title='123', md='qwe', id=0)])
         res = db.update("alenka_news", Page(posts=[post]), cid)
         self.assertEqual(res, [])
 
