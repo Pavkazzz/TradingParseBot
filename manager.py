@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from dataclasses import dataclass, field
-from typing import Tuple, List, Union
+from typing import Tuple, List, Union, Set, Any, Dict
 
 from telegram import Bot
 
@@ -10,7 +10,7 @@ import sources
 import typing
 
 
-@dataclass
+@dataclass(unsafe_hash=True)
 class SingleData:
     id: int = field(default=0)
     name: str = field(default="")
@@ -21,6 +21,10 @@ class Data:
     mfd_user: typing.List[SingleData] = field(default_factory=list)
     mfd_thread: typing.List[SingleData] = field(default_factory=list)
     alenka: bool = field(default=False)
+
+    def remove_duplicate(self):
+        self.mfd_user = list(set(self.mfd_user))
+        self.mfd_thread = list(set(self.mfd_thread))
 
 
 class Manager:
@@ -37,19 +41,13 @@ class Manager:
         self.current_data = {}
 
         self.db = DataBase(clear_start)
-        self.users_subscription = self.db.load_user_data()
+        self.users_subscription: Dict[Data] = self.db.load_user_data()
 
         self.sources["alenka_post"] = sources.AlenkaPost()
         self.sources["alenka_news"] = sources.AlenkaNews()
         self.sources["mfd_user_post"] = sources.MfdUserPostSource()
         self.sources["mfd_user_comment"] = sources.MfdUserCommentSource()
         self.sources["mfd_thread"] = sources.MfdForumThreadSource()
-
-        self.update_alenka()
-
-    def update_alenka(self):
-        self.current_data["alenka_news"] = self.sources["alenka_news"].check_update()
-        self.current_data["alenka_post"] = self.sources["alenka_post"].check_update()
 
     def recreate_users(self, bot: Bot):
         for user in self.db.user_list():
@@ -110,7 +108,6 @@ class Manager:
             print(f"Unexpected key error: {command} {data}, e:{e}")
 
         self.db.save_user_data(self.users_subscription)
-
         return result, current_data
 
     def settings(self, chat_id) -> typing.Union[str, Data]:
@@ -133,28 +130,70 @@ class Manager:
         return res
 
     def check_new_alenka(self, chat_id):
+        if "alenka_news" not in self.current_data:
+            self.current_data["alenka_news"] = self.sources["alenka_news"].check_update()
+
+        if "alenka_post" not in self.current_data:
+            self.current_data["alenka_post"] = self.sources["alenka_post"].check_update()
+
         res = []
-        res += self.db.update(f"alenka_news {chat_id}", self.current_data["alenka_news"], chat_id)
-        res += self.db.update(f"alenka_post {chat_id}", self.current_data["alenka_post"], chat_id)
+        res += self.db.update(f"alenka_news", self.current_data["alenka_news"], chat_id)
+        res += self.db.update(f"alenka_post", self.current_data["alenka_post"], chat_id)
         return res
 
     def check_mfd_user(self, user, chat_id):
+
+        if f"mfd_user_comment {user.id}" not in self.current_data:
+            self.current_data[f"mfd_user_comment {user.id}"] = self.sources["mfd_user_comment"].check_update(user.id)
+
+        if f"mfd_user_post {user.id}" not in self.current_data:
+            self.current_data[f"mfd_user_post {user.id}"] = self.sources["mfd_user_post"].check_update(user.id)
+
         res = []
         res += self.db.update(f"mfd_user_comment {user.id} {chat_id}",
-                              self.sources["mfd_user_comment"].check_update(user.id), chat_id)
+                              self.current_data[f"mfd_user_comment {user.id}"], chat_id)
         res += self.db.update(f"mfd_user_post {user.id} {chat_id}",
-                              self.sources["mfd_user_post"].check_update(user.id), chat_id)
+                              self.current_data[f"mfd_user_post {user.id}"], chat_id)
         return res
 
     def check_mfd_thread(self, thread, chat_id):
+
+        if f"mfd_thread {thread.id}" not in self.current_data:
+            self.current_data[f"mfd_thread {thread.id}"] = self.sources["mfd_thread"].check_update(thread.id)
+
         return self.db.update(f"mfd_thread {thread.id} {chat_id}",
-                              self.sources["mfd_thread"].check_update(thread.id), chat_id)
+                              self.current_data[f"mfd_thread {thread.id}"], chat_id)
 
     def check_new_all(self):
-        self.update_alenka()
+        self.update_all_sources()
 
         for user in list(self.users_subscription):
             yield user, self.check_new(user)
+
+    def update_all_sources(self):
+        self.update_alenka()
+        self.update_mfd()
+
+    def update_alenka(self):
+        self.current_data["alenka_news"] = self.sources["alenka_news"].check_update()
+        self.current_data["alenka_post"] = self.sources["alenka_post"].check_update()
+
+    def update_mfd(self):
+        data_list = Data()
+        for user, data in self.users_subscription.items():
+            for thread in data.mfd_thread:
+                data_list.mfd_thread.append(thread)
+            for mfd_user in data.mfd_user:
+                data_list.mfd_user.append(mfd_user)
+
+        data_list.remove_duplicate()
+
+        for data in data_list.mfd_thread:
+            self.current_data[f"mfd_thread {data.id}"] = self.sources["mfd_thread"].check_update(data)
+
+        for data in data_list.mfd_user:
+            self.current_data[f"mfd_user_post {data.id}"] = self.sources["mfd_user_post"].check_update(data)
+            self.current_data[f"mfd_user_comment {data.id}"] = self.sources["mfd_user_comment"].check_update(data)
 
     def resolve_mfd_thread_link(self, cid, text):
         try:

@@ -1,11 +1,10 @@
 import json
 import pickle
 import typing
-from pathlib import Path
 import os
 
+from pathlib import Path
 from hashlib import blake2s
-
 from sources import Page
 
 

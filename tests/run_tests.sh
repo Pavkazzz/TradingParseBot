@@ -1,1 +1,2 @@
-nosetests --with-path .. 
+#!/usr/bin/env bash
+nosetests --with-path ..

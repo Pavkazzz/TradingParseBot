@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-import re
-
 _transform_smiles = {
     """<span class="mfd-emoticon mfd-emoticon-smile"></span>""": "\U0001f642",
     """<span class="mfd-emoticon mfd-emoticon-sad"></span>""": "\U0001f626",

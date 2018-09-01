@@ -70,22 +70,24 @@ class TestManager(TestCase):
         self.assertEqual(res3[0][1], [])
 
     def test_alenka_unsubscr(self):
-        manager = Manager(True)
+        manager = Manager(clear_start=True)
         with open("html/test_alenkaResponse.json", 'r', encoding="utf8") as html_page:
             text = html_page.read()
             manager.config_sources("alenka_news", lambda: text)
 
-        cid_alenka = random.randint(1000, 9999)
-        cid_no = random.randint(0, 999)
-        manager.start(cid_alenka)
-        manager.start(cid_no)
+        n = 10
+        chats_id = [random.randint(i * n + 1, i * n + n) for i in range(n)]
+        for chat in chats_id:
+            manager.start(chat)
+            if chat % 2:
+                manager.new_command(chat, Manager.ADD_ALENKA)
+            if chat % 3:
+                manager.new_command(chat, Manager.ADD_MFD_USER, SingleData(id=random.randint(0, 100), name=str(chat)))
+            if chat % 5:
+                manager.new_command(chat, Manager.ADD_MFD_THREAD, SingleData(id=random.randint(0, 100), name=str(chat)))
 
-        manager.new_command(cid_alenka, Manager.ADD_ALENKA)
         for user, post in manager.check_new_all():
-            if user == cid_alenka:
-                self.assertEqual(post, [])
-            if user == cid_no:
-                self.assertEqual(post, [])
+            self.assertEqual(post, [])
 
         with open("html/test_alenkaResponseWithNewData.json", 'r', encoding="utf8") as html_page:
             text = html_page.read()
@@ -97,12 +99,22 @@ class TestManager(TestCase):
                "[Media Markt начал ликвидацию ассортимента перед уходом из России](https://alenka.capital/post/media_markt_nachal_likvidatsiyu_assortimenta_pered_uhodom_iz_rossii_39469/)")
 
         for user, post in manager.check_new_all():
-            if user == cid_alenka:
+            if user % 2:
                 self.assertEqual(len(post), 1)
                 self.assertEqual(post[0], res)
-            if user == cid_no:
+            else:
                 self.assertEqual(post, [])
+
 
         for user, post in manager.check_new_all():
             self.assertEqual(post, [])
 
+
+    def test_delete(self):
+        m = Manager(clear_start=True)
+        cid = random.randint(0, 100)
+        m.start(cid)
+        m.new_command(cid, Manager.ADD_ALENKA)
+        self.assertEqual(m.settings(cid).alenka, True)
+        m.stop(cid)
+        self.assertEqual(m.settings(cid).alenka, False)

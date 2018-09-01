@@ -45,3 +45,12 @@ class TestAlenkaNews(TestCase):
             post.check_update()
         t_cache = time.time()
         self.assertLess(t_load - t, t_cache - t_load)
+
+
+    def test_editing(self):
+        alenka = AlenkaPost()
+        with open("html/test_alenkaResponse.json", 'r', encoding="utf8") as html_page:
+            text = html_page.read()
+            alenka.set_generator(lambda: text)
+
+
