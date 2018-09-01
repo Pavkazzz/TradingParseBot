@@ -192,11 +192,11 @@ class Manager:
                 data_list.mfd_user.append(mfd_user)
 
         for data in data_list.mfd_thread:
-            self.current_data[f"mfd_thread {data.id}"] = self.sources["mfd_thread"].check_update(data)
+            self.current_data[f"mfd_thread {data.id}"] = self.sources["mfd_thread"].check_update(data.id)
 
         for data in data_list.mfd_user:
-            self.current_data[f"mfd_user_post {data.id}"] = self.sources["mfd_user_post"].check_update(data)
-            self.current_data[f"mfd_user_comment {data.id}"] = self.sources["mfd_user_comment"].check_update(data)
+            self.current_data[f"mfd_user_post {data.id}"] = self.sources["mfd_user_post"].check_update(data.id)
+            self.current_data[f"mfd_user_comment {data.id}"] = self.sources["mfd_user_comment"].check_update(data.id)
 
     def resolve_mfd_thread_link(self, cid, text):
         try:

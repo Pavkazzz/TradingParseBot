@@ -16,8 +16,8 @@ dispatcher = updater.dispatcher
 
 manager = Manager()
 # manager.recreate_users(bot=dispatcher.bot)
-for posts in manager.check_new_all():
-    pass
+# for posts in manager.check_new_all():
+#     pass
 
 IDLE, MFD_USER_ADD, MFD_USER_REMOVE, MFD_THREAD_ADD, MFD_THREAD_REMOVE = range(5)
 state = IDLE
