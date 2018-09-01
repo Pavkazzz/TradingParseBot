@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from typing import List, Tuple
+from typing import Tuple
 from urllib.parse import quote
 from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass, field
@@ -8,13 +8,15 @@ from itertools import zip_longest
 import requests_cache
 import typing
 import utils
-import json
+import ujson as json
 from settings import alenka_url
+
 
 @dataclass
 class SinglePost:
     title: str = field(default_factory=str)
     md: str = field(default_factory=str)
+    id: int = field(default=0)
 
     def format(self) -> str:
         return f"{self.title}\n{self.md}"
@@ -56,8 +58,9 @@ class AbstractSource(metaclass=ABCMeta):
 
 
 class MfdSource(AbstractSource):
-    def __init__(self, generator):
-        super().__init__(generator, 60*2)
+    def __init__(self, generator, id_selector):
+        super().__init__(generator, 60 * 2)
+        self.id_selector = id_selector
 
     def check_update(self, data=None) -> Page:
         bs = BeautifulSoup(self.generator(data), "html.parser")
@@ -65,11 +68,13 @@ class MfdSource(AbstractSource):
         user = [self.pretty_text(p, "http://mfd.ru") for p in bs.select("div.mfd-post-top-0 > a")]
         link = [self.pretty_text(p, "http://mfd.ru") for p in bs.select("div.mfd-post-top-1")]
         posts = [self.pretty_text(p, "http://mfd.ru") for p in bs.select("div.mfd-post-body-right")]
+        ids = [int(p.attrs['data-id']) for p in bs.select(self.id_selector)]
 
         if len(thread) > 0:
             tuple_title = tuple(zip_longest(thread, user, link, fillvalue=thread[0]))
             title = [f"{title[0]}\n{title[1]}\n{title[2]}" for title in tuple_title]
-            return Page([SinglePost(data[0], data[1]) for data in list(zip(title, posts))])
+            return Page([SinglePost(title=data[0], md=data[1], id=data[2])
+                         for data in zip(title, posts, ids)])
 
         return Page()
 
@@ -80,7 +85,8 @@ class MfdSource(AbstractSource):
 
 class MfdUserPostSource(MfdSource):
     def __init__(self):
-        super().__init__(lambda x: self.session.get(self.url.format(id=x)).content)
+        super().__init__(lambda x: self.session.get(self.url.format(id=x)).content,
+                         "button.mfd-button-attention")
 
         self.url = "http://lite.mfd.ru/forum/poster/posts/?id={id}"
 
@@ -108,7 +114,8 @@ class MfdUserPostSource(MfdSource):
 
 class MfdUserCommentSource(MfdSource):
     def __init__(self):
-        super().__init__(lambda x: self.session.get(self.url.format(id=x)).content)
+        super().__init__(lambda x: self.session.get(self.url.format(id=x)).content,
+                         "button.mfd-button-quote")
         self.url = "http://lite.mfd.ru/forum/poster/comments/?id={id}"
 
     def thread_selector(self, bs):
@@ -117,7 +124,8 @@ class MfdUserCommentSource(MfdSource):
 
 class MfdForumThreadSource(MfdSource):
     def __init__(self):
-        super().__init__(lambda x: self.session.get(self.url.format(id=x)).content)
+        super().__init__(lambda x: self.session.get(self.url.format(id=x)).content,
+                         "button.mfd-button-attention")
         self.url = "http://lite.mfd.ru/forum/thread/?id={id}"
 
     def thread_selector(self, bs):
@@ -157,7 +165,8 @@ class AlenkaNews(AbstractSource):
             el.append(SinglePost(md=f"{post['post_date']}\n\n"
                                     f"{utils.alert(post['post_alert'], False)}"
                                     f"[{post['post_name']}]({post['post_link']})",
-                                 title=title))
+                                 title=title,
+                                 id=post['post_id']))
 
         return Page(el)
 
@@ -177,7 +186,8 @@ class AlenkaPost(AbstractSource):
                                     f"{utils.alert(post['post_alert'], True)}"
                                     f"[{post['cat_name']}]({post['cat_link']})\n\n"
                                     f"[{post['post_name']}]({post['post_link']})",
-                                 title=title))
+                                 title=title,
+                                 id=post['post_id']))
 
         return Page(el)
 

@@ -19,6 +19,7 @@ class TestMfdUserCommentSource(TestCase):
         for x in page.posts:
             self.assertNotEqual(len(x.title), 0)
             self.assertNotEqual(len(x.md), 0)
+            self.assertGreater(x.id, 0)
 
     def test_online_generator(self):
         post = MfdUserCommentSource()
@@ -27,3 +28,4 @@ class TestMfdUserCommentSource(TestCase):
         for x in page.posts:
             self.assertNotEqual(len(x.title), 0)
             self.assertNotEqual(len(x.md), 0)
+            self.assertGreater(x.id, 0)

@@ -11,6 +11,10 @@ class TestAlenkaNews(TestCase):
             text = html_page.read()
             alenka.set_generator(lambda: text)
         page: Page = alenka.check_update()
+        for post in page.posts:
+            self.assertGreater(post.id, 0)
+            self.assertGreater(len(post.md), 0)
+
         self.assertEqual(len(page.posts), 4)
         self.assertEqual(page.posts[0].md, ("04.08.2018, 12:23\n"
                                             "\n"
@@ -24,15 +28,13 @@ class TestAlenkaNews(TestCase):
                                              "\n"
                                              "[Tesla отчет за 2-й квартал 2018](https://alenka.capital/post/tesla_otchet_za_2_y_kvartal_2018_39423/)"))
 
-        for x in page.posts:
-            self.assertNotEqual(len(x.md), 0)
-
     def test_online_generator(self):
         post = AlenkaPost()
         page: Page = post.check_update()
         self.assertGreater(len(page.posts), 0)
-        for x in page.posts:
-            self.assertNotEqual(len(x.md), 0)
+        for post in page.posts:
+            self.assertGreater(post.id, 0)
+            self.assertGreater(len(post.md), 0)
 
     def test_cache(self):
         post = AlenkaPost()

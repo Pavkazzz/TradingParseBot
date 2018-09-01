@@ -37,7 +37,6 @@ class TestUserMfdPostSource(TestCase):
             "киви нет, например. Тут компании\n"
             "разные")
 
-        self.maxDiff = None
         post = MfdUserPostSource()
         with open("html/test_mfdUserPostSourcePage.html", 'r', encoding="utf8") as html_page:
             text = html_page.read()
@@ -51,6 +50,7 @@ class TestUserMfdPostSource(TestCase):
         for x in page.posts:
             self.assertNotEqual(len(x.title), 0)
             self.assertNotEqual(len(x.md), 0)
+            self.assertGreater(x.id, 0)
 
     def test_online_generator(self):
         post = MfdUserPostSource()
@@ -59,6 +59,7 @@ class TestUserMfdPostSource(TestCase):
         for x in page.posts:
             self.assertNotEqual(len(x.title), 0)
             self.assertNotEqual(len(x.md), 0)
+            self.assertGreater(x.id, 0)
 
     def test_resolve(self):
         post = MfdUserPostSource()
