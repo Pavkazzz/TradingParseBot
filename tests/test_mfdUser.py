@@ -2,6 +2,7 @@
 
 from unittest import TestCase
 from sources import MfdUserPostSource, MfdForumThreadSource
+from manager import Data
 
 
 class TestMfdUser(TestCase):
@@ -23,3 +24,13 @@ class TestMfdUser(TestCase):
         self.assertEqual(len(thread_page.posts), 1)
         self.assertEqual(len(post_page.posts), 1)
         self.assertEqual(post_page.posts[0].format(), thread_page.posts[0].format())
+        self.assertEqual(post_page.posts[0].id, thread_page.posts[0].id)
+
+    def test_remove_duplicate(self):
+        data = Data()
+        data.mfd_user = ["one", "two", "one", "three", "one"]
+        data.mfd_thread = ["Раз", "Два", "Раз", "Три", "Раз"]
+        data.remove_duplicate()
+        self.assertEqual(data.mfd_user, ["one", "two", "three"])
+        self.assertEqual(data.mfd_thread, ["Раз", "Два", "Три"])
+

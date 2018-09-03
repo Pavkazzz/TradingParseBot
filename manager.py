@@ -21,6 +21,10 @@ class Data:
     mfd_thread: typing.List[SingleData] = field(default_factory=list)
     alenka: bool = field(default=False)
 
+    def remove_duplicate(self):
+        self.mfd_user = list(dict.fromkeys(self.mfd_user))
+        self.mfd_thread = list(dict.fromkeys(self.mfd_thread))
+
 
 class Manager:
     db: DataBase
@@ -124,6 +128,8 @@ class Manager:
             for thread in self.users_subscription[chat_id].mfd_thread:
                 res += self.check_mfd_thread(thread, chat_id)
 
+        res = list(dict.fromkeys(res))
+
         return res
 
     def check_new_alenka(self, chat_id):
@@ -190,6 +196,8 @@ class Manager:
                 data_list.mfd_thread.append(thread)
             for mfd_user in data.mfd_user:
                 data_list.mfd_user.append(mfd_user)
+
+        data_list.remove_duplicate()
 
         for data in data_list.mfd_thread:
             self.current_data[f"mfd_thread {data.id}"] = self.sources["mfd_thread"].check_update(data.id)
