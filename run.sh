@@ -1,1 +1,2 @@
-docker run -d --rm -v /root/TradingBot/data:/app/data --name telegram_bot telegram_bot
+#!/usr/bin/env bash
+docker run -d --rm -v $(pwd)/data:/app/data --name telegram_bot telegram_bot
