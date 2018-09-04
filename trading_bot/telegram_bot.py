@@ -50,6 +50,7 @@ def stop(bot, update):
 def check_update(bot: Bot, job):
     for chat, data in manager.check_new_all():
         send_data(bot, chat, data)
+    manager.save_user_messages()
 
 
 def send_data(bot: Bot, chat_id, data):

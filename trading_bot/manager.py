@@ -42,12 +42,15 @@ class Manager:
         self.users_subscription: Dict[Data] = self.db.load_user_data()
         self.sended_msg = self.db.load_user_messages()
 
-        self.sources = {}
-        self.sources["alenka_post"] = sources.AlenkaPost()
-        self.sources["alenka_news"] = sources.AlenkaNews()
-        self.sources["mfd_user_post"] = sources.MfdUserPostSource()
-        self.sources["mfd_user_comment"] = sources.MfdUserCommentSource()
-        self.sources["mfd_thread"] = sources.MfdForumThreadSource()
+        for user_id in self.users_subscription:
+            if user_id not in self.sended_msg:
+                self.sended_msg[user_id] = {}
+
+        self.sources = {"alenka_post": sources.AlenkaPost(),
+                        "alenka_news": sources.AlenkaNews(),
+                        "mfd_user_post": sources.MfdUserPostSource(),
+                        "mfd_user_comment": sources.MfdUserCommentSource(),
+                        "mfd_thread": sources.MfdForumThreadSource()}
 
     def recreate_users(self, bot: Bot):
         for user in self.db.user_list():
@@ -59,7 +62,7 @@ class Manager:
                 except Exception as e:
                     print(e, user)
 
-        self.db.save_user_data(self.users_subscription, {})
+        self.db.save_user_data(self.users_subscription)
 
     def start(self, chat_id):
         if chat_id not in self.users_subscription:
@@ -69,6 +72,7 @@ class Manager:
     def stop(self, chat_id):
         if chat_id in self.users_subscription:
             del self.users_subscription[chat_id]
+            del self.sended_msg[chat_id]
 
     def new_command(self, chat_id, command, data: SingleData = SingleData()) -> Tuple[str, List[sources.SinglePost]]:
         result: str = "Команда не найдена"
@@ -108,7 +112,7 @@ class Manager:
         except KeyError as e:
             print(f"Unexpected key error: {command} {data}, e:{e}")
 
-        self.db.save_user_data(self.users_subscription, self.sended_msg)
+        self.db.save_user_data(self.users_subscription)
         return result, current_data
 
     def settings(self, chat_id) -> typing.Union[str, Data]:
@@ -167,7 +171,6 @@ class Manager:
 
     def check_new_all(self) -> Tuple[int, List[Tuple[sources.SinglePost, int]]]:
         self.update_all_sources()
-        self.db.save_user_messages(self.sended_msg)
 
         for user in list(self.users_subscription):
             posts = self.check_new(user)
@@ -178,6 +181,8 @@ class Manager:
                 else:
                     message_id.append(self.sended_msg[user][post.id])
             yield user, list(zip(posts, message_id))
+
+
 
     def update_all_sources(self):
         self.update_alenka()
@@ -257,3 +262,6 @@ class Manager:
 
     def set_message_id(self, message_id, chat_id, post_id):
         self.sended_msg[chat_id][post_id] = message_id
+
+    def save_user_messages(self):
+        self.db.save_user_messages(self.sended_msg)
