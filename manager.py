@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from dataclasses import dataclass, field
-from typing import Tuple, List, Union, Set, Any, Dict
+from typing import Tuple, List, Dict
 from telegram import Bot
 
 from database import DataBase

@@ -12,7 +12,7 @@ import ujson as json
 from settings import alenka_url
 
 
-@dataclass
+@dataclass(unsafe_hash=True)
 class SinglePost:
     title: str = field(default_factory=str)
     md: str = field(default_factory=str)
