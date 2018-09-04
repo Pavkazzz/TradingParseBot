@@ -4,8 +4,8 @@ from dataclasses import dataclass, field
 from typing import Tuple, List, Dict
 from telegram import Bot
 
-from database import DataBase
-import sources
+from trading_bot.database import DataBase
+from trading_bot import sources
 import typing
 
 

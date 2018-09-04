@@ -7,9 +7,9 @@ from bs4 import BeautifulSoup
 from itertools import zip_longest
 import requests_cache
 import typing
-import utils
+from trading_bot import utils
 import ujson as json
-from settings import alenka_url
+from trading_bot.settings import alenka_url
 
 
 @dataclass(unsafe_hash=True)

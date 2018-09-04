@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
-import time
 from unittest import TestCase
-from sources import MfdForumThreadSource
+from trading_bot.sources import MfdForumThreadSource
 
 
 class TestMfdForumThreadSource(TestCase):

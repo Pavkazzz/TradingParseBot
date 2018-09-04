@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from unittest import TestCase
-from sources import AlenkaNews, Page
+from trading_bot.sources import AlenkaNews, Page
 
 
 class TestAlenkaNews(TestCase):

@@ -4,9 +4,9 @@ import telegram
 from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove, Bot
 from telegram.error import BadRequest, Unauthorized, TimedOut, NetworkError, TelegramError
 from telegram.ext import Updater, CommandHandler, RegexHandler, Filters, MessageHandler
-from settings import token, REQUEST_KWARGS
-from manager import Manager
-from sources import SmartLab
+from trading_bot.settings import token, REQUEST_KWARGS
+from trading_bot.manager import Manager
+from trading_bot.sources import SmartLab
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     level=logging.ERROR)

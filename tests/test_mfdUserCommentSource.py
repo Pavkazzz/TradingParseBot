@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from unittest import TestCase
-from sources import MfdUserCommentSource
+from trading_bot.sources import MfdUserCommentSource
 
 
 class TestMfdUserCommentSource(TestCase):

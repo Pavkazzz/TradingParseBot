@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import time
 from unittest import TestCase
-from sources import AlenkaPost, Page
+from trading_bot.sources import AlenkaPost, Page
 
 
 class TestAlenkaNews(TestCase):

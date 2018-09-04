@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
 from unittest import TestCase
-from sources import MfdUserPostSource, MfdForumThreadSource
-from manager import Data
+from trading_bot.sources import MfdUserPostSource, MfdForumThreadSource
+from trading_bot.manager import Data
 
 
 class TestMfdUser(TestCase):

@@ -1,5 +1,5 @@
 from unittest import TestCase
-from sources import MfdSource
+from trading_bot.sources import MfdSource
 
 class TestFormat(TestCase):
     def test_tomd(self):

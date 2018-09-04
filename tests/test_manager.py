@@ -1,6 +1,6 @@
 from unittest import TestCase
-from manager import Manager, SingleData
-from sources import SinglePost
+from trading_bot.manager import Manager, SingleData
+from trading_bot.sources import SinglePost
 import random
 
 

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from unittest import TestCase
-from sources import AbstractSource
+from trading_bot.sources import AbstractSource
 from bs4 import BeautifulSoup
 
 

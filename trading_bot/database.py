@@ -5,7 +5,7 @@ import os
 
 from pathlib import Path
 from hashlib import blake2s
-from sources import Page, SinglePost
+from trading_bot.sources import Page, SinglePost
 
 
 class DataBase:

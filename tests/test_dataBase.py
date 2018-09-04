@@ -1,7 +1,7 @@
 from unittest import TestCase
 
-from database import DataBase
-from sources import Page, SinglePost, MfdForumThreadSource
+from trading_bot.database import DataBase
+from trading_bot.sources import Page, SinglePost, MfdForumThreadSource
 
 
 class TestDataBase(TestCase):

@@ -1,5 +1,5 @@
 from unittest import TestCase
-from sources import SmartLab
+from trading_bot.sources import SmartLab
 
 
 class TestSmartLab(TestCase):
