@@ -36,15 +36,13 @@ class Manager:
     REMOVE_MFD_THREAD = "remove_mfd_tread"  # + id - Удалить mfd форум по id
 
     def __init__(self, clear_start=False):
-        self.sended_msg = {}
-        self.sources = {}
         self.current_data = {}
 
         self.db = DataBase(clear_start)
         self.users_subscription: Dict[Data] = self.db.load_user_data()
-        for user in self.users_subscription:
-            self.sended_msg[user] = {}
+        self.sended_msg = self.db.load_user_messages()
 
+        self.sources = {}
         self.sources["alenka_post"] = sources.AlenkaPost()
         self.sources["alenka_news"] = sources.AlenkaNews()
         self.sources["mfd_user_post"] = sources.MfdUserPostSource()
