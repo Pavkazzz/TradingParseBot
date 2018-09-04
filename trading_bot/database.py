@@ -73,7 +73,7 @@ class DataBase:
     def load_user_messages(self):
         res = {}
         try:
-            with open(self.user_messages, 'wb') as f:
+            with open(self.user_messages, 'rb') as f:
                 res = pickle.load(f)
         except FileNotFoundError as e:
             self.save_user_messages({})
