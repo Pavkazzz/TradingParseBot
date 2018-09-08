@@ -1,14 +1,16 @@
 # -*- coding: utf-8 -*-
+
+import typing
+import ujson as json
+import requests_cache
+import requests
 from typing import Tuple
+from bs4 import BeautifulSoup
+from trading_bot import utils
 from urllib.parse import quote
+from itertools import zip_longest
 from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass, field
-from bs4 import BeautifulSoup
-from itertools import zip_longest
-import requests_cache
-import typing
-from trading_bot import utils
-import ujson as json
 from trading_bot.settings import alenka_url
 
 
@@ -153,7 +155,7 @@ class MfdForumThreadSource(MfdSource):
 
 class AlenkaNews(AbstractSource):
     def __init__(self):
-        super().__init__(lambda: self.session.get(self.url).content)
+        super().__init__(lambda: requests.get(self.url).content)
         self.url = alenka_url
 
     def check_update(self) -> Page:
@@ -173,7 +175,7 @@ class AlenkaNews(AbstractSource):
 
 class AlenkaPost(AbstractSource):
     def __init__(self):
-        super().__init__(lambda: self.session.get(self.url).content, 60)
+        super().__init__(lambda: requests.get(self.url).content)
         self.url = alenka_url
 
     def check_update(self) -> Page:

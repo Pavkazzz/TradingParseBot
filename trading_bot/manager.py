@@ -181,7 +181,7 @@ class Manager:
                 else:
                     message_id.append(self.sended_msg[user][post.id])
             yield user, list(zip(posts, message_id))
-
+        self.save_user_messages()
 
 
     def update_all_sources(self):
@@ -264,4 +264,21 @@ class Manager:
         self.sended_msg[chat_id][post_id] = message_id
 
     def save_user_messages(self):
+        self.sended_msg = self.remove_old_cache()
         self.db.save_user_messages(self.sended_msg)
+
+    def remove_old_cache(self):
+        """
+        Remove message_id from cache which cannot be accuse now
+        :return:
+        """
+        actual_id_list = [post.id for item in self.current_data.values() for post in item.posts]
+
+        for user in self.sended_msg:
+            user_msg = frozenset(self.sended_msg[user].keys())
+            actual_set = user_msg - frozenset(actual_id_list)
+            if len(actual_set) > 0:
+                self.sended_msg[user].pop(actual_set)
+
+
+        return self.sended_msg

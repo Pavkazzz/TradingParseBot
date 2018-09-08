@@ -106,10 +106,8 @@ class TestManager(TestCase):
             else:
                 self.assertEqual(post, [])
 
-
         for user, post in manager.check_new_all():
             self.assertEqual(post, [])
-
 
     def test_delete(self):
         m = Manager(clear_start=True)
@@ -119,7 +117,6 @@ class TestManager(TestCase):
         self.assertEqual(m.settings(cid).alenka, True)
         m.stop(cid)
         self.assertEqual(m.settings(cid).alenka, False)
-
 
     def test_alenka_editing(self):
         manager = Manager(clear_start=True)
@@ -146,7 +143,6 @@ class TestManager(TestCase):
             for post, message_id in posts:
                 self.assertGreater(message_id, 0)
                 self.assertGreater(len(post.format()), 0)
-
 
         for user, post in manager.check_new_all():
             self.assertEqual(post, [])

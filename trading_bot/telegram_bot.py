@@ -3,7 +3,7 @@ import logging
 import telegram
 from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove, Bot
 from telegram.error import BadRequest, Unauthorized, TimedOut, NetworkError, TelegramError
-from telegram.ext import Updater, CommandHandler, RegexHandler, Filters, MessageHandler
+from telegram.ext import Updater, CommandHandler, RegexHandler, Filters, MessageHandler, Job
 from trading_bot.settings import token, REQUEST_KWARGS
 from trading_bot.manager import Manager
 from trading_bot.sources import SmartLab
@@ -47,10 +47,9 @@ def stop(bot, update):
     key(bot, update)
 
 
-def check_update(bot: Bot, job):
+def check_update(bot: Bot, job: Job):
     for chat, data in manager.check_new_all():
         send_data(bot, chat, data)
-    manager.save_user_messages()
 
 
 def send_data(bot: Bot, chat_id, data):

@@ -46,6 +46,7 @@ class DataBase:
     def init_database(self, clear=False):
         if clear:
             self.save_user_data({})
+            self.save_user_messages({})
 
     def create_db(self, file):
         with open(file, 'w+') as database:
