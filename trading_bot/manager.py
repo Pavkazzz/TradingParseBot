@@ -278,7 +278,7 @@ class Manager:
             user_msg = frozenset(self.sended_msg[user].keys())
             actual_set = user_msg - frozenset(actual_id_list)
             if len(actual_set) > 0:
-                self.sended_msg[user].pop(actual_set)
+                self.sended_msg[user].pop(list(actual_set))
 
 
         return self.sended_msg
