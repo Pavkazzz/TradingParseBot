@@ -14,9 +14,7 @@ class DataBase:
         self.data_file = "data/database{id}.json"
         self.user_file = "data/users.pkl"
         self.init_database(clear_start)
-        for file in os.listdir("data"):
-            if file.endswith("json"):
-                self.create_db(f"data/{file}")
+
 
     def update(self, key, page: Page, chat_id) -> typing.List[SinglePost]:
         res = []
@@ -47,6 +45,9 @@ class DataBase:
         if clear:
             self.save_user_data({})
             self.save_user_messages({})
+            for file in os.listdir("data"):
+                if file.endswith("json"):
+                    self.create_db(f"data/{file}")
 
     def create_db(self, file):
         with open(file, 'w+') as database:
