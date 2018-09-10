@@ -16,8 +16,8 @@ dispatcher = updater.dispatcher
 
 manager = Manager()
 # manager.recreate_users(bot=dispatcher.bot)
-# for posts in manager.check_new_all():
-#     pass
+for posts in manager.check_new_all():
+    pass
 
 IDLE, MFD_USER_ADD, MFD_USER_REMOVE, MFD_THREAD_ADD, MFD_THREAD_REMOVE = range(5)
 state = IDLE
@@ -67,8 +67,9 @@ def send_data(bot: Bot, chat_id, data):
             manager.set_message_id(sended_msg.message_id, chat_id, singlepost.id)
 
         except BadRequest as bad:
-            logger.error(f"Error BadRequest: {bad}")
+            logger.error(f"Error BadRequest: {bad}, {singlepost}")
         except Unauthorized as un:
+            logger.info(f"Unauthorize: {un}, stopping...")
             manager.stop(chat_id)
         except Exception as e:
             logger.error(f"Error when sending message: {e}")
