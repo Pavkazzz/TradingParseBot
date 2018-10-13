@@ -1,31 +1,32 @@
 # -*- coding: utf-8 -*-
 
-from unittest import TestCase
+import pytest
 from trading_bot.sources import MfdUserCommentSource
 
+pytestmark = pytest.mark.asyncio
 
-class TestMfdUserCommentSource(TestCase):
-    def test_local_generator(self):
-        post = MfdUserCommentSource()
-        with open("html/test_mfdUserCommentSourcePage.html", 'r', encoding="utf8") as html_page:
-            text = html_page.read()
-            post.set_generator(lambda x: text)
 
-        page = post.check_update()
-        self.assertEqual(len(page.posts), 4)
-        self.assertEqual(page.posts[0].title, ("[{Блоги} Июль](http://lite.mfd.ru/blogs/posts/view/?id=37688)\n"
-                                               "[malishok](http://mfd.ru/forum/poster/?id=71921)\n"
-                                               "сегодня, 12:35"))
-        for x in page.posts:
-            self.assertNotEqual(len(x.title), 0)
-            self.assertNotEqual(len(x.md), 0)
-            self.assertGreater(x.id, 0)
+async def test_local_generator():
+    post = MfdUserCommentSource()
+    with open("html/test_mfdUserCommentSourcePage.html", 'r', encoding="utf8") as html_page:
+        post.update_cache(html_page.read())
 
-    def test_online_generator(self):
-        post = MfdUserCommentSource()
-        page = post.check_update(71921)
-        self.assertGreater(len(page.posts), 0)
-        for x in page.posts:
-            self.assertNotEqual(len(x.title), 0)
-            self.assertNotEqual(len(x.md), 0)
-            self.assertGreater(x.id, 0)
+    page = await post.check_update()
+    assert len(page.posts) == 4
+    assert page.posts[0].title == ("[{Блоги} Июль](http://lite.mfd.ru/blogs/posts/view/?id=37688)\n"
+                                   "[malishok](http://mfd.ru/forum/poster/?id=71921)\n"
+                                   "сегодня, 12:35")
+    for x in page.posts:
+        assert len(x.title) > 0
+        assert len(x.md) > 0
+        assert x.id > 0
+
+
+async def test_online_generator():
+    post = MfdUserCommentSource()
+    page = await post.check_update(71921)
+    assert len(page.posts) > 0
+    for x in page.posts:
+        assert len(x.title) > 0
+        assert len(x.md) > 0
+        assert x.id > 0

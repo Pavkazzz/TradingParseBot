@@ -1,16 +1,19 @@
 # -*- coding: utf-8 -*-
-
+import logging
 import typing
-import ujson as json
-import requests_cache
-import requests
-from typing import Tuple
-from bs4 import BeautifulSoup
-from trading_bot import utils
-from urllib.parse import quote
-from itertools import zip_longest
 from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass, field
+from datetime import datetime, timedelta
+from itertools import zip_longest
+from typing import Tuple
+from urllib.parse import quote
+
+import fast_json
+from aiohttp import ClientSession, TCPConnector, CookieJar, ClientResponse
+from selectolax.parser import HTMLParser
+from yarl import URL
+
+from trading_bot import utils
 from trading_bot.settings import alenka_url
 
 
@@ -30,16 +33,31 @@ class Page:
 
 
 class AbstractSource(metaclass=ABCMeta):
-    def __init__(self, generator, time_cache=60):
-        self.generator = generator
-        self.time_cache = time_cache
+    def __init__(self, url, caching_time: int = 60):
+        self._url = url
+        self._last_request = {}
+        self._caching_time = timedelta(seconds=caching_time)
+        self._connector = TCPConnector()
+        self._last_time_request = datetime.min
 
-    def set_generator(self, generator):
-        self.generator = generator
+    def update_cache(self, value):
+        self._last_request[self._url] = value
+        self._last_time_request = datetime.utcnow()
 
-    @property
-    def session(self):
-        return requests_cache.CachedSession(cache_name='data/cache', backend='sqlite', expire_after=self.time_cache)
+    async def session(self, custom_url=None, **format_url):
+
+        url = self._url if not custom_url else custom_url
+
+        if self._last_time_request + self._caching_time > datetime.utcnow() and url in self._last_request:
+            logging.info('Not time for request url: %r', url)
+            return self._last_request[url]
+
+        async with ClientSession() as session:
+            async with session.get(url.format(**format_url)) as r:  # type: ClientResponse
+                body = await r.read()
+
+        self.update_cache(body)
+        return body
 
     @abstractmethod
     def check_update(self) -> Page:
@@ -60,17 +78,17 @@ class AbstractSource(metaclass=ABCMeta):
 
 
 class MfdSource(AbstractSource):
-    def __init__(self, generator, id_selector):
-        super().__init__(generator, 60 * 2)
+    def __init__(self, url, id_selector):
+        super().__init__(url, 60 * 2)
         self.id_selector = id_selector
 
-    def check_update(self, data=None) -> Page:
-        bs = BeautifulSoup(self.generator(data), "html.parser")
-        thread = self.thread_selector(bs)
-        user = [self.pretty_text(p, "http://mfd.ru") for p in bs.select("div.mfd-post-top-0 > a")]
-        link = [self.pretty_text(p, "http://mfd.ru") for p in bs.select("div.mfd-post-top-1")]
-        posts = [self.pretty_text(p, "http://mfd.ru") for p in bs.select("div.mfd-post-body-right")]
-        ids = [int(p.attrs['data-id']) for p in bs.select(self.id_selector)]
+    async def check_update(self, data=None) -> Page:
+        parser = HTMLParser(await self.session(id=data))
+        thread = self.thread_selector(parser)
+        user = [self.pretty_text(p.html, "http://mfd.ru") for p in parser.css("div.mfd-post-top-0 > a")]
+        link = [self.pretty_text(p.html, "http://mfd.ru") for p in parser.css("div.mfd-post-top-1")]
+        posts = [self.pretty_text(p.html, "http://mfd.ru") for p in parser.css("div.mfd-post-body-right")]
+        ids = [int(p.attributes['data-id']) for p in parser.css(self.id_selector)]
 
         if len(thread) > 0:
             tuple_title = tuple(zip_longest(thread, user, link, fillvalue=thread[0]))
@@ -81,126 +99,123 @@ class MfdSource(AbstractSource):
         return Page()
 
     @abstractmethod
-    def thread_selector(self, bs):
+    def thread_selector(self, parser):
         pass
 
 
 class MfdUserPostSource(MfdSource):
     def __init__(self):
-        super().__init__(lambda x: self.session.get(self.url.format(id=x)).content,
-                         "button.mfd-button-attention")
+        super().__init__("http://lite.mfd.ru/forum/poster/posts/?id={id}", "button.mfd-button-attention")
 
-        self.url = "http://lite.mfd.ru/forum/poster/posts/?id={id}"
+    def thread_selector(self, parser):
+        return [self.pretty_text(p.text(), "http://mfd.ru") for p in parser.css("h3.mfd-post-thread-subject > a")]
 
-    def thread_selector(self, bs):
-        return [self.pretty_text(p.text, "http://mfd.ru") for p in bs.select("h3.mfd-post-thread-subject > a")]
-
-    def resolve_link(self, url):
-        bs = BeautifulSoup(self.session.get(url).content, "html.parser")
-        name = bs.select_one("div.mfd-header h1").text.strip().split(' ')[-1]
-        tid = int(bs.select_one("div.mfd-header div a").attrs['href'].split('?id=')[1])
+    async def resolve_link(self, url):
+        parser = HTMLParser(await self.session(custom_url=url))
+        name = parser.css_first("div.mfd-header h1").text().strip().split(' ')[-1]
+        tid = int(parser.css_first("div.mfd-header div a").attributes['href'].split('?id=')[1])
         return tid, name
 
-    def find_user(self, param) -> Tuple[Tuple[int, str, int, int]]:
+    async def find_user(self, param) -> Tuple[Tuple[int, str, int, int]]:
         url = f"http://lite.mfd.ru/forum/users/?search={quote(param)}"
-        bs = BeautifulSoup(self.session.get(url).content, "html.parser")
-        ids = [int(user.next) for user in bs.select("tbody tr td.mfd-item-id")]
-        names = [str(user.next.text) for user in bs.select("tbody tr td.mfd-item-nickname")]
-        post_counts = [int(user.next.text) for user in bs.select("tbody tr td.mfd-item-postcount")]
-        rating = [int(user.next.text) for user in bs.select("tbody tr td.mfd-item-rating")]
+        parser = HTMLParser(await self.session(custom_url=url))
+        ids = [int(user.text()) for user in parser.css("tbody tr td.mfd-item-id")]
+        names = [str(user.text()) for user in parser.css("tbody tr td.mfd-item-nickname")]
+        post_counts = [int(user.text()) for user in parser.css("tbody tr td.mfd-item-postcount")]
+        rating = [int(user.text()) for user in parser.css("tbody tr td.mfd-item-rating")]
 
         users = tuple(zip(ids, names, post_counts, rating))
-        active_users = tuple(filter(lambda x: x[2] > 0 and x[3] > 0, users))
-        return active_users
+        return tuple(filter(lambda x: x[2] > 0 and x[3] > 0, users))
 
 
 class MfdUserCommentSource(MfdSource):
     def __init__(self):
-        super().__init__(lambda x: self.session.get(self.url.format(id=x)).content,
-                         "button.mfd-button-quote")
-        self.url = "http://lite.mfd.ru/forum/poster/comments/?id={id}"
+        super().__init__("http://lite.mfd.ru/forum/poster/comments/?id={id}", "button.mfd-button-quote")
 
     def thread_selector(self, bs):
-        return [self.pretty_text(p, "http://mfd.ru") for p in bs.select("h3.mfd-post-thread-subject > a")]
+        return [self.pretty_text(p.html, "http://mfd.ru") for p in bs.css("h3.mfd-post-thread-subject > a")]
 
 
 class MfdForumThreadSource(MfdSource):
     def __init__(self):
-        super().__init__(lambda x: self.session.get(self.url.format(id=x)).content,
-                         "button.mfd-button-attention")
-        self.url = "http://lite.mfd.ru/forum/thread/?id={id}"
+        super().__init__("http://lite.mfd.ru/forum/thread/?id={id}", "button.mfd-button-attention")
 
     def thread_selector(self, bs):
-        return [self.pretty_text(p.text, "http://mfd.ru") for p in bs.select(".mfd-header > h1")]
+        return [self.pretty_text(p.text(), "http://mfd.ru") for p in bs.css(".mfd-header > h1")]
 
-    def resolve_link(self, url):
-        bs = BeautifulSoup(self.session.get(url).content, "html.parser")
-        tid = int(bs.select_one("a.mfd-link-dotted").attrs['href'].split('?threadId=')[1])
-        name = bs.select_one("div.mfd-header").text.strip()
+    async def resolve_link(self, url):
+        parser = HTMLParser(await self.session(custom_url=url))
+        tid = int(parser.css_first("a.mfd-link-dotted").attributes['href'].split('?threadId=')[1])
+        name = parser.css_first("div.mfd-header").text().strip()
         return tid, name
 
-    def find_thread(self, param):
+    async def find_thread(self, param):
         url = f"http://lite.mfd.ru/forum/search/?query=1+2+3+4+5+6+7+8+9+0+%D0%B0+%D0%B1+%D0%B2+%D0%B3+%D0%B4&method" \
-              f"=Or&userQuery=&threadQuery={quote(param)}&from=&till= "
-        bs = BeautifulSoup(self.session.get(url).content, "html.parser")
-        title = [post.text for post in bs.select("h3.mfd-post-thread-subject > a")]
+            f"=Or&userQuery=&threadQuery={quote(param)}&from=&till="
+        bs = HTMLParser(await self.session(custom_url=url))
+        title = [post.text() for post in bs.css("h3.mfd-post-thread-subject > a")]
         title = list(set(title))
         if len(title) == 1:
-            href = "http://lite.mfd.ru"
-            href += bs.select_one("h3.mfd-post-thread-subject > a").attrs['href']
-            tid, name = self.resolve_link(href)
+            href = f"http://lite.mfd.ru{bs.css_first('h3.mfd-post-thread-subject > a').attributes['href']}"
+            tid, name = await self.resolve_link(href)
             return title, tid, name
         return title, None, None
 
 
 class AlenkaNews(AbstractSource):
     def __init__(self):
-        super().__init__(lambda: requests.get(self.url).content)
-        self.url = alenka_url
+        super().__init__(alenka_url)
+        self.title = "ALЁNKA CAPITAL"
 
-    def check_update(self) -> Page:
-        title = "ALЁNKA CAPITAL"
-        data = json.loads(self.generator())
-        posts = list(filter(lambda x: x['cat_name'] == "Лента новостей", data))
-        el = []
-        for post in posts:
-            el.append(SinglePost(md=f"{post['post_date']}\n\n"
-                                    f"{utils.alert(post['post_alert'], False)}"
-                                    f"[{post['post_name']}]({post['post_link']})",
-                                 title=title,
-                                 id=post['post_id']))
 
-        return Page(el)
+    async def check_update(self) -> Page:
+        data = fast_json.loads(await self.session())
+
+        return Page([
+            SinglePost(
+                md=f"{post['post_date']}"
+                f"\n\n"
+                f"{utils.alert(post['post_alert'], False)}"
+                f"[{post['post_name']}]({post['post_link']})",
+                title=self.title,
+                id=post['post_id'])
+            for post in [item for item in data if item['cat_name'] == "Лента новостей"]
+        ])
+
 
 
 class AlenkaPost(AbstractSource):
     def __init__(self):
-        super().__init__(lambda: requests.get(self.url).content)
-        self.url = alenka_url
+        super().__init__(alenka_url)
+        self.title = "ALЁNKA CAPITAL"
 
-    def check_update(self) -> Page:
-        title = "ALЁNKA CAPITAL"
-        data = json.loads(self.generator())
-        posts = list(filter(lambda x: x['cat_name'] != "Лента новостей", data))
-        el = []
-        for post in posts:
-            el.append(SinglePost(md=f"{post['post_date']}\n\n"
-                                    f"{utils.alert(post['post_alert'], True)}"
-                                    f"[{post['cat_name']}]({post['cat_link']})\n\n"
-                                    f"[{post['post_name']}]({post['post_link']})",
-                                 title=title,
-                                 id=post['post_id']))
+    async def check_update(self) -> Page:
+        data = fast_json.loads(await self.session())
 
-        return Page(el)
+        return Page([
+            SinglePost(
+                md=f"{post['post_date']}"
+                f"\n\n"
+                f"{utils.alert(post['post_alert'], True)}"
+                f"[{post['cat_name']}]({post['cat_link']})\n\n"
+                f"[{post['post_name']}]({post['post_link']})",
+                title=self.title,
+                id=post['post_id'])
+            for post in [item for item in data if item['cat_name'] != "Лента новостей"]
+        ])
 
 
 class SmartLab(AbstractSource):
     def __init__(self):
-        super().__init__(lambda: self.session.get(self.url).content, 60 * 60)
-        self.url = "https://smart-lab.ru"
+        super().__init__("https://smart-lab.ru")
+        self.title = "Smartlab топ 24 часа"
 
-    def check_update(self) -> Page:
-        bs = BeautifulSoup(self.generator(), "html.parser")
-        title = "Smartlab топ 24 часа"
-        post = bs.select_one("div.trt")
-        return Page([SinglePost(md=self.pretty_text(post, self.url).strip(), title=title)])
+    async def check_update(self) -> Page:
+        parser = HTMLParser(await self.session(), "html.parser")
+        post = parser.css_first("div.trt").html
+        return Page([
+            SinglePost(
+                md=self.pretty_text(post, self._url).strip(),
+                title=self.title
+            )
+        ])

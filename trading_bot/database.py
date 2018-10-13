@@ -1,10 +1,10 @@
-import json
-import pickle
-import typing
+import fast_json
 import os
-
-from pathlib import Path
+import pickle
 from hashlib import blake2s
+from pathlib import Path
+from typing import List
+
 from trading_bot.sources import Page, SinglePost
 
 
@@ -16,14 +16,14 @@ class DataBase:
         self.init_database(clear_start)
 
 
-    def update(self, key, page: Page, chat_id) -> typing.List[SinglePost]:
+    def update(self, key, page: Page, chat_id) -> List[SinglePost]:
         res = []
         file = Path(self.data_file.format(id=chat_id))
         if not file.is_file():
             self.create_db(file)
 
         with open(self.data_file.format(id=chat_id), 'r+') as database:
-            data = json.load(database)
+            data = fast_json.load(database)
             database.truncate(0)
             hash_list = []
             for post in page.posts:
@@ -37,7 +37,7 @@ class DataBase:
 
             data[key] = hash_list
             database.seek(0)
-            json.dump(data, database)
+            fast_json.dump(data, database)
         return res
 
     # Создаем файл бд и приводим в изначальное состояние
@@ -52,7 +52,7 @@ class DataBase:
     def create_db(self, file):
         with open(file, 'w+') as database:
             init = {}
-            json.dump(init, database)
+            fast_json.dump(init, database)
 
     def save_user_data(self, users):
         with open(self.user_file, 'wb') as f:

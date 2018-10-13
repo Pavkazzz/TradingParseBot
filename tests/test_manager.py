@@ -1,148 +1,150 @@
-from unittest import TestCase
-from trading_bot.manager import Manager, SingleData
-from trading_bot.sources import SinglePost
 import random
 
+import pytest
 
-class TestManager(TestCase):
-    def test_start(self):
-        manager = Manager(clear_start=True)
-        chat_id = random.randint(0, 1000)
-        manager.start(chat_id)
-        self.assertEqual(manager.settings(chat_id).alenka, False)
-        manager.new_command(chat_id, Manager.ADD_ALENKA)
-        self.assertEqual(manager.settings(chat_id).alenka, True)
-        manager.new_command(chat_id, Manager.REMOVE_ALENKA)
-        self.assertEqual(manager.settings(chat_id).alenka, False)
+from trading_bot.manager import Manager, SingleData
+from trading_bot.sources import SinglePost
 
-        user_id = random.randint(0, 10000)
-        user_string = "Название пользователя"
-        manager.new_command(chat_id, Manager.ADD_MFD_USER, SingleData(user_id, user_string))
-        self.assertEqual(manager.settings(chat_id).mfd_user, [SingleData(user_id, user_string)])
-        manager.new_command(chat_id, Manager.REMOVE_MFD_USER, SingleData(user_id, user_string))
-        self.assertEqual(manager.settings(chat_id).mfd_user, [])
+pytestmark = pytest.mark.asyncio
 
-        thread_id = random.randint(0, 10000)
-        thread_string = "Название треда"
-        manager.new_command(chat_id, Manager.ADD_MFD_THREAD, SingleData(thread_id, thread_string))
-        self.assertEqual(manager.settings(chat_id).mfd_thread, [SingleData(thread_id, thread_string)])
-        manager.new_command(chat_id, Manager.REMOVE_MFD_THREAD, SingleData(thread_id, thread_string))
-        self.assertEqual(manager.settings(chat_id).mfd_thread, [])
 
-    def test_me(self):
-        manager = Manager(clear_start=True)
-        chat_id = random.randint(0, 1000)
-        manager.start(chat_id)
-        manager.new_command(chat_id, Manager.ADD_ALENKA)
-        manager.new_command(chat_id, Manager.ADD_MFD_USER, SingleData(71921, "malishok"))
-        manager.new_command(chat_id, Manager.ADD_MFD_THREAD, SingleData(84424, "ФА и немного ТА"))
-        manager.check_new(chat_id)
+async def test_start():
+    manager = Manager(clear_start=True)
+    chat_id = random.randint(0, 1000)
+    manager.start(chat_id)
+    assert not manager.settings(chat_id).alenka
+    await manager.new_command(chat_id, Manager.ADD_ALENKA)
+    assert manager.settings(chat_id).alenka
+    await manager.new_command(chat_id, Manager.REMOVE_ALENKA)
+    assert not manager.settings(chat_id).alenka
 
-    def test_all(self):
-        self.maxDiff = None
-        manager = Manager(clear_start=True)
-        n = 10
-        chats_id = [random.randint(i * n + 1, i * n + n) for i in range(n)]
-        for chat in chats_id:
-            manager.start(chat)
-            manager.new_command(chat, Manager.ADD_ALENKA)
+    user_id = random.randint(0, 10000)
+    user_string = "Название пользователя"
+    await manager.new_command(chat_id, Manager.ADD_MFD_USER, SingleData(user_id, user_string))
+    assert manager.settings(chat_id).mfd_user == [SingleData(user_id, user_string)]
+    await manager.new_command(chat_id, Manager.REMOVE_MFD_USER, SingleData(user_id, user_string))
+    assert manager.settings(chat_id).mfd_user == []
 
-        res = tuple([post for post in manager.check_new_all()])
+    thread_id = random.randint(0, 10000)
+    thread_string = "Название треда"
+    await manager.new_command(chat_id, Manager.ADD_MFD_THREAD, SingleData(thread_id, thread_string))
+    assert manager.settings(chat_id).mfd_thread == [SingleData(thread_id, thread_string)]
+    await manager.new_command(chat_id, Manager.REMOVE_MFD_THREAD, SingleData(thread_id, thread_string))
+    assert manager.settings(chat_id).mfd_thread == []
 
-        self.assertEqual(len(res), n)
-        prev_chat, prev_data = res[0]
-        for new_chat, new_data in res[1:]:
-            self.assertNotEqual(prev_chat, new_chat)
-            self.assertEqual(prev_data, new_data)
-            prev_chat, prev_data = new_chat, new_data
 
-    def test_some_user(self):
-        manager = Manager(clear_start=True)
-        chats_id = random.randint(0, 999)
-        manager.start(chats_id)
-        manager.new_command(chats_id, Manager.ADD_MFD_USER, SingleData(71921, "malishok"))
-        manager.new_command(chats_id, Manager.ADD_MFD_USER, SingleData(96540, "VVT5"))
-        res1 = [post for post in manager.check_new_all()]
-        res2 = [post for post in manager.check_new_all()]
-        res3 = [post for post in manager.check_new_all()]
+async def test_me():
+    manager = Manager(clear_start=True)
+    chat_id = random.randint(0, 1000)
+    manager.start(chat_id)
+    await manager.new_command(chat_id, Manager.ADD_ALENKA)
+    await manager.new_command(chat_id, Manager.ADD_MFD_USER, SingleData(71921, "malishok"))
+    await manager.new_command(chat_id, Manager.ADD_MFD_THREAD, SingleData(84424, "ФА и немного ТА"))
+    await manager.check_new(chat_id)
 
-        self.assertEqual(res1[0][1], [])
-        self.assertEqual(res2[0][1], [])
-        self.assertEqual(res3[0][1], [])
 
-    def test_alenka_unsubscr(self):
-        manager = Manager(clear_start=True)
-        with open("html/test_alenkaResponse.json", 'r', encoding="utf8") as html_page:
-            text = html_page.read()
-            manager.config_sources("alenka_news", lambda: text)
+async def test_all():
+    manager = Manager(clear_start=True)
+    n = 10
+    chats_id = [random.randint(i * n + 1, i * n + n) for i in range(n)]
+    for chat in chats_id:
+        manager.start(chat)
+        await manager.new_command(chat, Manager.ADD_ALENKA)
 
-        n = 10
-        chats_id = [random.randint(i * n + 1, i * n + n) for i in range(n)]
-        for chat in chats_id:
-            manager.start(chat)
-            if chat % 2:
-                manager.new_command(chat, Manager.ADD_ALENKA)
-            if chat % 3:
-                manager.new_command(chat, Manager.ADD_MFD_USER, SingleData(id=random.randint(0, 100), name=str(chat)))
-            if chat % 5:
-                manager.new_command(chat, Manager.ADD_MFD_THREAD, SingleData(id=random.randint(0, 100), name=str(chat)))
+    res = tuple([post async for post in manager.check_new_all()])
 
-        for user, post in manager.check_new_all():
-            self.assertEqual(post, [])
+    assert len(res) == n
+    prev_chat, prev_data = res[0]
+    for new_chat, new_data in res[1:]:
+        assert prev_chat != new_chat
+        assert prev_data == new_data
+        prev_chat, prev_data = new_chat, new_data
 
-        with open("html/test_alenkaResponseWithNewData.json", 'r', encoding="utf8") as html_page:
-            text = html_page.read()
-            manager.config_sources("alenka_news", lambda: text)
 
-        res = ("ALЁNKA CAPITAL\n"
-               "05.08.2018, 10:25\n"
-               "\n"
-               "[Media Markt начал ликвидацию ассортимента перед уходом из России](https://alenka.capital/post/media_markt_nachal_likvidatsiyu_assortimenta_pered_uhodom_iz_rossii_39469/)")
+async def test_some_user():
+    manager = Manager(clear_start=True)
+    chats_id = random.randint(0, 999)
+    manager.start(chats_id)
+    await manager.new_command(chats_id, Manager.ADD_MFD_USER, SingleData(71921, "malishok"))
+    await manager.new_command(chats_id, Manager.ADD_MFD_USER, SingleData(96540, "VVT5"))
+    res = [[post async for post in manager.check_new_all()],
+           [post async for post in manager.check_new_all()],
+           [post async for post in manager.check_new_all()]]
 
-        for user, post in manager.check_new_all():
-            if user % 2:
-                self.assertEqual(len(post), 1)
-                self.assertEqual(post[0][0].format(), res)
-            else:
-                self.assertEqual(post, [])
+    for r in res:
+        assert r[0][1] == []
 
-        for user, post in manager.check_new_all():
-            self.assertEqual(post, [])
 
-    def test_delete(self):
-        m = Manager(clear_start=True)
-        cid = random.randint(0, 100)
-        m.start(cid)
-        m.new_command(cid, Manager.ADD_ALENKA)
-        self.assertEqual(m.settings(cid).alenka, True)
-        m.stop(cid)
-        self.assertEqual(m.settings(cid).alenka, False)
+async def test_alenka_unsubscr():
+    manager = Manager(clear_start=True)
+    with open("html/test_alenkaResponse.json", 'r', encoding="utf8") as html:
+        await manager.config_sources("alenka_news", html.read())
 
-    def test_alenka_editing(self):
-        manager = Manager(clear_start=True)
-        with open("html/test_alenkaResponse.json", 'r', encoding="utf8") as html_page:
-            text = html_page.read()
-            manager.config_sources("alenka_news", lambda: text)
+    n = 10
+    chats_id = [random.randint(i * n + 1, i * n + n) for i in range(n)]
+    for chat in chats_id:
+        manager.start(chat)
+        if chat % 2:
+            await manager.new_command(chat, Manager.ADD_ALENKA)
+        if chat % 3:
+            await manager.new_command(chat, Manager.ADD_MFD_USER, SingleData(id=random.randint(0, 100), name=str(chat)))
+        if chat % 5:
+            await manager.new_command(chat, Manager.ADD_MFD_THREAD, SingleData(id=random.randint(0, 100), name=str(chat)))
 
-        chats_id = random.randint(0, 100)
-        manager.start(chats_id)
-        _, data = manager.new_command(chats_id, Manager.ADD_ALENKA)
+    async for user, post in manager.check_new_all():
+        assert post == []
 
-        for post in data:
-            manager.set_message_id(message_id=random.randint(0, 1000), chat_id=chats_id, post_id=post.id)
+    with open("html/test_alenkaResponseWithNewData.json", 'r', encoding="utf8") as html:
+        await manager.config_sources("alenka_news", html.read())
 
-        for user, post in manager.check_new_all():
-            self.assertEqual(post, [])
+    res = ("ALЁNKA CAPITAL\n"
+           "05.08.2018, 10:25\n"
+           "\n"
+           "[Media Markt начал ликвидацию ассортимента перед уходом из России](https://alenka.capital/post/media_markt_nachal_likvidatsiyu_assortimenta_pered_uhodom_iz_rossii_39469/)")
 
-        with open("html/test_alenkaResponseEditing.json", 'r', encoding="utf8") as html_page:
-            text = html_page.read()
-            manager.config_sources("alenka_news", lambda: text)
+    async for user, post in manager.check_new_all():
+        if user % 2:
+            assert len(post) == 1
+            assert post[0][0].format() == res
+        else:
+            assert post == []
 
-        for user, posts in manager.check_new_all():
-            post: SinglePost
+    async for user, post in manager.check_new_all():
+        assert post == []
+
+
+async def test_delete():
+    m = Manager(clear_start=True)
+    cid = random.randint(0, 100)
+    m.start(cid)
+    await m.new_command(cid, Manager.ADD_ALENKA)
+    assert m.settings(cid).alenka
+    m.stop(cid)
+    assert not m.settings(cid).alenka
+
+
+async def test_alenka_editing():
+    manager = Manager(clear_start=True)
+    with open("html/test_alenkaResponse.json", 'r', encoding="utf8") as html:
+        await manager.config_sources("alenka_news", html.read())
+
+    chats_id = random.randint(0, 100)
+    manager.start(chats_id)
+    _, data = await manager.new_command(chats_id, Manager.ADD_ALENKA)
+
+    for post in data:
+        manager.set_message_id(message_id=random.randint(0, 1000), chat_id=chats_id, post_id=post.id)
+
+    async for user, post in manager.check_new_all():
+        assert post == []
+
+        with open("html/test_alenkaResponseEditing.json", 'r', encoding="utf8") as html:
+            await manager.config_sources("alenka_news", html.read())
+
+        async for user, posts in manager.check_new_all():
             for post, message_id in posts:
-                self.assertGreater(message_id, 0)
-                self.assertGreater(len(post.format()), 0)
+                assert message_id > 0
+                assert len(post.format()) > 0
 
-        for user, post in manager.check_new_all():
-            self.assertEqual(post, [])
+        async for user, post in manager.check_new_all():
+            assert post == []
