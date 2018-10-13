@@ -5,7 +5,7 @@ import typing
 from dataclasses import dataclass, field
 from typing import Tuple, List, Dict
 
-from telegram import Bot
+from aiotg import Bot
 
 from trading_bot import sources
 from trading_bot.database import DataBase
@@ -63,9 +63,9 @@ class Manager:
             if user not in self.users_subscription:
                 self.users_subscription[user] = Data()
                 try:
-                    bot.send_message(user, text="По причине переноса на бота на новые мощности,"
-                                                " возникли проблемы с востановлением подписок. "
-                                                "Приношу извинения за доставленные неудобства.")
+                    bot.send_message(user, "По причине переноса на бота на новые мощности,"
+                                           " возникли проблемы с востановлением подписок. "
+                                           "Приношу извинения за доставленные неудобства.")
                 except Exception:
                     logging.exception('Error recreate user: %r', user)
 
