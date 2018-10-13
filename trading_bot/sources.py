@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import logging
+import re
 import typing
 from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass, field
@@ -11,9 +12,10 @@ from urllib.parse import quote
 import fast_json
 from aiohttp import ClientSession, TCPConnector, ClientResponse
 from selectolax.parser import HTMLParser
+from yarl import URL
 
 from trading_bot import utils
-from trading_bot.settings import alenka_url
+from trading_bot.settings import alenka_url, chatbase_token
 
 
 @dataclass(unsafe_hash=True)
@@ -29,6 +31,50 @@ class SinglePost:
 @dataclass
 class Page:
     posts: typing.List[SinglePost] = field(default_factory=list)
+
+
+chatbase_redirect_url_with_a_http = '<a href="' + str(URL.build(
+    scheme='https',
+    host='chatbase.com',
+    path='r',
+    query={
+        "api_key": chatbase_token,
+        "platform": "Telegram",
+    }
+)) + "&url=http://"
+
+chatbase_redirect_url_with_a_https = '<a href="' + str(URL.build(
+    scheme='https',
+    host='chatbase.com',
+    path='r',
+    query={
+        "api_key": chatbase_token,
+        "platform": "Telegram",
+    }
+)) + "&url=https://"
+
+chatbase_redirect_url_no_base = '<a href="' + str(URL.build(
+    scheme='https',
+    host='chatbase.com',
+    path='r',
+    query={
+        "api_key": chatbase_token,
+        "platform": "Telegram",
+    }
+)) + "&url={baseurl}/"
+
+
+
+def replace_url_for_chatbase(html, baseurl=None):
+    # Это пиздец какая ебала
+    # Значит делаем так:
+    # 1. Сначала делаем замену урлов с http://
+    # 2. Сначала делаем замену урлов с https://
+    # 3. Потом делаем замену базовых
+    resp = re.sub(r"(<a [^>]*href\s*=\s*['\"])(https://)", chatbase_redirect_url_with_a_https, html)
+    resp = re.sub(r"(<a [^>]*href\s*=\s*['\"])(http://)", chatbase_redirect_url_with_a_http, resp)
+    resp = re.sub(r"(<a [^>]*href\s*=\s*['\"])/", chatbase_redirect_url_no_base.format(baseurl=baseurl), resp)
+    return resp
 
 
 class AbstractSource(metaclass=ABCMeta):
@@ -67,10 +113,11 @@ class AbstractSource(metaclass=ABCMeta):
         import html2text
         h = html2text.HTML2Text(baseurl=baseurl, bodywidth=34)
         # Небольшие изощрения с li
-
         html_to_parse = str(html).replace('<li', '<div').replace("</li>", "</div>")
         if '[' in html_to_parse and ']' in html_to_parse:
             html_to_parse = html_to_parse.replace('[', '{').replace(']', '}')
+
+        html_to_parse = replace_url_for_chatbase(html_to_parse, baseurl)
 
         html_to_parse = utils.transform_emoji(html_to_parse)
         return h.handle(html_to_parse).strip()

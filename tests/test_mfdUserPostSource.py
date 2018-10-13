@@ -10,10 +10,10 @@ pytestmark = pytest.mark.asyncio
 
 async def test_local_generator():
     res = (
-        "| [Роберт СПБ](http://mfd.ru/forum/poster/?id=84758) @ [17.07.2018 13:42](http://mfd.ru/forum/post/?id=14765308)\n"
+        "| [Роберт СПБ](https://chatbase.com/r?api_key=dd11ff93-afcc-4253-ba2e-72fec6e46a35&platform=Telegram&url=http://mfd.ru/forum/poster/?id=84758) @ [17.07.2018 13:42](https://chatbase.com/r?api_key=dd11ff93-afcc-4253-ba2e-72fec6e46a35&platform=Telegram&url=http://mfd.ru/forum/post/?id=14765308)\n"
         "|\n"
         "| \n"
-        "| | [malishok](http://mfd.ru/forum/poster/?id=71921) @ [17.07.2018 13:35](http://mfd.ru/forum/post/?id=14765273)\n"
+        "| | [malishok](https://chatbase.com/r?api_key=dd11ff93-afcc-4253-ba2e-72fec6e46a35&platform=Telegram&url=http://mfd.ru/forum/poster/?id=71921) @ [17.07.2018 13:35](https://chatbase.com/r?api_key=dd11ff93-afcc-4253-ba2e-72fec6e46a35&platform=Telegram&url=http://mfd.ru/forum/post/?id=14765273)\n"
         "| |  \n"
         "| |  есть) у меня она сложнее,\n"
         "| | смотрю ev/ebitda и p/e конечно, но\n"
@@ -47,8 +47,8 @@ async def test_local_generator():
     page = await post.check_update()
     assert len(page.posts) == 4
     assert page.posts[0].title == ("ФА и немного ТА\n"
-                                   "[malishok](http://mfd.ru/forum/poster/?id=71921)\n"
-                                   "[17.07.2018 13:48](http://lite.mfd.ru/forum/post/?id=14765341)")
+                                   "[malishok](https://chatbase.com/r?api_key=dd11ff93-afcc-4253-ba2e-72fec6e46a35&platform=Telegram&url=http://mfd.ru/forum/poster/?id=71921)\n"
+                                   "[17.07.2018 13:48](https://chatbase.com/r?api_key=dd11ff93-afcc-4253-ba2e-72fec6e46a35&platform=Telegram&url=http://lite.mfd.ru/forum/post/?id=14765341)")
     assert page.posts[0].md == res
     for x in page.posts:
         assert len(x.title) != 0

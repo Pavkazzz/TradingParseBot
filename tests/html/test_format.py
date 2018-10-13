@@ -10,10 +10,10 @@ def test_tomd():
     <div><blockquote class="mfd-quote-14765518"><div class="mfd-quote-info"><a href="/forum/poster/?id=83356" rel="nofollow">бык...</a> @ <a href="/forum/post/?id=14765518" rel="nofollow">17.07.2018 14:11</a></div><div class="mfd-quote-text">правильно, чего в провинции открываться<span class="mfd-emoticon mfd-emoticon-wink"></span> сергей, в этот раз поедешь в питер смотреть как локо проигрывает?)</div><blockquote class="mfd-quote-14765420"><div class="mfd-quote-info"><a href="/forum/poster/?id=71921" rel="nofollow">malishok</a> @ <a href="/forum/post/?id=14765420" rel="nofollow">17.07.2018 13:56</a></div><div class="mfd-quote-text">кстати, хочется порекомендовать в Питере парней из Duo Gastrobar и их несколько ресторанов, типа тартарбара <br>  оч крутая кухня, интересная и не так дорого, готовят оч интересно, а в МСК не хотят приходить)</div></blockquote></blockquote><div class="mfd-quote-text">как обычно, чеужтам</div></div><button class="mfd-button-attention" data-id="14765594" name="reportAbuse" title="Пожаловаться на это сообщение" type="button"></button>
     """
 
-    res = """| [Роберт СПБ](http://mfd.ru/forum/poster/?id=84758) @ [17.07.2018 13:42](http://mfd.ru/forum/post/?id=14765308)
+    res = """| [Роберт СПБ](https://chatbase.com/r?api_key=dd11ff93-afcc-4253-ba2e-72fec6e46a35&platform=Telegram&url=http://mfd.ru/forum/poster/?id=84758) @ [17.07.2018 13:42](https://chatbase.com/r?api_key=dd11ff93-afcc-4253-ba2e-72fec6e46a35&platform=Telegram&url=http://mfd.ru/forum/post/?id=14765308)
 |
 | 
-| | [malishok](http://mfd.ru/forum/poster/?id=71921) @ [17.07.2018 13:35](http://mfd.ru/forum/post/?id=14765273)
+| | [malishok](https://chatbase.com/r?api_key=dd11ff93-afcc-4253-ba2e-72fec6e46a35&platform=Telegram&url=http://mfd.ru/forum/poster/?id=71921) @ [17.07.2018 13:35](https://chatbase.com/r?api_key=dd11ff93-afcc-4253-ba2e-72fec6e46a35&platform=Telegram&url=http://mfd.ru/forum/post/?id=14765273)
 | |  
 | |  есть) у меня она сложнее,
 | | смотрю ev/ebitda и p/e конечно, но
