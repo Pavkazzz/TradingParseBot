@@ -1,4 +1,3 @@
-import asyncio
 import logging
 
 import fast_json
@@ -8,8 +7,8 @@ from aiomisc.utils import new_event_loop
 from aiotg import Bot, Chat, BotApiError
 
 from trading_bot.manager import Manager
-from trading_bot.settings import dev_token, botan_token, proxy_string
-from trading_bot.sources import SmartLab, AlenkaNews
+from trading_bot.settings import dev_token, chatbase_token, proxy_string
+from trading_bot.sources import SmartLab
 from trading_bot.telegram_helper import build_menu, keyboard_markup
 
 basic_config(level=logging.INFO, buffered=False, log_format='color')
@@ -21,7 +20,7 @@ bot = Bot(
     api_token=dev_token,
     json_deserialize=fast_json.loads,
     json_serialize=fast_json.dumps,
-    botan_token=botan_token,
+    chatbase_token=chatbase_token,
     name='TradingNewsBot',
     proxy=proxy_string
 )
