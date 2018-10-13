@@ -225,7 +225,7 @@ class Manager:
     async def resolve_mfd_thread_link(self, cid, text):
         try:
             tid, name = await self.sources["mfd_thread"].resolve_link(text)
-            self.new_command(cid, Manager.ADD_MFD_THREAD, SingleData(tid, name))
+            await self.new_command(cid, Manager.ADD_MFD_THREAD, SingleData(tid, name))
             return name
         except Exception:
             logging.exception('Exception while resolve mfd thread: %r', text)
@@ -234,7 +234,7 @@ class Manager:
     async def resolve_mfd_user_link(self, cid, text):
         try:
             tid, name = await self.sources["mfd_user_post"].resolve_link(text)
-            self.new_command(cid, Manager.ADD_MFD_USER, SingleData(tid, name))
+            await self.new_command(cid, Manager.ADD_MFD_USER, SingleData(tid, name))
             return name
         except Exception:
             logging.exception('Exception while resolve user link: %r', text)
@@ -246,7 +246,7 @@ class Manager:
         try:
             title, tid, name = await self.sources["mfd_thread"].find_thread(text)
             if tid is not None and len(title) == 1:
-                res, _ = self.new_command(cid, Manager.ADD_MFD_THREAD, SingleData(tid, name))
+                res, _ = await self.new_command(cid, Manager.ADD_MFD_THREAD, SingleData(tid, name))
         except Exception:
             logging.exception('Exception while find thread: %r', text)
         finally:
@@ -262,7 +262,7 @@ class Manager:
                 users = tuple(filter(lambda x: x[1] == text and x[3] == rating, users))
 
             if len(users) == 1:
-                res, _ = self.new_command(cid, Manager.ADD_MFD_USER, SingleData(users[0][0], users[0][1]))
+                res, _ = await self.new_command(cid, Manager.ADD_MFD_USER, SingleData(users[0][0], users[0][1]))
 
         except Exception:
             logging.exception('Exception while find user text: %r, rating %r', text, rating)
