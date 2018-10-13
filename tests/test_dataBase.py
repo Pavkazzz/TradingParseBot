@@ -1,4 +1,5 @@
 import pytest
+
 from trading_bot.database import DataBase
 from trading_bot.sources import Page, SinglePost, MfdForumThreadSource
 

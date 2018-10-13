@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
-import time
+
+import pytest
 
 from trading_bot.sources import AlenkaPost, Page
-import pytest
 
 pytestmark = pytest.mark.asyncio
 

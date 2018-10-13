@@ -5,7 +5,6 @@ import typing
 from dataclasses import dataclass, field
 from typing import Tuple, List, Dict
 
-from aiomisc.utils import new_event_loop
 from telegram import Bot
 
 from trading_bot import sources
@@ -82,7 +81,8 @@ class Manager:
             del self.users_subscription[chat_id]
             del self.sended_msg[chat_id]
 
-    async def new_command(self, chat_id, command, data: SingleData = SingleData()) -> Tuple[str, List[sources.SinglePost]]:
+    async def new_command(self, chat_id, command, data: SingleData = SingleData()) -> Tuple[
+        str, List[sources.SinglePost]]:
         result: str = "Команда не найдена"
         current_data = []
         try:
@@ -194,7 +194,6 @@ class Manager:
     async def prepare_cache(self):
         tasks = [self.update_alenka(), self.update_mfd()]
         await asyncio.gather(*tasks)
-
 
     async def update_alenka(self):
         self.current_data["alenka_news"] = await self.sources["alenka_news"].check_update()

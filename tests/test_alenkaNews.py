@@ -25,4 +25,3 @@ async def test_local_generator():
     assert page.posts[-1].md == ("03.08.2018, 12:01\n"
                                  "\n"
                                  "[ОБЩИЙ ОБЪЕМ ПОКУПКИ МИНФИНОМ РФ ВАЛЮТЫ НА РЫНКЕ С 7 АВГУСТА ПО 6 СЕНТЯБРЯ БУДЕТ РЕКОРДНЫМ ](https://alenka.capital/post/obschiy_ob_em_pokupki_minfinom_rf_valyutyi_na_ryinke_s_7_avgusta_po_6_sentyabrya_budet_rekordnyim_39450/)")
-

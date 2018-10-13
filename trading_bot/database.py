@@ -1,9 +1,10 @@
-import fast_json
 import os
 import pickle
 from hashlib import blake2s
 from pathlib import Path
 from typing import List
+
+import fast_json
 
 from trading_bot.sources import Page, SinglePost
 
@@ -14,7 +15,6 @@ class DataBase:
         self.data_file = "data/database{id}.json"
         self.user_file = "data/users.pkl"
         self.init_database(clear_start)
-
 
     def update(self, key, page: Page, chat_id) -> List[SinglePost]:
         res = []

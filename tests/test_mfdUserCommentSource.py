@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import pytest
+
 from trading_bot.sources import MfdUserCommentSource
 
 pytestmark = pytest.mark.asyncio

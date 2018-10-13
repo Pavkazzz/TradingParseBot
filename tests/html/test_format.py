@@ -1,6 +1,4 @@
-import pytest
 from trading_bot.sources import MfdSource
-
 
 
 def test_tomd():

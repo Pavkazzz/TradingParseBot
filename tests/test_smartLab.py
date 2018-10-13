@@ -1,5 +1,4 @@
 import pytest
-from datetime import datetime
 
 from trading_bot.sources import SmartLab
 
@@ -9,7 +8,6 @@ pytestmark = pytest.mark.asyncio
 async def test_local_generator():
     sl = SmartLab()
     with open("html/test_smartLab.html", 'r', encoding="utf8") as html_page:
-
         text = html_page.read()
         sl.update_cache(text)
 

@@ -3,7 +3,6 @@ import random
 import pytest
 
 from trading_bot.manager import Manager, SingleData
-from trading_bot.sources import SinglePost
 
 pytestmark = pytest.mark.asyncio
 
@@ -89,7 +88,8 @@ async def test_alenka_unsubscr():
         if chat % 3:
             await manager.new_command(chat, Manager.ADD_MFD_USER, SingleData(id=random.randint(0, 100), name=str(chat)))
         if chat % 5:
-            await manager.new_command(chat, Manager.ADD_MFD_THREAD, SingleData(id=random.randint(0, 100), name=str(chat)))
+            await manager.new_command(chat, Manager.ADD_MFD_THREAD,
+                                      SingleData(id=random.randint(0, 100), name=str(chat)))
 
     async for user, post in manager.check_new_all():
         assert post == []

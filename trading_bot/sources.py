@@ -9,9 +9,8 @@ from typing import Tuple
 from urllib.parse import quote
 
 import fast_json
-from aiohttp import ClientSession, TCPConnector, CookieJar, ClientResponse
+from aiohttp import ClientSession, TCPConnector, ClientResponse
 from selectolax.parser import HTMLParser
-from yarl import URL
 
 from trading_bot import utils
 from trading_bot.settings import alenka_url
@@ -167,7 +166,6 @@ class AlenkaNews(AbstractSource):
         super().__init__(alenka_url)
         self.title = "ALЁNKA CAPITAL"
 
-
     async def check_update(self) -> Page:
         data = fast_json.loads(await self.session())
 
@@ -181,7 +179,6 @@ class AlenkaNews(AbstractSource):
                 id=post['post_id'])
             for post in [item for item in data if item['cat_name'] == "Лента новостей"]
         ])
-
 
 
 class AlenkaPost(AbstractSource):

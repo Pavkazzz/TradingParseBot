@@ -1,10 +1,7 @@
 import asyncio
 import logging
-from asyncio import get_event_loop
 
 import fast_json
-import telegram
-from aiomisc.entrypoint import entrypoint
 from aiomisc.log import basic_config
 from aiomisc.periodic import PeriodicCallback
 from aiomisc.utils import new_event_loop
@@ -30,8 +27,6 @@ bot = Bot(
 )
 
 manager = Manager()
-
-
 
 
 @bot.command(r'/start')
@@ -70,7 +65,7 @@ async def smartlab(chat: Chat, match):
     posts = await sl.check_update()
     chat.send_text(
         posts.posts[0].format(),
-        parse_mode=telegram.ParseMode.MARKDOWN,
+        parse_mode='Markdown',
         disable_web_page_preview=True
     )
 
@@ -98,7 +93,7 @@ def print_settings(chat: Chat, match):
     if current_settings.alenka or len(current_settings.mfd_user) > 0 or len(current_settings.mfd_thread) > 0:
         msg += "Вы подписаны на:\n"
     else:
-        chat.send_text("У вас нет активных подписок.", parse_mode=telegram.ParseMode.MARKDOWN)
+        chat.send_text("У вас нет активных подписок.", parse_mode='Markdown')
         return
 
     if current_settings.alenka:
@@ -122,7 +117,7 @@ def print_settings(chat: Chat, match):
         for thread in current_settings.mfd_thread:
             msg += f"    [{thread.name}](http://forum.mfd.ru/forum/thread/?id={thread.id})\n"
 
-    chat.send_text(msg, parse_mode=telegram.ParseMode.MARKDOWN)
+    chat.send_text(msg, parse_mode='Markdown')
 
 
 @bot.command(r'^Подписаться на ALЁNKA$')
@@ -252,7 +247,7 @@ async def mfd_add_user(chat: Chat):
         else:
             chat.send_text("Пользователь не найден. Проверьте ссылку и попробуйте еще раз")
     else:
-        chat.send_chat_action(telegram.ChatAction.TYPING)
+        chat.send_chat_action('typing')
         users, res = await manager.find_mfd_user(cid, text, rating)
         if len(users) == 1:
             chat.send_text(res)
@@ -276,7 +271,7 @@ async def mfd_add_thread(chat: Chat):
         else:
             chat.send_text("Тема не найдена. Проверьте ссылку и попробуйте еще раз")
     else:
-        chat.send_chat_action(telegram.ChatAction.TYPING)
+        chat.send_chat_action('typing')
         titles, res = await manager.find_mfd_thread(cid, text)
         if len(titles) == 1:
             chat.send_text(res)
@@ -294,11 +289,11 @@ async def check_update():
             try:
                 if message_id == 0:
                     sended_msg = bot.send_message(chat_id=chat_id, text=singlepost.format(),
-                                                  parse_mode=telegram.ParseMode.MARKDOWN,
+                                                  parse_mode='Markdown',
                                                   disable_web_page_preview=True)
                 else:
                     sended_msg = bot.edit_message_text(chat_id=chat_id, text=singlepost.format(), message_id=message_id,
-                                                       parse_mode=telegram.ParseMode.MARKDOWN,
+                                                       parse_mode='Markdown',
                                                        disable_web_page_preview=True)
 
                 manager.set_message_id(sended_msg.message_id, chat_id, singlepost.id)
@@ -311,15 +306,11 @@ loop = new_event_loop()
 
 
 async def update_manager():
-
-    print(asyncio.get_event_loop().is_closed())
-    a = AlenkaNews()
-    p = await a.check_update()
-    print(p)
-
+    pass
     # manager.recreate_users(bot=dispatcher.bot)
-    async for _ in manager.check_new_all():
-        pass
+    # async for _ in manager.check_new_all():
+    #     pass
+
 
 if __name__ == '__main__':
     print('started')
