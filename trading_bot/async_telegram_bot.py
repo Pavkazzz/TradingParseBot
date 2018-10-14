@@ -287,15 +287,15 @@ async def check_update():
         for singlepost, message_id in data:
             try:
                 if message_id == 0:
-                    sended_msg = bot.send_message(chat_id=chat_id, text=singlepost.format(),
+                    sended_msg = bot.send_m essage(chat_id=chat_id, text=singlepost.format(),
                                                   parse_mode='Markdown',
                                                   disable_web_page_preview=True)
                 else:
                     sended_msg = bot.edit_message_text(chat_id=chat_id, text=singlepost.format(), message_id=message_id,
                                                        parse_mode='Markdown',
                                                        disable_web_page_preview=True)
-
-                manager.set_message_id(sended_msg.message_id, chat_id, singlepost.id)
+                logging.info('Send message: %r', sended_msg)
+                manager.set_message_id(sended_msg['message_id'], chat_id, singlepost.id)
 
             except BotApiError:
                 logging.exception("Error BotApiError: %r", singlepost)
