@@ -32,36 +32,20 @@ class SinglePost:
 class Page:
     posts: typing.List[SinglePost] = field(default_factory=list)
 
-
-chatbase_redirect_url_with_a_http = '<a href="' + str(URL.build(
+chatbase_url = str(URL.build(
     scheme='https',
     host='chatbase.com',
     path='r',
     query={
         "api_key": chatbase_token,
         "platform": "Telegram",
+        "url": ""
     }
-)) + "&url=http://"
+))
 
-chatbase_redirect_url_with_a_https = '<a href="' + str(URL.build(
-    scheme='https',
-    host='chatbase.com',
-    path='r',
-    query={
-        "api_key": chatbase_token,
-        "platform": "Telegram",
-    }
-)) + "&url=https://"
-
-chatbase_redirect_url_no_base = '<a href="' + str(URL.build(
-    scheme='https',
-    host='chatbase.com',
-    path='r',
-    query={
-        "api_key": chatbase_token,
-        "platform": "Telegram",
-    }
-)) + "&url={baseurl}/"
+chatbase_redirect_url_with_a_http = '<a href="' + chatbase_url + "http://"
+chatbase_redirect_url_with_a_https = '<a href="' + chatbase_url + "https://"
+chatbase_redirect_url_no_base = '<a href="' + chatbase_url + "{baseurl}/"
 
 
 
@@ -91,14 +75,14 @@ class AbstractSource(metaclass=ABCMeta):
 
     async def session(self, custom_url=None, **format_url):
 
-        url = self._url if not custom_url else custom_url
+        url = self._url.format(**format_url) if not custom_url else custom_url
 
         if self._last_time_request + self._caching_time > datetime.utcnow() and url in self._last_request:
             logging.info('Not time for request url: %r', url)
             return self._last_request[url]
 
-        async with ClientSession() as session:
-            async with session.get(url.format(**format_url)) as r:  # type: ClientResponse
+        async with ClientSession(raise_for_status=True) as session:
+            async with session.get(url) as r:  # type: ClientResponse
                 body = await r.read()
 
         self.update_cache(body)
@@ -128,8 +112,9 @@ class MfdSource(AbstractSource):
         super().__init__(url, 60 * 2)
         self.id_selector = id_selector
 
-    async def check_update(self, data=None) -> Page:
-        parser = HTMLParser(await self.session(id=data))
+    async def check_update(self, data) -> Page:
+        html = await self.session(id=data)
+        parser = HTMLParser(html)
         thread = self.thread_selector(parser)
         user = [self.pretty_text(p.html, "http://mfd.ru") for p in parser.css("div.mfd-post-top-0 > a")]
         link = [self.pretty_text(p.html, "http://mfd.ru") for p in parser.css("div.mfd-post-top-1")]
@@ -221,7 +206,7 @@ class AlenkaNews(AbstractSource):
                 md=f"{post['post_date']}"
                 f"\n\n"
                 f"{utils.alert(post['post_alert'], False)}"
-                f"[{post['post_name']}]({post['post_link']})",
+                f"[{post['post_name']}]({chatbase_url}{post['post_link']})",
                 title=self.title,
                 id=post['post_id'])
             for post in [item for item in data if item['cat_name'] == "Лента новостей"]
@@ -241,8 +226,8 @@ class AlenkaPost(AbstractSource):
                 md=f"{post['post_date']}"
                 f"\n\n"
                 f"{utils.alert(post['post_alert'], True)}"
-                f"[{post['cat_name']}]({post['cat_link']})\n\n"
-                f"[{post['post_name']}]({post['post_link']})",
+                f"[{post['cat_name']}]({chatbase_url}{post['cat_link']})\n\n"
+                f"[{post['post_name']}]({chatbase_url}{post['post_link']})",
                 title=self.title,
                 id=post['post_id'])
             for post in [item for item in data if item['cat_name'] != "Лента новостей"]

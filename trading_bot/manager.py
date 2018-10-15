@@ -157,10 +157,10 @@ class Manager:
     async def check_mfd_user(self, user, chat_id):
 
         if f"mfd_user_comment {user.id}" not in self.current_data:
-            await self.update_mfd_user_comment(user)
+            await self.update_mfd_user_comment(user.id)
 
         if f"mfd_user_post {user.id}" not in self.current_data:
-            await self.update_mfd_user_post(user)
+            await self.update_mfd_user_post(user.id)
 
         res = []
         res += self.db.update(f"mfd_user_comment {user.id} {chat_id}",
@@ -172,7 +172,7 @@ class Manager:
     async def check_mfd_thread(self, thread, chat_id):
 
         if f"mfd_thread {thread.id}" not in self.current_data:
-            await self.update_mfd_thread(thread)
+            await self.update_mfd_thread(thread.id)
 
         return self.db.update(f"mfd_thread {thread.id} {chat_id}",
                               self.current_data[f"mfd_thread {thread.id}"], chat_id)
@@ -192,8 +192,8 @@ class Manager:
         self.save_user_messages()
 
     async def prepare_cache(self):
-        tasks = [self.update_alenka(), self.update_mfd()]
-        await asyncio.gather(*tasks)
+        await self.update_alenka()
+        await self.update_mfd()
 
     async def update_alenka(self):
         self.current_data["alenka_news"] = await self.sources["alenka_news"].check_update()
@@ -208,19 +208,28 @@ class Manager:
                 data_list.mfd_user.append(mfd_user)
         data_list.remove_duplicate()
 
-        tasks = [self.update_mfd_thread(data) for data in data_list.mfd_thread]
-        tasks += [self.update_mfd_user_post(data) for data in data_list.mfd_user]
-        tasks += [self.update_mfd_user_comment(data) for data in data_list.mfd_thread]
-        await asyncio.gather(*tasks)
+        for data in data_list.mfd_thread:
+            await self.update_mfd_thread(data.id)
 
-    async def update_mfd_user_comment(self, data):
-        self.current_data[f"mfd_user_comment {data.id}"] = await self.sources["mfd_user_comment"].check_update()
+        for data in data_list.mfd_user:
+            await self.update_mfd_user_post(data.id)
 
-    async def update_mfd_user_post(self, data):
-        self.current_data[f"mfd_user_post {data.id}"] = await self.sources["mfd_user_post"].check_update()
+        for data in data_list.mfd_thread:
+            await self.update_mfd_user_comment(data.id)
 
-    async def update_mfd_thread(self, data):
-        self.current_data[f"mfd_thread {data.id}"] = await self.sources["mfd_thread"].check_update()
+        # tasks = [self.update_mfd_thread(data) for data in data_list.mfd_thread]
+        # tasks += [self.update_mfd_user_post(data) for data in data_list.mfd_user]
+        # tasks += [self.update_mfd_user_comment(data) for data in data_list.mfd_thread]
+        # await asyncio.gather(*tasks)
+
+    async def update_mfd_user_comment(self, data_id):
+        self.current_data[f"mfd_user_comment {data_id}"] = await self.sources["mfd_user_comment"].check_update(data_id)
+
+    async def update_mfd_user_post(self, data_id):
+        self.current_data[f"mfd_user_post {data_id}"] = await self.sources["mfd_user_post"].check_update(data_id)
+
+    async def update_mfd_thread(self, data_id):
+        self.current_data[f"mfd_thread {data_id}"] = await self.sources["mfd_thread"].check_update(data_id)
 
     async def resolve_mfd_thread_link(self, cid, text):
         try:

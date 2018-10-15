@@ -29,40 +29,40 @@ manager = Manager()
 
 
 @bot.command(r'/start')
-def start(chat: Chat, match):
+async def start(chat: Chat, match):
     manager.start(chat.message["from"]["id"])
     key(chat, match)
 
 
 @bot.command(r'/stop')
-def stop(chat: Chat, match):
+async def stop(chat: Chat, match):
     manager.stop(chat.message["from"]["id"])
     key(chat, match)
 
 
 @bot.command(r'^About$')
 @bot.command(r'/about')
-def about(chat: Chat, match):
-    chat.send_text("Привет. Я бот для оповещения. Не обижайте меня, я буду верно вам служить. \n"
-                   "Умею подписываться на пользователей и темы на форуме mfd.ru и оповещать о новых сообщениях\n"
-                   "Могу сообщить, когда появляется новая тема или новость на Алёнке. \n"
-                   "Пользуйтесь на здоровье!")
+async def about(chat: Chat, match):
+    await chat.send_text("Привет. Я бот для оповещения. Не обижайте меня, я буду верно вам служить. \n"
+                         "Умею подписываться на пользователей и темы на форуме mfd.ru и оповещать о новых сообщениях\n"
+                         "Могу сообщить, когда появляется новая тема или новость на Алёнке. \n"
+                         "Пользуйтесь на здоровье!")
 
 
 # Начальная настройка клавиатуры
 @bot.command(r'^Отмена$')
 @bot.command(r'/key')
-def key(chat: Chat, match):
+async def key(chat: Chat, match):
     options = ["Подписки", "About"]
     reply_markup = build_menu(options, n_cols=2, header_buttons=["Смартлаб топ 24 часа"])
-    chat.send_text("Hey!", reply_markup=reply_markup)
+    await chat.send_text("Hey!", reply_markup=reply_markup)
 
 
 @bot.command(r'^Смартлаб топ 24 часа$')
 async def smartlab(chat: Chat, match):
     sl = SmartLab()
     posts = await sl.check_update()
-    chat.send_text(
+    await chat.send_text(
         posts.posts[0].format(),
         parse_mode='Markdown',
         disable_web_page_preview=True
@@ -70,7 +70,7 @@ async def smartlab(chat: Chat, match):
 
 
 @bot.command(r'^Подписки$')
-def settings(chat: Chat, match=None):
+async def settings(chat: Chat, match=None):
     global state
     state = IDLE
 
@@ -80,11 +80,11 @@ def settings(chat: Chat, match=None):
         alenka = "Подписаться на ALЁNKA"
 
     options = [alenka, "MFD.ru тема", "MFD.ru пользователи"]
-    chat.send_text('Управление подписками', reply_markup=keyboard_markup(options, ["Текущие подписки"], 3))
+    await chat.send_text('Управление подписками', reply_markup=keyboard_markup(options, ["Текущие подписки"], 3))
 
 
 @bot.command(r'^Текущие подписки$')
-def print_settings(chat: Chat, match):
+async def print_settings(chat: Chat, match):
     chat_id = chat.message["from"]["id"]
     current_settings = manager.settings(chat_id)
     msg = ""
@@ -92,7 +92,7 @@ def print_settings(chat: Chat, match):
     if current_settings.alenka or len(current_settings.mfd_user) > 0 or len(current_settings.mfd_thread) > 0:
         msg += "Вы подписаны на:\n"
     else:
-        chat.send_text("У вас нет активных подписок.", parse_mode='Markdown')
+        await chat.send_text("У вас нет активных подписок.", parse_mode='Markdown')
         return
 
     if current_settings.alenka:
@@ -116,69 +116,69 @@ def print_settings(chat: Chat, match):
         for thread in current_settings.mfd_thread:
             msg += f"    [{thread.name}](http://forum.mfd.ru/forum/thread/?id={thread.id})\n"
 
-    chat.send_text(msg, parse_mode='Markdown')
+    await chat.send_text(msg, parse_mode='Markdown')
 
 
 @bot.command(r'^Подписаться на ALЁNKA$')
 async def subscribe_alenka(chat: Chat, match):
     text, _ = await manager.new_command(chat.message["from"]["id"], Manager.ADD_ALENKA)
-    chat.send_text(text)
-    settings(chat, match)
+    await chat.send_text(text)
+    await settings(chat, match)
 
 
 @bot.command(r'^Отписаться от ALЁNKA$')
 async def unsubscribe_alenka(chat: Chat, match):
     text, _ = await manager.new_command(chat.message["from"]["id"], Manager.REMOVE_ALENKA)
-    chat.send_text(text)
-    settings(chat, match)
+    await chat.send_text(text)
+    await settings(chat, match)
 
 
 @bot.command(r'^MFD.ru тема')
-def mfd_forum(chat: Chat, match):
+async def mfd_forum(chat: Chat, match):
     options = ["Добавить mfd тему", "Удалить mfd тему"]
-    chat.send_text("Выберете действие: ", reply_markup=keyboard_markup(options))
+    await chat.send_text("Выберете действие: ", reply_markup=keyboard_markup(options))
 
 
 @bot.command(r'^Добавить mfd тему$')
-def mfd_forum_add(chat: Chat, match):
-    chat.send_text("Введите имя темы или ссылку на тему или любое сообщение этой темы ",
-                   reply_markup=keyboard_markup())
+async def mfd_forum_add(chat: Chat, match):
+    await chat.send_text("Введите имя темы или ссылку на тему или любое сообщение этой темы ",
+                         reply_markup=keyboard_markup())
     global state
     state = MFD_THREAD_ADD
 
 
 @bot.command(r'^Удалить mfd тему$')
-def mfd_forum_remove(chat: Chat, match):
+async def mfd_forum_remove(chat: Chat, match):
     chat_id = chat.message["from"]["id"]
-    chat.send_text("Выберете тему для удаления: ",
-                   reply_markup=keyboard_markup(
-                       [data.name for data in manager.settings(chat_id).mfd_thread], n_col=1)
-                   )
+    await chat.send_text("Выберете тему для удаления: ",
+                         reply_markup=keyboard_markup(
+                             [data.name for data in manager.settings(chat_id).mfd_thread], n_col=1)
+                         )
     global state
     state = MFD_THREAD_REMOVE
 
 
 @bot.command(r'^MFD.ru пользователи')
-def mfd_user(chat: Chat, match):
+async def mfd_user(chat: Chat, match):
     options = ["Добавить mfd пользователя", "Удалить mfd пользователя"]
-    chat.send_text("Выберете действие: ", reply_markup=keyboard_markup(options))
+    await chat.send_text("Выберете действие: ", reply_markup=keyboard_markup(options))
 
 
 @bot.command(r'^Добавить mfd пользователя$')
-def mfd_user_add(chat: Chat, match):
-    chat.send_text("Введите имя темы или ссылку на пользователя.\nЕсли передумали, введите \"Отмена\" ",
-                   reply_markup=keyboard_markup())
+async def mfd_user_add(chat: Chat, match):
+    await chat.send_text("Введите имя темы или ссылку на пользователя.\nЕсли передумали, введите \"Отмена\" ",
+                         reply_markup=keyboard_markup())
     global state
     state = MFD_USER_ADD
 
 
 @bot.command(r'^Удалить mfd пользователя$')
-def mfd_user_remove(chat: Chat, match):
+async def mfd_user_remove(chat: Chat, match):
     chat_id = chat.message["from"]["id"]
-    chat.send_text("Выберете пользователя для удаления: ",
-                   reply_markup=keyboard_markup(
-                       [data.name for data in manager.settings(chat_id).mfd_user], n_col=1)
-                   )
+    await chat.send_text("Выберете пользователя для удаления: ",
+                         reply_markup=keyboard_markup(
+                             [data.name for data in manager.settings(chat_id).mfd_user], n_col=1)
+                         )
     global state
     state = MFD_USER_REMOVE
 
@@ -205,10 +205,10 @@ async def mfd_remove_user(chat: Chat):
         if data.name == text:
             res, _ = await manager.new_command(cid, Manager.REMOVE_MFD_USER, data)
     if res:
-        chat.send_text(res)
-        settings(chat)
+        await chat.send_text(res)
+        await settings(chat)
     else:
-        chat.send_text("Данный пользователь не найден для удаления. Введите правильное имя")
+        await chat.send_text("Данный пользователь не найден для удаления. Введите правильное имя")
 
 
 async def mfd_remove_thread(chat: Chat):
@@ -220,10 +220,10 @@ async def mfd_remove_thread(chat: Chat):
             res, _ = await manager.new_command(cid, Manager.REMOVE_MFD_THREAD, data)
 
     if res:
-        chat.send_text(res)
-        settings(chat)
+        await chat.send_text(res)
+        await settings(chat)
     else:
-        chat.send_text("Данная тема не найдена для удаления. Попробуйте еще раз")
+        await chat.send_text("Данная тема не найдена для удаления. Попробуйте еще раз")
 
 
 async def mfd_add_user(chat: Chat):
@@ -241,21 +241,21 @@ async def mfd_add_user(chat: Chat):
     if text.startswith('http'):
         answer = await manager.resolve_mfd_user_link(cid, text)
         if not answer:
-            chat.send_text(f"Пользователь {answer} добавлен в подписки")
-            settings(chat)
+            await chat.send_text(f"Пользователь {answer} добавлен в подписки")
+            await settings(chat)
         else:
-            chat.send_text("Пользователь не найден. Проверьте ссылку и попробуйте еще раз")
+            await chat.send_text("Пользователь не найден. Проверьте ссылку и попробуйте еще раз")
     else:
-        chat.send_chat_action('typing')
+        await chat.send_chat_action('typing')
         users, res = await manager.find_mfd_user(cid, text, rating)
         if len(users) == 1:
-            chat.send_text(res)
-            settings(chat)
+            await chat.send_text(res)
+            await settings(chat)
         if len(users) > 1:
-            chat.send_text('Найдено несколько пользователей. Уточните запрос или введите новый. Имя: Рейтинг',
-                           reply_markup=keyboard_markup([f"{user[1]} : {user[3]}" for user in users], n_col=1))
+            await chat.send_text('Найдено несколько пользователей. Уточните запрос или введите новый. Имя: Рейтинг',
+                                 reply_markup=keyboard_markup([f"{user[1]} : {user[3]}" for user in users], n_col=1))
         if len(users) == 0:
-            chat.send_text('Пользователь не найден. Введите новый запрос')
+            await chat.send_text('Пользователь не найден. Введите новый запрос')
 
 
 async def mfd_add_thread(chat: Chat):
@@ -265,37 +265,38 @@ async def mfd_add_thread(chat: Chat):
     if text.startswith('http'):
         answer = await manager.resolve_mfd_thread_link(cid, text)
         if answer is not None:
-            chat.send_text(f"Тема {answer} добавлена в подписки")
-            settings(chat)
+            await chat.send_text(f"Тема {answer} добавлена в подписки")
+            await settings(chat)
         else:
-            chat.send_text("Тема не найдена. Проверьте ссылку и попробуйте еще раз")
+            await chat.send_text("Тема не найдена. Проверьте ссылку и попробуйте еще раз")
     else:
-        chat.send_chat_action('typing')
+        await chat.send_chat_action('typing')
         titles, res = await manager.find_mfd_thread(cid, text)
         if len(titles) == 1:
-            chat.send_text(res)
-            settings(chat)
+            await chat.send_text(res)
+            await settings(chat)
         if len(titles) > 1:
-            chat.send_text("Найдено несколько тем. Уточните запрос или введите новый",
-                           reply_markup=keyboard_markup(titles, n_col=1))
+            await chat.send_text("Найдено несколько тем. Уточните запрос или введите новый",
+                                 reply_markup=keyboard_markup(titles, n_col=1))
         if len(titles) == 0:
-            chat.send_text("Тема с таким именем не найдена. Введите новый запрос")
+            await chat.send_text("Тема с таким именем не найдена. Введите новый запрос")
 
 
 async def check_update():
     async for chat_id, data in manager.check_new_all():
         for singlepost, message_id in data:
             try:
-                if message_id == 0:
-                    sended_msg = bot.send_m essage(chat_id=chat_id, text=singlepost.format(),
-                                                  parse_mode='Markdown',
-                                                  disable_web_page_preview=True)
+                if not message_id:
+                    sended_msg = await bot.send_message(chat_id=chat_id, text=singlepost.format(),
+                                                        parse_mode='Markdown',
+                                                        disable_web_page_preview=True)
                 else:
-                    sended_msg = bot.edit_message_text(chat_id=chat_id, text=singlepost.format(), message_id=message_id,
-                                                       parse_mode='Markdown',
-                                                       disable_web_page_preview=True)
+                    sended_msg = await bot.edit_message_text(chat_id=chat_id, text=singlepost.format(),
+                                                             message_id=message_id,
+                                                             parse_mode='Markdown',
+                                                             disable_web_page_preview=True)
                 logging.info('Send message: %r', sended_msg)
-                manager.set_message_id(sended_msg['message_id'], chat_id, singlepost.id)
+                manager.set_message_id(sended_msg['result']['message_id'], chat_id, singlepost.id)
 
             except BotApiError:
                 logging.exception("Error BotApiError: %r", singlepost)
