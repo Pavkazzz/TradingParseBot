@@ -1,3 +1,6 @@
+requests
+yarl
+aiohttp
 git+git://github.com/Pavkazzz/html2text.git@master#egg=html2text
 git+git://github.com/Pavkazzz/aiotg.git@master#egg=aiotg
 fast-json

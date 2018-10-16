@@ -1,15 +1,18 @@
 # -*- coding: utf-8 -*-
+import asyncio
 import logging
 import re
 import typing
 from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
+from functools import partial
 from itertools import zip_longest
 from typing import Tuple
 from urllib.parse import quote
 
 import fast_json
+import requests
 from aiohttp import ClientSession, TCPConnector, ClientResponse
 from selectolax.parser import HTMLParser
 from yarl import URL
@@ -32,6 +35,7 @@ class SinglePost:
 class Page:
     posts: typing.List[SinglePost] = field(default_factory=list)
 
+
 chatbase_url = str(URL.build(
     scheme='https',
     host='chatbase.com',
@@ -48,19 +52,6 @@ chatbase_redirect_url_with_a_https = '<a href="' + chatbase_url + "https://"
 chatbase_redirect_url_no_base = '<a href="' + chatbase_url + "{baseurl}/"
 
 
-
-def replace_url_for_chatbase(html, baseurl=None):
-    # Это пиздец какая ебала
-    # Значит делаем так:
-    # 1. Сначала делаем замену урлов с http://
-    # 2. Сначала делаем замену урлов с https://
-    # 3. Потом делаем замену базовых
-    resp = re.sub(r"(<a [^>]*href\s*=\s*['\"])(https://)", chatbase_redirect_url_with_a_https, html)
-    resp = re.sub(r"(<a [^>]*href\s*=\s*['\"])(http://)", chatbase_redirect_url_with_a_http, resp)
-    resp = re.sub(r"(<a [^>]*href\s*=\s*['\"])/", chatbase_redirect_url_no_base.format(baseurl=baseurl), resp)
-    return resp
-
-
 class AbstractSource(metaclass=ABCMeta):
     def __init__(self, url, caching_time: int = 60):
         self._url = url
@@ -68,6 +59,21 @@ class AbstractSource(metaclass=ABCMeta):
         self._caching_time = timedelta(seconds=caching_time)
         self._connector = TCPConnector()
         self._last_time_request = datetime.min
+
+    def get_link(self, url_with_brackets):
+        return f"({requests.get(f'https://clck.ru/--?url={chatbase_url + url_with_brackets[1:-1]}').text})"
+
+        # async with ClientSession(raise_for_status=True, connector_owner=False, connector=self._connector) as session:
+        #     async with session.get(
+        #             f"https://clck.ru/--?url={chatbase_url + url_with_brackets[1:-1]}") as r:  # type: ClientResponse
+        #         body = r.read()
+        # return body
+
+    # def match_group(self, match):
+    #     return asyncio.get_event_loop().run_until_complete(self.get_link(match))
+
+    def convert_links(self, markdown):
+        return re.sub(r"(\(http://\S+\))", lambda match: self.get_link(match.group()), markdown)
 
     def update_cache(self, value):
         self._last_request[self._url] = value
@@ -81,7 +87,7 @@ class AbstractSource(metaclass=ABCMeta):
             logging.info('Not time for request url: %r', url)
             return self._last_request[url]
 
-        async with ClientSession(raise_for_status=True) as session:
+        async with ClientSession(raise_for_status=True, connector_owner=False, connector=self._connector) as session:
             async with session.get(url) as r:  # type: ClientResponse
                 body = await r.read()
 
@@ -92,8 +98,7 @@ class AbstractSource(metaclass=ABCMeta):
     def check_update(self) -> Page:
         pass
 
-    @staticmethod
-    def pretty_text(html, baseurl) -> str:
+    def pretty_text(self, html, baseurl) -> str:
         import html2text
         h = html2text.HTML2Text(baseurl=baseurl, bodywidth=34)
         # Небольшие изощрения с li
@@ -101,10 +106,8 @@ class AbstractSource(metaclass=ABCMeta):
         if '[' in html_to_parse and ']' in html_to_parse:
             html_to_parse = html_to_parse.replace('[', '{').replace(']', '}')
 
-        html_to_parse = replace_url_for_chatbase(html_to_parse, baseurl)
-
         html_to_parse = utils.transform_emoji(html_to_parse)
-        return h.handle(html_to_parse).strip()
+        return self.convert_links(h.handle(html_to_parse).strip())
 
 
 class MfdSource(AbstractSource):

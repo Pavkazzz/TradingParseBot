@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
+import pytest
 from selectolax.parser import HTMLParser
 
-from trading_bot.sources import AbstractSource, replace_url_for_chatbase
+from trading_bot.sources import AbstractSource, MfdForumThreadSource
+
+pytestmark = pytest.mark.asyncio
 
 
 async def test_pretty_text():
@@ -11,7 +14,7 @@ async def test_pretty_text():
            "\n"
            "| [chromatin](https://chatbase.com/r?api_key=dd11ff93-afcc-4253-ba2e-72fec6e46a35&platform=Telegram&url=http://mfd.ru/forum/poster/?id=99552) @ [19.07.2018 16:54](https://chatbase.com/r?api_key=dd11ff93-afcc-4253-ba2e-72fec6e46a35&platform=Telegram&url=http://mfd.ru/forum/post/?id=14778526)\n"
            "|  \n"
-           "|  \*TRUMP SAYS LOOKS FORWARD TO\n"
+           r"|  \*TRUMP SAYS LOOKS FORWARD TO\n"
            "| SECOND MEETING WITH PUTIN  \n"
            "| Может быть, не надо. Второй такой\n"
            "| встречи наш ФР может и не пережить\n"
@@ -76,7 +79,7 @@ async def test_link_title_text():
 async def test_dash():
     html = """<div>@Discl_Bot - бот, не канал, но удобный </div>"""
     text = AbstractSource.pretty_text(html, "https://alenka.capital")
-    res = ("@Discl\_Bot - бот, не канал, но\n"
+    res = (r"@Discl\_Bot - бот, не канал, но\n"
            "удобный")
     assert text == res
 
@@ -191,4 +194,5 @@ Sehr gut!!!
 
 async def test_image():
     html = """<div><blockquote class="mfd-quote-15241410"><div class="mfd-quote-info"><a href="/forum/poster/?id=71373" rel="nofollow">Max__</a> @ <a href="/forum/post/?id=15241410" rel="nofollow">14.10.2018 09:24</a></div><div class="mfd-quote-text">Утро доброе народ, НЕ СПАМ! кто хочет купить книгу на Литрес но пока этого не сделал, цена или еще по каким другим причинам, вот вам промокод topadvert50autmn 50% скидка на одну покупку, Хорошая возможность приобрести Герасименко - "Финансовая отчетность для руководителей и начинающих специалистов." Всех благ, друзья, развивайтесь! <br>  <br> <a href="http://funkyimg.com/view/2M5Rs" rel="nofollow" target="_blank"><img src="http://funkyimg.com/p/2M5Rs.png" alt="Показать в полный размер"></a></div></blockquote><div class="mfd-quote-text">Спасибо, но давно ещё скачал в ПДФ бесплатно =) Кому надо - пишите, скину.</div></div><button class="mfd-button-attention" data-id="15241463" name="reportAbuse" title="Пожаловаться на это сообщение" type="button"></button>"""
-    print(AbstractSource.pretty_text(html, "http://mfd.ru"))
+    m = MfdForumThreadSource()
+    print(m.pretty_text(html, "http://mfd.ru"))
