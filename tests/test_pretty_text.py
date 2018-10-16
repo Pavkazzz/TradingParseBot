@@ -194,5 +194,31 @@ Sehr gut!!!
 
 async def test_image():
     html = """<div><blockquote class="mfd-quote-15241410"><div class="mfd-quote-info"><a href="/forum/poster/?id=71373" rel="nofollow">Max__</a> @ <a href="/forum/post/?id=15241410" rel="nofollow">14.10.2018 09:24</a></div><div class="mfd-quote-text">Утро доброе народ, НЕ СПАМ! кто хочет купить книгу на Литрес но пока этого не сделал, цена или еще по каким другим причинам, вот вам промокод topadvert50autmn 50% скидка на одну покупку, Хорошая возможность приобрести Герасименко - "Финансовая отчетность для руководителей и начинающих специалистов." Всех благ, друзья, развивайтесь! <br>  <br> <a href="http://funkyimg.com/view/2M5Rs" rel="nofollow" target="_blank"><img src="http://funkyimg.com/p/2M5Rs.png" alt="Показать в полный размер"></a></div></blockquote><div class="mfd-quote-text">Спасибо, но давно ещё скачал в ПДФ бесплатно =) Кому надо - пишите, скину.</div></div><button class="mfd-button-attention" data-id="15241463" name="reportAbuse" title="Пожаловаться на это сообщение" type="button"></button>"""
-    m = MfdForumThreadSource()
-    print(m.pretty_text(html, "http://mfd.ru"))
+    res = """| [Max__](https://clck.ru/EYcFM) @ [14.10.2018 09:24](https://clck.ru/EYcFM)
+|  
+|  Утро доброе народ, НЕ СПАМ! кто
+| хочет купить книгу на Литрес но
+| пока этого не сделал, цена или еще
+| по каким другим причинам, вот вам
+| промокод topadvert50autmn 50%
+| скидка на одну покупку, Хорошая
+| возможность приобрести Герасименко
+| - "Финансовая отчетность для
+| руководителей и начинающих
+| специалистов." Всех благ, друзья,
+| развивайтесь!  
+|   
+| [Показать в полный размер](https://clck.ru/EYcFM)
+
+Спасибо, но давно ещё скачал в ПДФ
+бесплатно =) Кому надо - пишите,
+скину."""
+    assert AbstractSource.pretty_text(html, "http://mfd.ru") == res
+
+
+async def test_russian_links():
+    url = 'http://peretok.ru/articles/strategy/19079/ВИЭ'
+    res = 'https://clck.ru/--?url=https%3A//chatbase.com/r%3Fapi_key%3Ddd11ff93-afcc-4253-ba2e-72fec6e46a35' \
+          '%26platform%3DTelegram%26url%3Dhttp%253A//peretok.ru/articles/strategy/19079/ '
+
+    print(AbstractSource.get_click_url(url))

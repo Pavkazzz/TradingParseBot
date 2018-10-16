@@ -1,4 +1,6 @@
 requests
+requests_cache
+redis
 yarl
 aiohttp
 git+git://github.com/Pavkazzz/html2text.git@master#egg=html2text

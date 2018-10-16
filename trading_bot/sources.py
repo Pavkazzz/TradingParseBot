@@ -1,24 +1,26 @@
 # -*- coding: utf-8 -*-
-import asyncio
 import logging
 import re
 import typing
 from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from functools import partial
 from itertools import zip_longest
 from typing import Tuple
 from urllib.parse import quote
 
 import fast_json
+import html2text
 import requests
-from aiohttp import ClientSession, TCPConnector, ClientResponse
+import requests_cache
+from aiohttp import ClientSession, ClientResponse
 from selectolax.parser import HTMLParser
 from yarl import URL
 
 from trading_bot import utils
 from trading_bot.settings import alenka_url, chatbase_token
+
+log = logging.getLogger(__name__)
 
 
 @dataclass(unsafe_hash=True)
@@ -47,9 +49,7 @@ chatbase_url = str(URL.build(
     }
 ))
 
-chatbase_redirect_url_with_a_http = '<a href="' + chatbase_url + "http://"
-chatbase_redirect_url_with_a_https = '<a href="' + chatbase_url + "https://"
-chatbase_redirect_url_no_base = '<a href="' + chatbase_url + "{baseurl}/"
+requests_cache.install_cache('click_cache', backend='redis', )
 
 
 class AbstractSource(metaclass=ABCMeta):
@@ -57,23 +57,7 @@ class AbstractSource(metaclass=ABCMeta):
         self._url = url
         self._last_request = {}
         self._caching_time = timedelta(seconds=caching_time)
-        self._connector = TCPConnector()
         self._last_time_request = datetime.min
-
-    def get_link(self, url_with_brackets):
-        return f"({requests.get(f'https://clck.ru/--?url={chatbase_url + url_with_brackets[1:-1]}').text})"
-
-        # async with ClientSession(raise_for_status=True, connector_owner=False, connector=self._connector) as session:
-        #     async with session.get(
-        #             f"https://clck.ru/--?url={chatbase_url + url_with_brackets[1:-1]}") as r:  # type: ClientResponse
-        #         body = r.read()
-        # return body
-
-    # def match_group(self, match):
-    #     return asyncio.get_event_loop().run_until_complete(self.get_link(match))
-
-    def convert_links(self, markdown):
-        return re.sub(r"(\(http://\S+\))", lambda match: self.get_link(match.group()), markdown)
 
     def update_cache(self, value):
         self._last_request[self._url] = value
@@ -84,10 +68,10 @@ class AbstractSource(metaclass=ABCMeta):
         url = self._url.format(**format_url) if not custom_url else custom_url
 
         if self._last_time_request + self._caching_time > datetime.utcnow() and url in self._last_request:
-            logging.info('Not time for request url: %r', url)
+            log.info('Not time for request url: %r', url)
             return self._last_request[url]
 
-        async with ClientSession(raise_for_status=True, connector_owner=False, connector=self._connector) as session:
+        async with ClientSession(raise_for_status=True) as session:
             async with session.get(url) as r:  # type: ClientResponse
                 body = await r.read()
 
@@ -95,11 +79,27 @@ class AbstractSource(metaclass=ABCMeta):
         return body
 
     @abstractmethod
-    def check_update(self) -> Page:
+    def check_update(self, *args) -> Page:
         pass
 
-    def pretty_text(self, html, baseurl) -> str:
-        import html2text
+    @staticmethod
+    def get_click_url(url):
+        try:
+            return f'https://clck.ru/--?url={quote(chatbase_url + url, encoding="ascii")}'
+        except UnicodeEncodeError:
+            log.exception('Failed to encode url %r', url)
+            return url
+
+    @staticmethod
+    def make_request(match):
+        return f"({requests.get(AbstractSource.get_click_url(match[1:-1])).text})"
+
+    @staticmethod
+    def convert_links(markdown):
+        return re.sub(r"(\(http://\S+\))", lambda match: AbstractSource.make_request(match.group()), markdown)
+
+    @staticmethod
+    def pretty_text(html, baseurl) -> str:
         h = html2text.HTML2Text(baseurl=baseurl, bodywidth=34)
         # Небольшие изощрения с li
         html_to_parse = str(html).replace('<li', '<div').replace("</li>", "</div>")
@@ -107,7 +107,7 @@ class AbstractSource(metaclass=ABCMeta):
             html_to_parse = html_to_parse.replace('[', '{').replace(']', '}')
 
         html_to_parse = utils.transform_emoji(html_to_parse)
-        return self.convert_links(h.handle(html_to_parse).strip())
+        return AbstractSource.convert_links(h.handle(html_to_parse).strip())
 
 
 class MfdSource(AbstractSource):
