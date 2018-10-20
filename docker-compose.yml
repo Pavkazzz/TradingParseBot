@@ -1,17 +1,19 @@
-version: '3'
+version: '2'
 services:
   app:
-    image: pavkazzz/trading_bot:latest
-    command: ["python", "./trading_bot/async_telegram_bot.py"]
+    image: pavkazzz/telegram_bot:latest
+    command: ["python", "./trading_bot/async_telegram_bot.py", "--redis-url", "redis"]
     environment:
       - RHOST=redis
     networks:
       - redis-net
     depends_on:
       - redis
+    volumes:
+      - ./data:/app/data
 
   redis:
-    image: redis:latest-alpine
+    image: redis:5-alpine
     command: ["redis-server", "--appendonly", "yes"]
     hostname: redis
     networks:
