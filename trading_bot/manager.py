@@ -3,13 +3,13 @@ import typing
 from dataclasses import dataclass, field
 from typing import Tuple, List, Dict
 
-import log
+import logging
 from aiotg import Bot
 
 from trading_bot import sources
 from trading_bot.database import DataBase
 
-log = log.getLogger(__name__)
+log = logging.getLogger(__name__)
 
 
 @dataclass(unsafe_hash=True)
