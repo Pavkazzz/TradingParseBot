@@ -18,10 +18,16 @@ from trading_bot.telegram_helper import build_menu, keyboard_markup
 p = configargparse.ArgParser(
     auto_env_var_prefix='APP'
 )
-p.add_argument('--redis-url', default='127.0.0.1', help='Url for redis database', type=URL)
+p.add_argument('--redis-url', default='127.0.0.1', help='Url for redis database', type=str)
 arguments = p.parse_args()
 
-requests_cache.install_cache('click_cache', backend='redis', connection=Redis(host=arguments.redis_url))
+redis = Redis(host=arguments.redis_url)
+if redis.ping():
+    print('Success connect to redis')
+else:
+    print('Cannot connect to redis!')
+
+requests_cache.install_cache('click_cache', backend='redis', connection=redis)
 
 basic_config(level=logging.INFO, buffered=False, log_format='color')
 
