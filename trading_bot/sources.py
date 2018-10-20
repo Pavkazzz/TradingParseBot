@@ -5,6 +5,7 @@ import typing
 from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
+from functools import partial
 from itertools import zip_longest
 from typing import Tuple
 from urllib.parse import quote
@@ -13,7 +14,8 @@ import fast_json
 import html2text
 import requests
 import requests_cache
-from aiohttp import ClientSession, ClientResponse
+from aiohttp import ClientSession, ClientResponse, ClientResponseError
+from redis import Redis
 from selectolax.parser import HTMLParser
 from yarl import URL
 
@@ -38,90 +40,105 @@ class Page:
     posts: typing.List[SinglePost] = field(default_factory=list)
 
 
-chatbase_url = str(URL.build(
-    scheme='https',
-    host='chatbase.com',
-    path='r',
-    query={
-        "api_key": chatbase_token,
-        "platform": "Telegram",
-        "url": ""
-    }
-))
-
-requests_cache.install_cache('click_cache', backend='redis', )
+requests_cache.install_cache('click_cache', backend='redis', connection=Redis(host='127.0.0.1'))
 
 
-class AbstractSource(metaclass=ABCMeta):
-    def __init__(self, url, caching_time: int = 60):
-        self._url = url
-        self._last_request = {}
-        self._caching_time = timedelta(seconds=caching_time)
-        self._last_time_request = datetime.min
+def get_chatbase_url(url):
+    return str(URL.build(
+        scheme='https',
+        host='chatbase.com',
+        path='r',
+        query={
+            "api_key": chatbase_token,
+            "platform": "Telegram",
+            "url": url
+        }
+    ))
 
-    def update_cache(self, value):
-        self._last_request[self._url] = value
-        self._last_time_request = datetime.utcnow()
 
-    async def session(self, custom_url=None, **format_url):
+def get_click_link_with_brackets(url):
+    try:
+        req_url = f'https://clck.ru/--?url={quote(get_chatbase_url(url), encoding="ascii")}'
+    except UnicodeEncodeError:
+        log.exception('Failed to encode url %r', url)
+        req_url = url
+    return f"({requests.get(req_url).text})"
 
-        url = self._url.format(**format_url) if not custom_url else custom_url
 
-        if self._last_time_request + self._caching_time > datetime.utcnow() and url in self._last_request:
-            log.info('Not time for request url: %r', url)
-            return self._last_request[url]
+class MarkdownFormatter:
 
-        async with ClientSession(raise_for_status=True) as session:
-            async with session.get(url) as r:  # type: ClientResponse
-                body = await r.read()
+    def __init__(self, base_url):
+        self.base_url = base_url
 
-        self.update_cache(body)
-        return body
+    def make_request(self, match: re.Match):
+        url = match.group(0)[1:-1]
+        return get_click_link_with_brackets(url)
 
-    @abstractmethod
-    def check_update(self, *args) -> Page:
-        pass
+    def convert_links(self, markdown):
+        # noinspection PyTypeChecker
+        return re.sub(r"(\(https?://\S+\))", partial(self.make_request), markdown)
 
-    @staticmethod
-    def get_click_url(url):
-        try:
-            return f'https://clck.ru/--?url={quote(chatbase_url + url, encoding="ascii")}'
-        except UnicodeEncodeError:
-            log.exception('Failed to encode url %r', url)
-            return url
-
-    @staticmethod
-    def make_request(match):
-        return f"({requests.get(AbstractSource.get_click_url(match[1:-1])).text})"
-
-    @staticmethod
-    def convert_links(markdown):
-        return re.sub(r"(\(http://\S+\))", lambda match: AbstractSource.make_request(match.group()), markdown)
-
-    @staticmethod
-    def pretty_text(html, baseurl) -> str:
-        h = html2text.HTML2Text(baseurl=baseurl, bodywidth=34)
+    def parse_markdown(self, html, width=34) -> str:
+        h = html2text.HTML2Text(baseurl=self.base_url, bodywidth=width)
         # Небольшие изощрения с li
         html_to_parse = str(html).replace('<li', '<div').replace("</li>", "</div>")
         if '[' in html_to_parse and ']' in html_to_parse:
             html_to_parse = html_to_parse.replace('[', '{').replace(']', '}')
 
         html_to_parse = utils.transform_emoji(html_to_parse)
-        return AbstractSource.convert_links(h.handle(html_to_parse).strip())
+        return self.convert_links(h.handle(html_to_parse).strip())
+
+
+class AbstractSource(metaclass=ABCMeta):
+    def __init__(self, url, caching_time: int = 60, formatter_url=None):
+        self._url = url
+        self._last_request = {}
+        self._caching_time = timedelta(seconds=caching_time)
+        self._last_time_request = datetime.min
+        self._formatter = MarkdownFormatter(formatter_url or self._url)
+
+    def update_cache(self, url, value):
+        self._last_request[url] = value
+        self._last_time_request = datetime.utcnow()
+
+    async def session(self, custom_url=None, **format_url):
+        url = self._url.format(**format_url) if not custom_url else custom_url
+
+        if self._last_time_request + self._caching_time > datetime.utcnow() and url in list(self._last_request.keys()):
+            log.info('Not time for request url: %r', url)
+            return self._last_request[url]
+
+        try:
+            async with ClientSession(raise_for_status=True) as session:
+                async with session.get(url) as r:  # type: ClientResponse
+                    body = await r.read()
+        except ClientResponseError:
+            log.exception('Error')
+            body = """<html></html>"""
+
+        self.update_cache(url, body)
+        return body
+
+    @abstractmethod
+    def check_update(self, *args) -> Page:
+        pass
+
+    def pretty_text(self, html):
+        return self._formatter.parse_markdown(html)
 
 
 class MfdSource(AbstractSource):
     def __init__(self, url, id_selector):
-        super().__init__(url, 60 * 2)
+        super().__init__(url, 60 * 2, formatter_url="http://mfd.ru")
         self.id_selector = id_selector
 
     async def check_update(self, data) -> Page:
         html = await self.session(id=data)
         parser = HTMLParser(html)
         thread = self.thread_selector(parser)
-        user = [self.pretty_text(p.html, "http://mfd.ru") for p in parser.css("div.mfd-post-top-0 > a")]
-        link = [self.pretty_text(p.html, "http://mfd.ru") for p in parser.css("div.mfd-post-top-1")]
-        posts = [self.pretty_text(p.html, "http://mfd.ru") for p in parser.css("div.mfd-post-body-right")]
+        user = [self.pretty_text(p.html) for p in parser.css("div.mfd-post-top-0 > a")]
+        link = [self.pretty_text(p.html) for p in parser.css("div.mfd-post-top-1")]
+        posts = [self.pretty_text(p.html) for p in parser.css("div.mfd-post-body-right")]
         ids = [int(p.attributes['data-id']) for p in parser.css(self.id_selector)]
 
         if len(thread) > 0:
@@ -142,7 +159,7 @@ class MfdUserPostSource(MfdSource):
         super().__init__("http://lite.mfd.ru/forum/poster/posts/?id={id}", "button.mfd-button-attention")
 
     def thread_selector(self, parser):
-        return [self.pretty_text(p.text(), "http://mfd.ru") for p in parser.css("h3.mfd-post-thread-subject > a")]
+        return [self.pretty_text(p.text()) for p in parser.css("h3.mfd-post-thread-subject > a")]
 
     async def resolve_link(self, url):
         parser = HTMLParser(await self.session(custom_url=url))
@@ -167,7 +184,7 @@ class MfdUserCommentSource(MfdSource):
         super().__init__("http://lite.mfd.ru/forum/poster/comments/?id={id}", "button.mfd-button-quote")
 
     def thread_selector(self, bs):
-        return [self.pretty_text(p.html, "http://mfd.ru") for p in bs.css("h3.mfd-post-thread-subject > a")]
+        return [self.pretty_text(p.html) for p in bs.css("h3.mfd-post-thread-subject > a")]
 
 
 class MfdForumThreadSource(MfdSource):
@@ -175,7 +192,7 @@ class MfdForumThreadSource(MfdSource):
         super().__init__("http://lite.mfd.ru/forum/thread/?id={id}", "button.mfd-button-attention")
 
     def thread_selector(self, bs):
-        return [self.pretty_text(p.text(), "http://mfd.ru") for p in bs.css(".mfd-header > h1")]
+        return [self.pretty_text(p.text()) for p in bs.css(".mfd-header > h1")]
 
     async def resolve_link(self, url):
         parser = HTMLParser(await self.session(custom_url=url))
@@ -206,10 +223,10 @@ class AlenkaNews(AbstractSource):
 
         return Page([
             SinglePost(
-                md=f"{post['post_date']}"
-                f"\n\n"
-                f"{utils.alert(post['post_alert'], False)}"
-                f"[{post['post_name']}]({chatbase_url}{post['post_link']})",
+                md=(f"{post['post_date']}"
+                    f"\n\n"
+                    f"{utils.alert(post['post_alert'], False)}"
+                    f"[{post['post_name']}]{get_click_link_with_brackets(post['post_link'])}"),
                 title=self.title,
                 id=post['post_id'])
             for post in [item for item in data if item['cat_name'] == "Лента новостей"]
@@ -226,11 +243,11 @@ class AlenkaPost(AbstractSource):
 
         return Page([
             SinglePost(
-                md=f"{post['post_date']}"
-                f"\n\n"
-                f"{utils.alert(post['post_alert'], True)}"
-                f"[{post['cat_name']}]({chatbase_url}{post['cat_link']})\n\n"
-                f"[{post['post_name']}]({chatbase_url}{post['post_link']})",
+                md=(f"{post['post_date']}"
+                    f"\n\n"
+                    f"{utils.alert(post['post_alert'], True)}"
+                    f"[{post['cat_name']}]{get_click_link_with_brackets(post['cat_link'])}\n\n"
+                    f"[{post['post_name']}]{get_click_link_with_brackets(post['post_link'])}"),
                 title=self.title,
                 id=post['post_id'])
             for post in [item for item in data if item['cat_name'] != "Лента новостей"]
@@ -247,7 +264,7 @@ class SmartLab(AbstractSource):
         post = parser.css_first("div.trt").html
         return Page([
             SinglePost(
-                md=self.pretty_text(post, self._url).strip(),
+                md=self.pretty_text(post).strip(),
                 title=self.title
             )
         ])

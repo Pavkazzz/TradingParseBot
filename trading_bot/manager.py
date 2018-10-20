@@ -278,8 +278,8 @@ class Manager:
         finally:
             return users, res
 
-    async def config_sources(self, source, text):
-        self.sources[source].update_cache(text)
+    async def config_sources(self, source, url, text):
+        self.sources[source].update_cache(url, text)
         await self.update_alenka()
 
     def set_message_id(self, message_id, chat_id, post_id):

@@ -9,28 +9,28 @@ async def test_local_generator():
     sl = SmartLab()
     with open("html/test_smartLab.html", 'r', encoding="utf8") as html_page:
         text = html_page.read()
-        sl.update_cache(text)
+        sl.update_cache("https://smart-lab.ru", text)
 
     page = await sl.check_update()
-    res = ("+320 (283) [Ситуация на текущий момент](https://chatbase.com/r?api_key=dd11ff93-afcc-4253-ba2e-72fec6e46a35&platform=Telegram&url=https://smart-lab.ru/blog/484064.php)\n"
+    res = ("+320 (283) [Ситуация на текущий момент](https://clck.ru/EZwKc)\n"
            "\n"
-           "+223 (97) [Мост на Сахалин](https://chatbase.com/r?api_key=dd11ff93-afcc-4253-ba2e-72fec6e46a35&platform=Telegram&url=https://smart-lab.ru/blog/483969.php)\n"
+           "+223 (97) [Мост на Сахалин](https://clck.ru/EZwKd)\n"
            "\n"
-           "+186 (22) [Три стадии бедности](https://chatbase.com/r?api_key=dd11ff93-afcc-4253-ba2e-72fec6e46a35&platform=Telegram&url=https://smart-lab.ru/blog/483954.php)\n"
+           "+186 (22) [Три стадии бедности](https://clck.ru/EZwKe)\n"
            "\n"
-           "+157 (67) [Какой мост нужен на Сахалин?](https://chatbase.com/r?api_key=dd11ff93-afcc-4253-ba2e-72fec6e46a35&platform=Telegram&url=https://smart-lab.ru/blog/484000.php)\n"
+           "+157 (67) [Какой мост нужен на Сахалин?](https://clck.ru/EZwKf)\n"
            "\n"
-           "+150 (27) [Про деньги](https://chatbase.com/r?api_key=dd11ff93-afcc-4253-ba2e-72fec6e46a35&platform=Telegram&url=https://smart-lab.ru/blog/484080.php)\n"
+           "+150 (27) [Про деньги](https://clck.ru/EZwKg)\n"
            "\n"
-           "+150 (23) [Размещение ОФЗ + RGBI + Объём ОФЗ](https://chatbase.com/r?api_key=dd11ff93-afcc-4253-ba2e-72fec6e46a35&platform=Telegram&url=https://smart-lab.ru/blog/483985.php)\n"
+           "+150 (23) [Размещение ОФЗ + RGBI + Объём ОФЗ](https://clck.ru/EZwKh)\n"
            "\n"
-           "+136 (23) [\"Утренний звонок\". Биржевой рассказ. Пролог.](https://chatbase.com/r?api_key=dd11ff93-afcc-4253-ba2e-72fec6e46a35&platform=Telegram&url=https://smart-lab.ru/blog/484054.php)\n"
+           "+136 (23) [\"Утренний звонок\". Биржевой рассказ. Пролог.](https://clck.ru/EZwKj)\n"
            "\n"
-           "+115 (32) [Запасы нефти в США: -6,1 мб, добыча: +0 тб/д](https://chatbase.com/r?api_key=dd11ff93-afcc-4253-ba2e-72fec6e46a35&platform=Telegram&url=https://smart-lab.ru/blog/483979.php)\n"
+           "+115 (32) [Запасы нефти в США: -6,1 мб, добыча: +0 тб/д](https://clck.ru/EZwKk)\n"
            "\n"
-           "+104 (61) [Рассказ о моей торговле](https://chatbase.com/r?api_key=dd11ff93-afcc-4253-ba2e-72fec6e46a35&platform=Telegram&url=https://smart-lab.ru/blog/484071.php)\n"
+           "+104 (61) [Рассказ о моей торговле](https://clck.ru/EZwKn)\n"
            "\n"
-           "+101 (0) [Рубль: usdrub - все пристегнулись? ... в 100тыс500 раз?!](https://chatbase.com/r?api_key=dd11ff93-afcc-4253-ba2e-72fec6e46a35&platform=Telegram&url=https://smart-lab.ru/blog/484068.php)")
+           "+101 (0) [Рубль: usdrub - все пристегнулись? ... в 100тыс500 раз?!](https://clck.ru/EZwKo)")
 
     assert len(page.posts) == 1
     assert page.posts[0].md == res

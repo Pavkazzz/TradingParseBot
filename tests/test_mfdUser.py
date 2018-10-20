@@ -12,12 +12,12 @@ async def test_mfd_user_post_comment_eq():
     thread = MfdForumThreadSource()
 
     with open("html/test_mfdUserPostEq.html", 'r', encoding="utf8") as html:
-        post.update_cache(html.read())
+        post.update_cache("http://lite.mfd.ru/forum/poster/posts/?id=0", html.read())
     with open("html/test_mfdThreadEq.html", 'r', encoding="utf8") as html:
-        thread.update_cache(html.read())
+        thread.update_cache("http://lite.mfd.ru/forum/thread/?id=0", html.read())
 
-    post_page = await post.check_update()
-    thread_page = await thread.check_update()
+    post_page = await post.check_update(0)
+    thread_page = await thread.check_update(0)
 
     assert len(thread_page.posts) == 1
     assert len(post_page.posts) == 1

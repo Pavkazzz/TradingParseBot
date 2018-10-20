@@ -23,9 +23,9 @@ async def test_check_all():
     cid = 9999
     thread = MfdForumThreadSource()
     with open("html/test_mfdForumThreadSourcePage.html", encoding="utf8") as html_page:
-        thread.update_cache(html_page.read())
+        thread.update_cache("http://lite.mfd.ru/forum/thread/?id=0", html_page.read())
 
-    data = await thread.check_update()
+    data = await thread.check_update(0)
     db.update("test", data, cid)
     for i in range(5):
         assert db.update("test", data, cid) == []

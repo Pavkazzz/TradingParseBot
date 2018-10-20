@@ -10,12 +10,12 @@ pytestmark = pytest.mark.asyncio
 async def test_local_generator():
     post = MfdUserCommentSource()
     with open("html/test_mfdUserCommentSourcePage.html", 'r', encoding="utf8") as html_page:
-        post.update_cache(html_page.read())
+        post.update_cache('http://lite.mfd.ru/forum/poster/comments/?id=0', html_page.read())
 
-    page = await post.check_update()
+    page = await post.check_update(0)
     assert len(page.posts) == 4
-    assert page.posts[0].title == ("[{Блоги} Июль](https://chatbase.com/r?api_key=dd11ff93-afcc-4253-ba2e-72fec6e46a35&platform=Telegram&url=http://lite.mfd.ru/blogs/posts/view/?id=37688)\n"
-                                   "[malishok](https://chatbase.com/r?api_key=dd11ff93-afcc-4253-ba2e-72fec6e46a35&platform=Telegram&url=http://mfd.ru/forum/poster/?id=71921)\n"
+    assert page.posts[0].title == ("[{Блоги} Июль](https://clck.ru/EZvyy)\n"
+                                   "[malishok](https://clck.ru/EZvFG)\n"
                                    "сегодня, 12:35")
     for x in page.posts:
         assert len(x.title) > 0

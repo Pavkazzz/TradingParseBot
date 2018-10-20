@@ -10,10 +10,10 @@ pytestmark = pytest.mark.asyncio
 
 async def test_local_generator():
     res = (
-        "| [Роберт СПБ](https://chatbase.com/r?api_key=dd11ff93-afcc-4253-ba2e-72fec6e46a35&platform=Telegram&url=http://mfd.ru/forum/poster/?id=84758) @ [17.07.2018 13:42](https://chatbase.com/r?api_key=dd11ff93-afcc-4253-ba2e-72fec6e46a35&platform=Telegram&url=http://mfd.ru/forum/post/?id=14765308)\n"
+        "| [Роберт СПБ](https://clck.ru/EZvsS) @ [17.07.2018 13:42](https://clck.ru/EZvta)\n"
         "|\n"
         "| \n"
-        "| | [malishok](https://chatbase.com/r?api_key=dd11ff93-afcc-4253-ba2e-72fec6e46a35&platform=Telegram&url=http://mfd.ru/forum/poster/?id=71921) @ [17.07.2018 13:35](https://chatbase.com/r?api_key=dd11ff93-afcc-4253-ba2e-72fec6e46a35&platform=Telegram&url=http://mfd.ru/forum/post/?id=14765273)\n"
+        "| | [malishok](https://clck.ru/EZvFG) @ [17.07.2018 13:35](https://clck.ru/EZvtZ)\n"
         "| |  \n"
         "| |  есть) у меня она сложнее,\n"
         "| | смотрю ev/ebitda и p/e конечно, но\n"
@@ -42,13 +42,13 @@ async def test_local_generator():
 
     post = MfdUserPostSource()
     with open("html/test_mfdUserPostSourcePage.html", 'r', encoding="utf8") as html_page:
-        post.update_cache(html_page.read())
+        post.update_cache('http://lite.mfd.ru/forum/poster/posts/?id=0', html_page.read())
 
-    page = await post.check_update()
+    page = await post.check_update(0)
     assert len(page.posts) == 4
     assert page.posts[0].title == ("ФА и немного ТА\n"
-                                   "[malishok](https://chatbase.com/r?api_key=dd11ff93-afcc-4253-ba2e-72fec6e46a35&platform=Telegram&url=http://mfd.ru/forum/poster/?id=71921)\n"
-                                   "[17.07.2018 13:48](https://chatbase.com/r?api_key=dd11ff93-afcc-4253-ba2e-72fec6e46a35&platform=Telegram&url=http://lite.mfd.ru/forum/post/?id=14765341)")
+                                   "[malishok](https://clck.ru/EZvFG)\n"
+                                   "[17.07.2018 13:48](https://clck.ru/EZvsy)")
     assert page.posts[0].md == res
     for x in page.posts:
         assert len(x.title) != 0

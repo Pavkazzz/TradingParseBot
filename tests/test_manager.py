@@ -3,6 +3,7 @@ import random
 import pytest
 
 from trading_bot.manager import Manager, SingleData
+from trading_bot.settings import alenka_url
 
 pytestmark = pytest.mark.asyncio
 
@@ -77,7 +78,7 @@ async def test_some_user():
 async def test_alenka_unsubscr():
     manager = Manager(clear_start=True)
     with open("html/test_alenkaResponse.json", 'r', encoding="utf8") as html:
-        await manager.config_sources("alenka_news", html.read())
+        await manager.config_sources("alenka_news", alenka_url, html.read())
 
     n = 10
     chats_id = [random.randint(i * n + 1, i * n + n) for i in range(n)]
@@ -95,12 +96,12 @@ async def test_alenka_unsubscr():
         assert post == []
 
     with open("html/test_alenkaResponseWithNewData.json", 'r', encoding="utf8") as html:
-        await manager.config_sources("alenka_news", html.read())
+        await manager.config_sources("alenka_news", alenka_url, html.read())
 
     res = ("ALЁNKA CAPITAL\n"
            "05.08.2018, 10:25\n"
            "\n"
-           "[Media Markt начал ликвидацию ассортимента перед уходом из России](https://alenka.capital/post/media_markt_nachal_likvidatsiyu_assortimenta_pered_uhodom_iz_rossii_39469/)")
+           "[Media Markt начал ликвидацию ассортимента перед уходом из России](https://clck.ru/EZvYx)")
 
     async for user, post in manager.check_new_all():
         if user % 2:
@@ -126,7 +127,7 @@ async def test_delete():
 async def test_alenka_editing():
     manager = Manager(clear_start=True)
     with open("html/test_alenkaResponse.json", 'r', encoding="utf8") as html:
-        await manager.config_sources("alenka_news", html.read())
+        await manager.config_sources("alenka_news", alenka_url, html.read())
 
     chats_id = random.randint(0, 100)
     manager.start(chats_id)
@@ -139,7 +140,7 @@ async def test_alenka_editing():
         assert post == []
 
         with open("html/test_alenkaResponseEditing.json", 'r', encoding="utf8") as html:
-            await manager.config_sources("alenka_news", html.read())
+            await manager.config_sources("alenka_news", alenka_url, html.read())
 
         async for user, posts in manager.check_new_all():
             for post, message_id in posts:

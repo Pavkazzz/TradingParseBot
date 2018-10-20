@@ -1,16 +1,12 @@
 # -*- coding: utf-8 -*-
-
-import pytest
-
+from trading_bot.settings import alenka_url
 from trading_bot.sources import AlenkaPost, Page
 
-pytestmark = pytest.mark.asyncio
 
-
-async def test_local_generator():
+async def test_alenka_post_local_generator():
     alenka = AlenkaPost()
     with open("html/test_alenkaResponse.json", 'r', encoding="utf8") as json:
-        alenka.update_cache(json.read())
+        alenka.update_cache(alenka_url, json.read())
     page: Page = await alenka.check_update()
     for post in page.posts:
         assert post.id > 0
@@ -19,12 +15,12 @@ async def test_local_generator():
     assert len(page.posts) == 4
     assert page.posts[0].md == ("04.08.2018, 12:23\n"
                                 "\n"
-                                "💡 [Стратегия](https://alenka.capital/category/strategiya_624/)\n"
+                                "💡 [Стратегия](https://clck.ru/EZvEd)\n"
                                 "\n"
-                                "[Как покупать \"сникерсы\"?](https://alenka.capital/post/kak_pokupat_snikersyi_39465/)")
+                                "[Как покупать \"сникерсы\"?](https://clck.ru/EZvEe)")
 
     assert page.posts[-1].md == ("03.08.2018, 11:37\n"
                                  "\n"
-                                 "💡 [Сникерсы](https://alenka.capital/category/snikersyi_857/)\n"
+                                 "💡 [Сникерсы](https://clck.ru/EZvEf)\n"
                                  "\n"
-                                 "[Tesla отчет за 2-й квартал 2018](https://alenka.capital/post/tesla_otchet_za_2_y_kvartal_2018_39423/)")
+                                 "[Tesla отчет за 2-й квартал 2018](https://clck.ru/EZvEk)")
