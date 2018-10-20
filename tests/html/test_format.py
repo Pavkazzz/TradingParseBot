@@ -1,5 +1,4 @@
 from tests.conftest import TestSource
-from trading_bot.sources import MfdSource
 
 
 def test_tomd():

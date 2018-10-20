@@ -22,17 +22,3 @@ def build_menu(buttons,
     if footer_buttons:
         menu.append(footer_buttons)
     return fast_json.dumps({'keyboard': menu})
-
-# @bot.default
-# def reply(chat: Chat, match):
-#     new_url = URL.build(
-#         scheme='https',
-#         host='chatbase.com',
-#         path='r',
-#         query={
-#             "api_key": botan_token,
-#             "url": chat.message["text"],
-#             "platform": "Telegram"
-#             }
-#     )
-#     chat.send_text(f"[{chat.message['text']}]({new_url})", parse_mode="Markdown")

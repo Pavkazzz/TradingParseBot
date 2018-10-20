@@ -1,14 +1,15 @@
 # -*- coding: utf-8 -*-
-import asyncio
-import logging
 import typing
 from dataclasses import dataclass, field
 from typing import Tuple, List, Dict
 
+import log
 from aiotg import Bot
 
 from trading_bot import sources
 from trading_bot.database import DataBase
+
+log = log.getLogger(__name__)
 
 
 @dataclass(unsafe_hash=True)
@@ -67,7 +68,7 @@ class Manager:
                                            " возникли проблемы с востановлением подписок. "
                                            "Приношу извинения за доставленные неудобства.")
                 except Exception:
-                    logging.exception('Error recreate user: %r', user)
+                    log.exception('Error recreate user: %r', user)
 
         self.db.save_user_data(self.users_subscription)
 
@@ -81,8 +82,7 @@ class Manager:
             del self.users_subscription[chat_id]
             del self.sended_msg[chat_id]
 
-    async def new_command(self, chat_id, command, data: SingleData = SingleData()) -> Tuple[
-        str, List[sources.SinglePost]]:
+    async def new_command(self, chat_id, command, data=SingleData()) -> Tuple[str, List[sources.SinglePost]]:
         result: str = "Команда не найдена"
         current_data = []
         try:
@@ -237,7 +237,7 @@ class Manager:
             await self.new_command(cid, Manager.ADD_MFD_THREAD, SingleData(tid, name))
             return name
         except Exception:
-            logging.exception('Exception while resolve mfd thread: %r', text)
+            log.exception('Exception while resolve mfd thread: %r', text)
             return None
 
     async def resolve_mfd_user_link(self, cid, text):
@@ -246,7 +246,7 @@ class Manager:
             await self.new_command(cid, Manager.ADD_MFD_USER, SingleData(tid, name))
             return name
         except Exception:
-            logging.exception('Exception while resolve user link: %r', text)
+            log.exception('Exception while resolve user link: %r', text)
             return None
 
     async def find_mfd_thread(self, cid, text):
@@ -257,7 +257,7 @@ class Manager:
             if tid is not None and len(title) == 1:
                 res, _ = await self.new_command(cid, Manager.ADD_MFD_THREAD, SingleData(tid, name))
         except Exception:
-            logging.exception('Exception while find thread: %r', text)
+            log.exception('Exception while find thread: %r', text)
         finally:
             return title, res
 
@@ -274,7 +274,7 @@ class Manager:
                 res, _ = await self.new_command(cid, Manager.ADD_MFD_USER, SingleData(users[0][0], users[0][1]))
 
         except Exception:
-            logging.exception('Exception while find user text: %r, rating %r', text, rating)
+            log.exception('Exception while find user text: %r, rating %r', text, rating)
         finally:
             return users, res
 

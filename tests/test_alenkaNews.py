@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import pytest
-
 from trading_bot.settings import alenka_url
 from trading_bot.sources import AlenkaNews, Page
 

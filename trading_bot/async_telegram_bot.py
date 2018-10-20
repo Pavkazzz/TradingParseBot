@@ -1,15 +1,27 @@
 import logging
 
+import configargparse
 import fast_json
+import requests_cache
 from aiomisc.log import basic_config
 from aiomisc.periodic import PeriodicCallback
 from aiomisc.utils import new_event_loop
 from aiotg import Bot, Chat, BotApiError
+from redis import Redis
+from yarl import URL
 
 from trading_bot.manager import Manager
 from trading_bot.settings import dev_token, chatbase_token, proxy_string
 from trading_bot.sources import SmartLab
 from trading_bot.telegram_helper import build_menu, keyboard_markup
+
+p = configargparse.ArgParser(
+    auto_env_var_prefix='APP'
+)
+p.add_argument('--redis-url', default='127.0.0.1', help='Url for redis database', type=URL)
+arguments = p.parse_args()
+
+requests_cache.install_cache('click_cache', backend='redis', connection=Redis(host=arguments.redis_url))
 
 basic_config(level=logging.INFO, buffered=False, log_format='color')
 
@@ -31,18 +43,18 @@ manager = Manager()
 @bot.command(r'/start')
 async def start(chat: Chat, match):
     manager.start(chat.message["from"]["id"])
-    key(chat, match)
+    await key(chat, match)
 
 
 @bot.command(r'/stop')
 async def stop(chat: Chat, match):
     manager.stop(chat.message["from"]["id"])
-    key(chat, match)
+    await key(chat, match)
 
 
 @bot.command(r'^About$')
 @bot.command(r'/about')
-async def about(chat: Chat, match):
+async def about(chat: Chat, _):
     await chat.send_text("Привет. Я бот для оповещения. Не обижайте меня, я буду верно вам служить. \n"
                          "Умею подписываться на пользователей и темы на форуме mfd.ru и оповещать о новых сообщениях\n"
                          "Могу сообщить, когда появляется новая тема или новость на Алёнке. \n"
@@ -52,14 +64,14 @@ async def about(chat: Chat, match):
 # Начальная настройка клавиатуры
 @bot.command(r'^Отмена$')
 @bot.command(r'/key')
-async def key(chat: Chat, match):
+async def key(chat: Chat, _):
     options = ["Подписки", "About"]
     reply_markup = build_menu(options, n_cols=2, header_buttons=["Смартлаб топ 24 часа"])
     await chat.send_text("Hey!", reply_markup=reply_markup)
 
 
 @bot.command(r'^Смартлаб топ 24 часа$')
-async def smartlab(chat: Chat, match):
+async def smartlab(chat: Chat, _):
     sl = SmartLab()
     posts = await sl.check_update()
     await chat.send_text(
@@ -70,7 +82,7 @@ async def smartlab(chat: Chat, match):
 
 
 @bot.command(r'^Подписки$')
-async def settings(chat: Chat, match=None):
+async def settings(chat: Chat, _):
     global state
     state = IDLE
 
@@ -84,7 +96,7 @@ async def settings(chat: Chat, match=None):
 
 
 @bot.command(r'^Текущие подписки$')
-async def print_settings(chat: Chat, match):
+async def print_settings(chat: Chat, _):
     chat_id = chat.message["from"]["id"]
     current_settings = manager.settings(chat_id)
     msg = ""
@@ -134,13 +146,13 @@ async def unsubscribe_alenka(chat: Chat, match):
 
 
 @bot.command(r'^MFD.ru тема')
-async def mfd_forum(chat: Chat, match):
+async def mfd_forum(chat: Chat, _):
     options = ["Добавить mfd тему", "Удалить mfd тему"]
     await chat.send_text("Выберете действие: ", reply_markup=keyboard_markup(options))
 
 
 @bot.command(r'^Добавить mfd тему$')
-async def mfd_forum_add(chat: Chat, match):
+async def mfd_forum_add(chat: Chat, _):
     await chat.send_text("Введите имя темы или ссылку на тему или любое сообщение этой темы ",
                          reply_markup=keyboard_markup())
     global state
@@ -148,7 +160,7 @@ async def mfd_forum_add(chat: Chat, match):
 
 
 @bot.command(r'^Удалить mfd тему$')
-async def mfd_forum_remove(chat: Chat, match):
+async def mfd_forum_remove(chat: Chat, _):
     chat_id = chat.message["from"]["id"]
     await chat.send_text("Выберете тему для удаления: ",
                          reply_markup=keyboard_markup(
@@ -159,13 +171,13 @@ async def mfd_forum_remove(chat: Chat, match):
 
 
 @bot.command(r'^MFD.ru пользователи')
-async def mfd_user(chat: Chat, match):
+async def mfd_user(chat: Chat, _):
     options = ["Добавить mfd пользователя", "Удалить mfd пользователя"]
     await chat.send_text("Выберете действие: ", reply_markup=keyboard_markup(options))
 
 
 @bot.command(r'^Добавить mfd пользователя$')
-async def mfd_user_add(chat: Chat, match):
+async def mfd_user_add(chat: Chat, _):
     await chat.send_text("Введите имя темы или ссылку на пользователя.\nЕсли передумали, введите \"Отмена\" ",
                          reply_markup=keyboard_markup())
     global state
@@ -173,7 +185,7 @@ async def mfd_user_add(chat: Chat, match):
 
 
 @bot.command(r'^Удалить mfd пользователя$')
-async def mfd_user_remove(chat: Chat, match):
+async def mfd_user_remove(chat: Chat, _):
     chat_id = chat.message["from"]["id"]
     await chat.send_text("Выберете пользователя для удаления: ",
                          reply_markup=keyboard_markup(
@@ -184,7 +196,7 @@ async def mfd_user_remove(chat: Chat, match):
 
 
 @bot.default
-async def received_information(chat: Chat, match):
+async def received_information(chat: Chat, _):
     if state == IDLE:
         return
     if state == MFD_THREAD_ADD:

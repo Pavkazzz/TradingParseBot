@@ -13,9 +13,7 @@ from urllib.parse import quote
 import fast_json
 import html2text
 import requests
-import requests_cache
 from aiohttp import ClientSession, ClientResponse, ClientResponseError
-from redis import Redis
 from selectolax.parser import HTMLParser
 from yarl import URL
 
@@ -38,9 +36,6 @@ class SinglePost:
 @dataclass
 class Page:
     posts: typing.List[SinglePost] = field(default_factory=list)
-
-
-requests_cache.install_cache('click_cache', backend='redis', connection=Redis(host='127.0.0.1'))
 
 
 def get_chatbase_url(url):
@@ -70,7 +65,7 @@ class MarkdownFormatter:
     def __init__(self, base_url):
         self.base_url = base_url
 
-    def make_request(self, match: re.Match):
+    def make_request(self, match):
         url = match.group(0)[1:-1]
         return get_click_link_with_brackets(url)
 
