@@ -11,3 +11,4 @@ selectolax~=0.1
 pytest
 pytest-aiohttp
 ConfigArgParse
+raven-aiohttp

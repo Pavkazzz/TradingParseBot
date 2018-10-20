@@ -8,12 +8,13 @@ from aiomisc.periodic import PeriodicCallback
 from aiomisc.utils import new_event_loop
 from aiotg import Bot, Chat, BotApiError
 from redis import Redis
-from yarl import URL
 
 from trading_bot.manager import Manager
 from trading_bot.settings import dev_token, chatbase_token, proxy_string
 from trading_bot.sources import SmartLab
 from trading_bot.telegram_helper import build_menu, keyboard_markup
+
+log = logging.getLogger(__name__)
 
 p = configargparse.ArgParser(
     auto_env_var_prefix='APP'
@@ -21,11 +22,13 @@ p = configargparse.ArgParser(
 p.add_argument('--redis-url', default='127.0.0.1', help='Url for redis database', type=str)
 arguments = p.parse_args()
 
+
+
 redis = Redis(host=arguments.redis_url)
 if redis.ping():
-    print('Success connect to redis')
+    log.info('Success connect to redis')
 else:
-    print('Cannot connect to redis!')
+    log.info('Cannot connect to redis!')
 
 requests_cache.install_cache('click_cache', backend='redis', connection=redis)
 
