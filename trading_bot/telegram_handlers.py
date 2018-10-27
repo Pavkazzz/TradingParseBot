@@ -34,7 +34,7 @@ async def stop(chat: Chat, match):
 
 @bot.command(r'^About$')
 @bot.command(r'/about')
-async def about(chat: Chat, _):
+async def about(chat: Chat, _=None):
     await chat.send_text("Привет. Я бот для оповещения. Не обижайте меня, я буду верно вам служить. \n"
                          "Умею подписываться на пользователей и темы на форуме mfd.ru и оповещать о новых сообщениях\n"
                          "Могу сообщить, когда появляется новая тема или новость на Алёнке. \n"
@@ -44,14 +44,14 @@ async def about(chat: Chat, _):
 # Начальная настройка клавиатуры
 @bot.command(r'^Отмена$')
 @bot.command(r'/key')
-async def key(chat: Chat, _):
+async def key(chat: Chat, _=None):
     options = ["Подписки", "About"]
     reply_markup = build_menu(options, n_cols=2, header_buttons=["Смартлаб топ 24 часа"])
     await chat.send_text("Hey!", reply_markup=reply_markup)
 
 
 @bot.command(r'^Смартлаб топ 24 часа$')
-async def smartlab(chat: Chat, _):
+async def smartlab(chat: Chat, _=None):
     sl = SmartLab()
     posts = await sl.check_update()
     await chat.send_text(
@@ -62,7 +62,7 @@ async def smartlab(chat: Chat, _):
 
 
 @bot.command(r'^Подписки$')
-async def settings(chat: Chat, _):
+async def settings(chat: Chat, _=None):
     global state
     state = IDLE
 
@@ -76,7 +76,7 @@ async def settings(chat: Chat, _):
 
 
 @bot.command(r'^Текущие подписки$')
-async def print_settings(chat: Chat, _):
+async def print_settings(chat: Chat, _=None):
     chat_id = chat.message["from"]["id"]
     current_settings = manager.settings(chat_id)
     msg = ""
@@ -126,13 +126,13 @@ async def unsubscribe_alenka(chat: Chat, match):
 
 
 @bot.command(r'^MFD.ru тема')
-async def mfd_forum(chat: Chat, _):
+async def mfd_forum(chat: Chat, _=None):
     options = ["Добавить mfd тему", "Удалить mfd тему"]
     await chat.send_text("Выберете действие: ", reply_markup=keyboard_markup(options))
 
 
 @bot.command(r'^Добавить mfd тему$')
-async def mfd_forum_add(chat: Chat, _):
+async def mfd_forum_add(chat: Chat, _=None):
     await chat.send_text("Введите имя темы или ссылку на тему или любое сообщение этой темы ",
                          reply_markup=keyboard_markup())
     global state
@@ -140,7 +140,7 @@ async def mfd_forum_add(chat: Chat, _):
 
 
 @bot.command(r'^Удалить mfd тему$')
-async def mfd_forum_remove(chat: Chat, _):
+async def mfd_forum_remove(chat: Chat, _=None):
     chat_id = chat.message["from"]["id"]
     await chat.send_text("Выберете тему для удаления: ",
                          reply_markup=keyboard_markup(
@@ -151,13 +151,13 @@ async def mfd_forum_remove(chat: Chat, _):
 
 
 @bot.command(r'^MFD.ru пользователи')
-async def mfd_user(chat: Chat, _):
+async def mfd_user(chat: Chat, _=None):
     options = ["Добавить mfd пользователя", "Удалить mfd пользователя"]
     await chat.send_text("Выберете действие: ", reply_markup=keyboard_markup(options))
 
 
 @bot.command(r'^Добавить mfd пользователя$')
-async def mfd_user_add(chat: Chat, _):
+async def mfd_user_add(chat: Chat, _=None):
     await chat.send_text("Введите имя темы или ссылку на пользователя.\nЕсли передумали, введите \"Отмена\" ",
                          reply_markup=keyboard_markup())
     global state
@@ -165,7 +165,7 @@ async def mfd_user_add(chat: Chat, _):
 
 
 @bot.command(r'^Удалить mfd пользователя$')
-async def mfd_user_remove(chat: Chat, _):
+async def mfd_user_remove(chat: Chat, _=None):
     chat_id = chat.message["from"]["id"]
     await chat.send_text("Выберете пользователя для удаления: ",
                          reply_markup=keyboard_markup(
@@ -176,7 +176,7 @@ async def mfd_user_remove(chat: Chat, _):
 
 
 @bot.default
-async def received_information(chat: Chat, _):
+async def received_information(chat: Chat, _=None):
     if state == IDLE:
         return
     if state == MFD_THREAD_ADD:
