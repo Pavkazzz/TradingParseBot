@@ -1,5 +1,9 @@
 pavkazzz.ru {
-    proxy / localhost:80 {
+    proxy / bot-server:80 {
         transparent
     }
+
+    tls pavel-mosein@yandex.ru
+    log stdout
+    errors stderr
 }
