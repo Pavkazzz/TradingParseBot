@@ -22,6 +22,7 @@ services:
     networks:
       - server-net
     depends_on:
+      - proxy
       - redis
 
   redis:
