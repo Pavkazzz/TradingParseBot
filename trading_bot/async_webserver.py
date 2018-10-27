@@ -13,7 +13,7 @@ from trading_bot.telegram_handlers import manager, bot
 log = logging.getLogger(__name__)
 
 p = configargparse.ArgParser(
-    auto_env_var_prefix='APP'
+    auto_env_var_prefix='APP_'
 )
 p.add_argument('--redis-url', default='127.0.0.1', help='Url for redis database', type=str)
 arguments = p.parse_args()

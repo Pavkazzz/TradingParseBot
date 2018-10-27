@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
+import logging
 import typing
 from dataclasses import dataclass, field
 from typing import Tuple, List, Dict
 
-import logging
 from aiotg import Bot
 
 from trading_bot import sources
@@ -44,7 +44,7 @@ class Manager:
         self.current_data = {}
 
         self.db: DataBase = DataBase(clear_start)
-        self.users_subscription: Dict[Data] = self.db.load_user_data()
+        self.users_subscription: Dict[int, Data] = self.db.load_user_data()
         self.sended_msg = self.db.load_user_messages()
 
         for user_id in self.users_subscription:
@@ -58,6 +58,10 @@ class Manager:
             "mfd_user_comment": sources.MfdUserCommentSource(),
             "mfd_thread": sources.MfdForumThreadSource()
         }
+
+    async def send_to_all_users(self, bot: Bot, text: str):
+        for user in self.users_subscription.keys():
+            await bot.send_message(user, text)
 
     def recreate_users(self, bot: Bot):
         for user in self.db.user_list():

@@ -197,7 +197,7 @@ class MfdForumThreadSource(MfdSource):
 
     async def find_thread(self, param):
         url = f"http://lite.mfd.ru/forum/search/?query=1+2+3+4+5+6+7+8+9+0+%D0%B0+%D0%B1+%D0%B2+%D0%B3+%D0%B4&method" \
-            f"=Or&userQuery=&threadQuery={quote(param)}&from=&till="
+              f"=Or&userQuery=&threadQuery={quote(param)}&from=&till="
         bs = HTMLParser(await self.session(custom_url=url))
         title = [post.text() for post in bs.css("h3.mfd-post-thread-subject > a")]
         title = list(set(title))

@@ -3,7 +3,7 @@ import logging
 from aiotg import Chat, Bot
 
 from trading_bot.manager import Manager
-from trading_bot.settings import dev_hooks_token, chatbase_token, proxy_string
+from trading_bot.settings import dev_hooks_token, chatbase_token
 from trading_bot.sources import SmartLab
 from trading_bot.telegram_helper import keyboard_markup, build_menu
 
@@ -14,7 +14,7 @@ bot = Bot(
     api_token=dev_hooks_token,
     chatbase_token=chatbase_token,
     name='TradingNewsBot',
-    proxy=proxy_string
+    # proxy=proxy_string
 )
 
 manager = Manager()
