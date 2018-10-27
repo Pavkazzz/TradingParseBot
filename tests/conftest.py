@@ -1,5 +1,6 @@
 import asyncio
-from asyncio import WindowsProactorEventLoopPolicy
+import os
+# from asyncio import WindowsProactorEventLoopPolicy
 
 import pytest
 import requests_cache
@@ -17,7 +18,7 @@ class TestSource(AbstractSource):
 
 @pytest.fixture
 async def event_loop():
-    asyncio.set_event_loop_policy(WindowsProactorEventLoopPolicy())
+    # asyncio.set_event_loop_policy(WindowsProactorEventLoopPolicy())
     asyncio.get_event_loop().close()
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)

@@ -1,0 +1,5 @@
+pavkazzz.ru {
+    proxy / localhost:80 {
+        transparent
+    }
+}

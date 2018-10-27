@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from asyncio import AbstractEventLoop
 
 from selectolax.parser import HTMLParser
 
@@ -192,7 +191,7 @@ Sehr gut!!!
     assert text == res
 
 
-async def test_image(event_loop: AbstractEventLoop):
+async def test_image():
     html = """<div><blockquote class="mfd-quote-15241410"><div class="mfd-quote-info"><a href="/forum/poster/?id=71373" rel="nofollow">Max__</a> @ <a href="/forum/post/?id=15241410" rel="nofollow">14.10.2018 09:24</a></div><div class="mfd-quote-text">Утро доброе народ, НЕ СПАМ! кто хочет купить книгу на Литрес но пока этого не сделал, цена или еще по каким другим причинам, вот вам промокод topadvert50autmn 50% скидка на одну покупку, Хорошая возможность приобрести Герасименко - "Финансовая отчетность для руководителей и начинающих специалистов." Всех благ, друзья, развивайтесь! <br>  <br> <a href="http://funkyimg.com/view/2M5Rs" rel="nofollow" target="_blank"><img src="http://funkyimg.com/p/2M5Rs.png" alt="Показать в полный размер"></a></div></blockquote><div class="mfd-quote-text">Спасибо, но давно ещё скачал в ПДФ бесплатно =) Кому надо - пишите, скину.</div></div><button class="mfd-button-attention" data-id="15241463" name="reportAbuse" title="Пожаловаться на это сообщение" type="button"></button>"""
     res = """| [Max__](https://clck.ru/EZuxS) @ [14.10.2018 09:24](https://clck.ru/EZuxT)
 |  
@@ -218,9 +217,37 @@ async def test_image(event_loop: AbstractEventLoop):
     assert md == res
 
 
+async def test_multiple_image():
+    html = """<div class="mfd-post-top"><div class="mfd-post-top-0" id="15276180"><a class="mfd-poster-link" href="/forum/poster/?id=87947" rel="nofollow" title="ID: 87947">Параноик</a></div><div class="mfd-post-top-1"><a class="mfd-post-link" href="http://forum.mfd.ru/forum/post/?id=15276180" rel="nofollow" title="Ссылка на это сообщение">21.10.2018 16:14</a></div><div class="mfd-post-top-4"><button class="mfd-button-quote" style="visibility: hidden;" type="button">&nbsp;</button></div><div class="mfd-post-top-2"><span id="mfdPostRating15276180">&nbsp;</span></div><div class="mfd-post-top-3 mfd-post-top-3-disabled"><form><label class="mfd-post-rate--1"><input data-id="15276180" data-status="1" data-vote="-1" name="ratePost" type="radio">−1</label><label class="mfd-post-rate-0" style="display: none;"><input data-id="15276180" data-status="1" data-vote="0" name="ratePost" type="radio">0</label><label class="mfd-post-rate-1"><input data-id="15276180" data-status="1" data-vote="1" name="ratePost" type="radio">+1</label></form></div><div class="mfd-clear"></div></div><table><tbody><tr><td class="mfd-post-body-left-container"><div class="mfd-post-body-left"><div class="mfd-post-avatar"><a href="/forum/poster/?id=87947" rel="nofollow" title="ID: 87947"><img alt="" src="http://forum.mfd.ru/forum/user/87947/avatar.jpg"></a></div><div class="mfdPosterInfoShort"><div class="mfd-poster-info-rating mfd-icon-profile-star"><a href="/forum/poster/rating/?id=87947" rel="nofollow" title="Детализация рейтинга (1207)">1207</a></div></div></div></td><td class="mfd-post-body-right-container"><div class="mfd-post-body-right"><div><div class="mfd-quote-text"><a href="http://funkyimg.com/view/2Mjij" rel="nofollow" target="_blank"><img src="http://funkyimg.com/p/2Mjij.png" alt="Показать в полный размер"></a> <br>  <br> <a href="http://funkyimg.com/view/2Mjob" rel="nofollow" target="_blank"><img src="http://funkyimg.com/p/2Mjob.png" alt="Показать в полный размер"></a> <br>  <br> <a href="http://funkyimg.com/view/2Mjp8" rel="nofollow" target="_blank"><img src="http://funkyimg.com/p/2Mjp8.png" alt="Показать в полный размер"></a> <br>  <br> <span class="mfd-emoticon mfd-emoticon-smile"></span></div></div><button class="mfd-button-attention" data-id="15276180" name="reportAbuse" title="Пожаловаться на это сообщение" type="button"></button></div></td></tr></tbody></table>"""
+    res = ("[Параноик](https://clck.ru/EaGsv)\n"
+           "\n"
+           "[21.10.2018 16:14](https://clck.ru/EaHPW)\n"
+           "\n"
+           "\n"
+           "\n"
+           "\n"
+           "\n"
+           "−10+1\n"
+           "\n"
+           "[](https://clck.ru/EaGsv)\n"
+           "\n"
+           "[1207](https://clck.ru/EaHPZ)\n"
+           "\n"
+           "|\n"
+           "\n"
+           "[Показать в полный размер](https://clck.ru/EaHS9)   \n"
+           "  \n"
+           "[Показать в полный размер](https://clck.ru/EaHSA)   \n"
+           "  \n"
+           "[Показать в полный размер](https://clck.ru/EaHSB)   \n"
+           "  \n"
+           "🙂  \n"
+           "  \n"
+           "---|---")
+    assert res == TestSource("http://mfd.ru").pretty_text(html)
+
+
 async def test_russian_links():
     url = 'http://peretok.ru/articles/strategy/19079/ВИЭ'
-    res = '(https://clck.ru/--?url=https%3A//chatbase.com/r%3Fapi_key%3Ddd11ff93-afcc-4253-ba2e-72fec6e46a35' \
-          '%26platform%3DTelegram%26url%3Dhttp%253A//peretok.ru/articles/strategy/19079/)'
-
-    print(get_click_link_with_brackets(url))
+    res = '(https://clck.ru/EYqGb)'
+    assert url == get_click_link_with_brackets(url)

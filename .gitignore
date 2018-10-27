@@ -7,6 +7,7 @@ lib/*
 share/*
 lib64
 venv/
+env/
 man/*
 src/*
 **/data/*
