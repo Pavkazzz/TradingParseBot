@@ -15,7 +15,7 @@ class TelegramWebhook(AIOHTTPService):
     ssl_cert = None
 
     async def create_application(self):
-        print(await self.bot.api_call('getWebhookInfo'))
+        log.info(await self.bot.api_call('getWebhookInfo'))
         await self.bot.set_webhook(
             webhook_url=f'https://pavkazzz.ru/webhook/{dev_hooks_token}'
         )

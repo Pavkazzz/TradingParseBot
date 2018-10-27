@@ -1,16 +1,31 @@
 import logging
 
+import configargparse
+import requests_cache
 from aiomisc.entrypoint import entrypoint
 from aiomisc.utils import bind_socket
-from aiotg import Bot
+from redis import Redis
 
 from trading_bot.manager import Manager
 from trading_bot.services.telegram_app import TelegramWebhook
-from trading_bot.settings import dev_hooks_token, chatbase_token, proxy_string
+from trading_bot.services.updater_service import UpdaterService
+from trading_bot.telegram_handlers import MessageHandler
 
 log = logging.getLogger(__name__)
 
-SSL_CERT = '/etc/nginx/certs/certificate.pem'
+p = configargparse.ArgParser(
+    auto_env_var_prefix='APP'
+)
+p.add_argument('--redis-url', default='127.0.0.1', help='Url for redis database', type=str)
+arguments = p.parse_args()
+
+redis = Redis(host=arguments.redis_url)
+if redis.ping():
+    log.info('Success connect to redis')
+else:
+    log.info('Cannot connect to redis!')
+
+requests_cache.install_cache('click_cache', backend='redis', connection=redis)
 
 socket = bind_socket(
     address='0.0.0.0',
@@ -18,28 +33,20 @@ socket = bind_socket(
     proto_name='http'
 )
 
-bot = Bot(
-    api_token=dev_hooks_token,
-    chatbase_token=chatbase_token,
-    name='TradingNewsBot',
-    proxy=proxy_string
-)
-
 manager = Manager()
-
+mess = MessageHandler(manager)
 
 services = [
     TelegramWebhook(
         sock=socket,
-        bot=bot,
+        bot=mess.bot,
         manager=manager,
-        ssl_cert=SSL_CERT
     ),
-    # UpdaterService(bot=bot, manager=manager)
+    UpdaterService(bot=mess.bot, manager=manager)
 ]
 
 
-@bot.command(r"/echo (.+)")
+@mess.bot.command(r"/echo (.+)")
 def echo(chat, match):
     log.info('Incoming message %r', chat)
     return chat.reply(match.group(1))

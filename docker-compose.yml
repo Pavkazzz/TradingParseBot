@@ -1,38 +1,40 @@
-version: '3'
+version: '2'
 services:
   proxy:
     image: zzrot/alpine-caddy
     ports:
-      - 443:80
+      - 80:80
+      - 443:443
     volumes:
       - ./Caddyfile:/etc/Caddyfile
       - ./.caddy:/root/.caddy
     networks:
-      - redis-net
-  app:
+      - server-net
+
+  bot-server:
     image: pavkazzz/telegram_bot:hooks-v0.2
-    command: ["python", "./trading_bot/async_webserver.py", "--redis-url", "redis"]
+    expose:
+      - 80
     environment:
       - RHOST=redis
-    networks:
-      - redis-net
-    depends_on:
-      - redis
     volumes:
       - ./data:/app/data
-      - ./.caddy:/app/.caddy
+    networks:
+      - server-net
+    depends_on:
+      - redis
 
   redis:
     image: redis:5-alpine
     command: ["redis-server", "--appendonly", "yes"]
     hostname: redis
     networks:
-      - redis-net
+      - server-net
     volumes:
       - redis-data:/data
 
 networks:
-  redis-net:
+  server-net:
 
 volumes:
   redis-data:
