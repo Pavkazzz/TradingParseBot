@@ -12,7 +12,7 @@ services:
       - server-net
 
   bot-server:
-    image: pavkazzz/telegram_bot:hooks-v0.3.1
+    image: pavkazzz/telegram_bot:hooks-v0.3.2
     expose:
       - 80
     environment:
