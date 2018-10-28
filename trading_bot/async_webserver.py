@@ -34,7 +34,7 @@ services = [
         bot=bot,
         manager=manager,
     ),
-    UpdaterService(bot=bot, manager=manager)
+    # UpdaterService(bot=bot, manager=manager)
 ]
 
 with entrypoint(*services) as loop:

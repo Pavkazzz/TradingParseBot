@@ -4,6 +4,7 @@ import typing
 from dataclasses import dataclass, field
 from typing import Tuple, List, Dict
 
+import fast_json
 from aiotg import Bot
 
 from trading_bot import sources
@@ -30,6 +31,15 @@ class Data:
 
     def all_tasks(self):
         return self.mfd_thread + self.mfd_user
+
+
+@fast_json.convert.register(Data)
+def serialize(value: Data):
+    return {
+        'mfd_user': [val.name for val in value.mfd_user],
+        'mfd_thread': [val.name for val in value.mfd_thread],
+        'alenka': True
+    }
 
 
 class Manager:
