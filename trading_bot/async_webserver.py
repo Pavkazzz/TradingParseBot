@@ -23,8 +23,8 @@ redis = Redis(host=arguments.redis_url)
 requests_cache.install_cache('click_cache', backend='redis', connection=redis)
 
 socket = bind_socket(
-    address='0.0.0.0',
-    port=80,
+    address='127.0.0.1',
+    port=8080,
     proto_name='http'
 )
 
@@ -34,7 +34,7 @@ services = [
         bot=bot,
         manager=manager,
     ),
-    # UpdaterService(bot=bot, manager=manager)
+    UpdaterService(bot=bot, manager=manager)
 ]
 
 with entrypoint(*services) as loop:

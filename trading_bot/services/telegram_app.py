@@ -22,10 +22,10 @@ class TelegramWebhook(AIOHTTPService):
         await self.bot.set_webhook(
             webhook_url=f'https://pavkazzz.ru/webhook/{dev_hooks_token}'
         )
-        app: Application = Application()  # self.bot.create_webhook_app(f'/webhook/{dev_hooks_token}')
+        app: Application = self.bot.create_webhook_app(f'/webhook/{dev_hooks_token}')
         app.router.add_route('GET', '/api/v1/ping', PingHandler)
-        # app.router.add_route('GET', '/api/v1/users', UserHandler)
-        # app.router.add_route('POST', '/api/v1/send', SendHandler)
+        app.router.add_route('GET', '/api/v1/users', UserHandler)
+        app.router.add_route('POST', '/api/v1/send', SendHandler)
 
         app['manager'] = self.manager
         app['bot'] = self.bot
