@@ -23,8 +23,8 @@ redis = Redis(host=arguments.redis_url)
 requests_cache.install_cache('click_cache', backend='redis', connection=redis)
 
 socket = bind_socket(
-    address='127.0.0.1',
-    port=8080,
+    address='0.0.0.0',
+    port=80,
     proto_name='http'
 )
 
