@@ -227,8 +227,6 @@ class Manager:
 
         for data in data_list.mfd_user:
             await self.update_mfd_user_post(data.id)
-
-        for data in data_list.mfd_thread:
             await self.update_mfd_user_comment(data.id)
 
         # tasks = [self.update_mfd_thread(data) for data in data_list.mfd_thread]
