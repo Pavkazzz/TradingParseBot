@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import asyncio
 import logging
 import typing
 from dataclasses import dataclass, field
@@ -177,10 +178,14 @@ class Manager:
             await self.update_mfd_user_post(user.id)
 
         res = []
-        res += self.db.update(f"mfd_user_comment {user.id} {chat_id}",
-                              self.current_data[f"mfd_user_comment {user.id}"], chat_id)
-        res += self.db.update(f"mfd_user_post {user.id} {chat_id}",
-                              self.current_data[f"mfd_user_post {user.id}"], chat_id)
+        res += self.db.update(
+            f"mfd_user_comment {user.id} {chat_id}",
+            self.current_data[f"mfd_user_comment {user.id}"], chat_id
+        )
+        res += self.db.update(
+            f"mfd_user_post {user.id} {chat_id}",
+            self.current_data[f"mfd_user_post {user.id}"], chat_id
+        )
         return res
 
     async def check_mfd_thread(self, thread, chat_id):
@@ -222,17 +227,10 @@ class Manager:
                 data_list.mfd_user.append(mfd_user)
         data_list.remove_duplicate()
 
-        for data in data_list.mfd_thread:
-            await self.update_mfd_thread(data.id)
-
-        for data in data_list.mfd_user:
-            await self.update_mfd_user_post(data.id)
-            await self.update_mfd_user_comment(data.id)
-
-        # tasks = [self.update_mfd_thread(data) for data in data_list.mfd_thread]
-        # tasks += [self.update_mfd_user_post(data) for data in data_list.mfd_user]
-        # tasks += [self.update_mfd_user_comment(data) for data in data_list.mfd_thread]
-        # await asyncio.gather(*tasks)
+        tasks = [self.update_mfd_thread(data.id) for data in data_list.mfd_thread]
+        tasks += [self.update_mfd_user_post(data.id) for data in data_list.mfd_user]
+        tasks += [self.update_mfd_user_comment(data.id) for data in data_list.mfd_thread]
+        await asyncio.gather(*tasks)
 
     async def update_mfd_user_comment(self, data_id):
         self.current_data[f"mfd_user_comment {data_id}"] = await self.sources["mfd_user_comment"].check_update(data_id)

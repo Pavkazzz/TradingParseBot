@@ -103,6 +103,7 @@ class AbstractSource(metaclass=ABCMeta):
             log.info('Not time for request url: %r', url)
             return self._last_request[url]
 
+        log.info('Make request %r', url)
         try:
             async with ClientSession(raise_for_status=True) as session:
                 async with session.get(url) as r:  # type: ClientResponse

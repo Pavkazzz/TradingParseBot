@@ -4,10 +4,12 @@ import configargparse
 import requests_cache
 from aiomisc.entrypoint import entrypoint
 from aiomisc.utils import bind_socket
+from aiomisc.service.raven import RavenSender
 from redis import Redis
 
 from trading_bot.services.telegram_app import TelegramWebhook
 from trading_bot.services.updater_service import UpdaterService
+from trading_bot.settings import sentry_key
 from trading_bot.telegram_handlers import manager, bot
 
 log = logging.getLogger(__name__)
@@ -34,7 +36,8 @@ services = [
         bot=bot,
         manager=manager,
     ),
-    UpdaterService(bot=bot, manager=manager)
+    UpdaterService(bot=bot, manager=manager),
+    RavenSender(sentry_dsn=sentry_key)
 ]
 
 with entrypoint(*services) as loop:

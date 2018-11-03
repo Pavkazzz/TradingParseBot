@@ -250,4 +250,4 @@ async def test_multiple_image():
 async def test_russian_links():
     url = 'http://peretok.ru/articles/strategy/19079/ВИЭ'
     res = '(https://clck.ru/EYqGb)'
-    assert url == get_click_link_with_brackets(url)
+    assert res == get_click_link_with_brackets(url)
