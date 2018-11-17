@@ -5,7 +5,6 @@ from aiohttp.web_app import Application
 from aiomisc.service.aiohttp import AIOHTTPService
 from aiotg import Bot
 
-from trading_bot.handlers.alenka import AlenkaHandler, AlenkaUserHandler
 from trading_bot.handlers.ping import PingHandler
 from trading_bot.handlers.send import SendHandler
 from trading_bot.handlers.users import UserHandler

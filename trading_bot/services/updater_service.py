@@ -3,7 +3,6 @@ import logging
 from aiomisc.periodic import PeriodicCallback
 from aiomisc.service import Service
 
-from trading_bot.telegram_handlers import bot, manager
 from trading_bot.telegram_sender import send_message
 
 log = logging.getLogger(__name__)

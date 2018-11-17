@@ -8,8 +8,8 @@ from typing import Tuple, List, Dict
 import fast_json
 from aiotg import Bot
 
-from trading_bot.sources import sources
 from trading_bot.database import DataBase
+from trading_bot.sources import sources
 from trading_bot.telegram_sender import send_message, remove_message
 
 log = logging.getLogger(__name__)
