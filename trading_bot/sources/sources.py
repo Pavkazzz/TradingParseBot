@@ -3,16 +3,16 @@ import logging
 import re
 import typing
 from abc import ABCMeta, abstractmethod
+from asyncio import gather
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from functools import partial
+from functools import partial, reduce
 from itertools import zip_longest
 from typing import Tuple
 from urllib.parse import quote
 
 import fast_json
 import html2text
-import requests
 from aiohttp import ClientSession, ClientResponse, ClientResponseError
 from selectolax.parser import HTMLParser
 from yarl import URL
@@ -51,29 +51,40 @@ def get_chatbase_url(url):
     ))
 
 
-def get_click_link_with_brackets(url):
+async def get_click_link(url) -> typing.Tuple[str, str]:
+    if '@' in url:
+        return url, url
     try:
         req_url = f'https://clck.ru/--?url={quote(get_chatbase_url(url), encoding="ascii")}'
     except UnicodeEncodeError:
         log.exception('Failed to encode url %r', url)
         req_url = url
-    return f"({requests.get(req_url).text})"
+
+    async with ClientSession(raise_for_status=True) as session:
+        async with session.get(req_url) as r:  # type: ClientResponse
+            res = await r.text()
+    return url, res
 
 
 class MarkdownFormatter:
 
     def __init__(self, base_url):
         self.base_url = base_url
+        self.matcher = {}
+        self.re = re.compile(r"(\(https?://\S+\))")
 
-    def make_request(self, match):
-        url = match.group(0)[1:-1]
-        return get_click_link_with_brackets(url)
+    def collect_matches(self, match: typing.Match[str]):
+        self.matcher[match.group(0)[1:-1]] = ""
 
-    def convert_links(self, markdown):
+    async def convert_links(self, markdown: str) -> str:
         # noinspection PyTypeChecker
-        return re.sub(r"(\(https?://\S+\))", partial(self.make_request), markdown)
+        self.matcher = {}
+        self.re.sub(partial(self.collect_matches), markdown)
+        tasks = [get_click_link(url) for url in self.matcher.keys()]
+        res = await gather(*tasks)
+        return reduce(lambda md, b: md.replace(f'({b[0]})', f'({b[1]})'), res, markdown)
 
-    def parse_markdown(self, html, width=34) -> str:
+    async def parse_markdown(self, html, width=34) -> str:
         h = html2text.HTML2Text(baseurl=self.base_url, bodywidth=width)
         # Небольшие изощрения с li
         html_to_parse = str(html).replace('<li', '<div').replace("</li>", "</div>")
@@ -81,7 +92,7 @@ class MarkdownFormatter:
             html_to_parse = html_to_parse.replace('[', '{').replace(']', '}')
 
         html_to_parse = utils.transform_emoji(html_to_parse)
-        return self.convert_links(h.handle(html_to_parse).strip())
+        return await self.convert_links(h.handle(html_to_parse).strip())
 
 
 class AbstractSource(metaclass=ABCMeta):
@@ -119,8 +130,8 @@ class AbstractSource(metaclass=ABCMeta):
     def check_update(self, *args) -> Page:
         pass
 
-    def pretty_text(self, html):
-        return self._formatter.parse_markdown(html)
+    async def pretty_text(self, html):
+        return await self._formatter.parse_markdown(html)
 
 
 class MfdSource(AbstractSource):
@@ -131,10 +142,10 @@ class MfdSource(AbstractSource):
     async def check_update(self, data) -> Page:
         html = await self.session(id=data)
         parser = HTMLParser(html)
-        thread = self.thread_selector(parser)
-        user = [self.pretty_text(p.html) for p in parser.css("div.mfd-post-top-0 > a")]
-        link = [self.pretty_text(p.html) for p in parser.css("div.mfd-post-top-1")]
-        posts = [self.pretty_text(p.html) for p in parser.css("div.mfd-post-body-right")]
+        thread = await self.thread_selector(parser)
+        user = [await self.pretty_text(p.html) for p in parser.css("div.mfd-post-top-0 > a")]
+        link = [await self.pretty_text(p.html) for p in parser.css("div.mfd-post-top-1")]
+        posts = [await self.pretty_text(p.html) for p in parser.css("div.mfd-post-body-right")]
         ids = [int(p.attributes['data-id']) for p in parser.css(self.id_selector)]
 
         if len(thread) > 0:
@@ -146,7 +157,7 @@ class MfdSource(AbstractSource):
         return Page()
 
     @abstractmethod
-    def thread_selector(self, parser):
+    async def thread_selector(self, parser):
         pass
 
 
@@ -154,8 +165,8 @@ class MfdUserPostSource(MfdSource):
     def __init__(self):
         super().__init__("http://lite.mfd.ru/forum/poster/posts/?id={id}", "button.mfd-button-attention")
 
-    def thread_selector(self, parser):
-        return [self.pretty_text(p.text()) for p in parser.css("h3.mfd-post-thread-subject > a")]
+    async def thread_selector(self, parser):
+        return [await self.pretty_text(p.text()) for p in parser.css("h3.mfd-post-thread-subject > a")]
 
     async def resolve_link(self, url):
         parser = HTMLParser(await self.session(custom_url=url))
@@ -179,16 +190,16 @@ class MfdUserCommentSource(MfdSource):
     def __init__(self):
         super().__init__("http://lite.mfd.ru/forum/poster/comments/?id={id}", "button.mfd-button-quote")
 
-    def thread_selector(self, bs):
-        return [self.pretty_text(p.html) for p in bs.css("h3.mfd-post-thread-subject > a")]
+    async def thread_selector(self, bs):
+        return [await self.pretty_text(p.html) for p in bs.css("h3.mfd-post-thread-subject > a")]
 
 
 class MfdForumThreadSource(MfdSource):
     def __init__(self):
         super().__init__("http://lite.mfd.ru/forum/thread/?id={id}", "button.mfd-button-attention")
 
-    def thread_selector(self, bs):
-        return [self.pretty_text(p.text()) for p in bs.css(".mfd-header > h1")]
+    async def thread_selector(self, bs):
+        return [await self.pretty_text(p.text()) for p in bs.css(".mfd-header > h1")]
 
     async def resolve_link(self, url):
         parser = HTMLParser(await self.session(custom_url=url))
@@ -211,7 +222,7 @@ class MfdForumThreadSource(MfdSource):
 
 class AlenkaNews(AbstractSource):
     def __init__(self):
-        super().__init__(alenka_url)
+        super().__init__(alenka_url, caching_time=30)
         self.title = "ALЁNKA CAPITAL"
 
     async def check_update(self) -> Page:
@@ -222,7 +233,7 @@ class AlenkaNews(AbstractSource):
                 md=(f"{post['post_date']}"
                     f"\n\n"
                     f"{utils.alert(post['post_alert'], False)}"
-                    f"[{post['post_name']}]{get_click_link_with_brackets(post['post_link'])}"),
+                    f"[{post['post_name']}]({(await get_click_link(post['post_link']))[1]})"),
                 title=self.title,
                 id=post['post_id'])
             for post in [item for item in data if item['cat_name'] == "Лента новостей"]
@@ -231,7 +242,7 @@ class AlenkaNews(AbstractSource):
 
 class AlenkaPost(AbstractSource):
     def __init__(self):
-        super().__init__(alenka_url)
+        super().__init__(alenka_url, caching_time=30)
         self.title = "ALЁNKA CAPITAL"
 
     async def check_update(self) -> Page:
@@ -242,8 +253,8 @@ class AlenkaPost(AbstractSource):
                 md=(f"{post['post_date']}"
                     f"\n\n"
                     f"{utils.alert(post['post_alert'], True)}"
-                    f"[{post['cat_name']}]{get_click_link_with_brackets(post['cat_link'])}\n\n"
-                    f"[{post['post_name']}]{get_click_link_with_brackets(post['post_link'])}"),
+                    f"[{post['cat_name']}]({(await get_click_link(post['cat_link']))[1]})\n\n"
+                    f"[{post['post_name']}]({(await get_click_link(post['post_link']))[1]})"),
                 title=self.title,
                 id=post['post_id'])
             for post in [item for item in data if item['cat_name'] != "Лента новостей"]
@@ -260,7 +271,7 @@ class SmartLab(AbstractSource):
         post = parser.css_first("div.trt").html
         return Page([
             SinglePost(
-                md=self.pretty_text(post).strip(),
+                md=(await self.pretty_text(post)).strip(),
                 title=self.title
             )
         ])

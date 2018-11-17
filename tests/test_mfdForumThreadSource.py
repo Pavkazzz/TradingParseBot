@@ -2,7 +2,7 @@
 
 import pytest
 
-from trading_bot.sources import MfdForumThreadSource
+from trading_bot.sources.sources import MfdForumThreadSource
 
 pytestmark = pytest.mark.asyncio
 

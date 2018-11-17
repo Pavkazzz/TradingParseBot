@@ -3,8 +3,7 @@
 
 import pytest
 
-from tests.conftest import TestSource
-from trading_bot.sources import MfdUserPostSource
+from trading_bot.sources.sources import MfdUserPostSource
 
 pytestmark = pytest.mark.asyncio
 

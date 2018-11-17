@@ -6,7 +6,7 @@ from typing import List
 
 import fast_json
 
-from trading_bot.sources import Page, SinglePost
+from trading_bot.sources.sources import Page, SinglePost
 
 
 class DataBase:

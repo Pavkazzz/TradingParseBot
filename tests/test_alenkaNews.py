@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from trading_bot.settings import alenka_url
-from trading_bot.sources import AlenkaNews, Page
+from trading_bot.sources.sources import AlenkaNews, Page
 
 
 async def test_local_generator():

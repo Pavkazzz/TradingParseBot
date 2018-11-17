@@ -1,7 +1,7 @@
 import pytest
 
 from trading_bot.database import DataBase
-from trading_bot.sources import Page, SinglePost, MfdForumThreadSource
+from trading_bot.sources.sources import Page, SinglePost, MfdForumThreadSource
 
 pytestmark = pytest.mark.asyncio
 

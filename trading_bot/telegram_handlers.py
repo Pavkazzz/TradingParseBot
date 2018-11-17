@@ -1,20 +1,23 @@
 import logging
+from contextvars import ContextVar
 
 from aiotg import Chat, Bot
 
 from trading_bot.manager import Manager
-from trading_bot.settings import dev_hooks_token, chatbase_token
-from trading_bot.sources import SmartLab
+from trading_bot.settings import dev_hooks_token, chatbase_token, proxy_string
+from trading_bot.sources.sources import SmartLab
 from trading_bot.telegram_helper import keyboard_markup, build_menu
 
 log = logging.getLogger(__name__)
 
 IDLE, MFD_USER_ADD, MFD_USER_REMOVE, MFD_THREAD_ADD, MFD_THREAD_REMOVE = range(5)
+state = ContextVar('state', default=IDLE)
+
 bot = Bot(
     api_token=dev_hooks_token,
     chatbase_token=chatbase_token,
     name='TradingNewsBot',
-    # proxy=proxy_string
+    proxy=proxy_string
 )
 
 manager = Manager()
@@ -22,7 +25,8 @@ manager = Manager()
 
 @bot.command(r'/start')
 async def start(chat: Chat, match):
-    manager.start(chat.message["from"]["id"])
+    user = chat.message["from"]
+    manager.start(user['id'], user['username'])
     await key(chat, match)
 
 
@@ -63,8 +67,7 @@ async def smartlab(chat: Chat, _=None):
 
 @bot.command(r'^Подписки$')
 async def settings(chat: Chat, _=None):
-    global state
-    state = IDLE
+    state.set(IDLE)
 
     if manager.settings(chat.message["from"]["id"]).alenka:
         alenka = "Отписаться от ALЁNKA"
@@ -135,8 +138,7 @@ async def mfd_forum(chat: Chat, _=None):
 async def mfd_forum_add(chat: Chat, _=None):
     await chat.send_text("Введите имя темы или ссылку на тему или любое сообщение этой темы ",
                          reply_markup=keyboard_markup())
-    global state
-    state = MFD_THREAD_ADD
+    state.set(MFD_THREAD_ADD)
 
 
 @bot.command(r'^Удалить mfd тему$')
@@ -146,8 +148,7 @@ async def mfd_forum_remove(chat: Chat, _=None):
                          reply_markup=keyboard_markup(
                              [data.name for data in manager.settings(chat_id).mfd_thread], n_col=1)
                          )
-    global state
-    state = MFD_THREAD_REMOVE
+    state.set(MFD_THREAD_REMOVE)
 
 
 @bot.command(r'^MFD.ru пользователи')
@@ -160,8 +161,7 @@ async def mfd_user(chat: Chat, _=None):
 async def mfd_user_add(chat: Chat, _=None):
     await chat.send_text("Введите имя темы или ссылку на пользователя.\nЕсли передумали, введите \"Отмена\" ",
                          reply_markup=keyboard_markup())
-    global state
-    state = MFD_USER_ADD
+    state.set(MFD_USER_ADD)
 
 
 @bot.command(r'^Удалить mfd пользователя$')
@@ -171,21 +171,21 @@ async def mfd_user_remove(chat: Chat, _=None):
                          reply_markup=keyboard_markup(
                              [data.name for data in manager.settings(chat_id).mfd_user], n_col=1)
                          )
-    global state
-    state = MFD_USER_REMOVE
+    state.set(MFD_USER_REMOVE)
 
 
 @bot.default
 async def received_information(chat: Chat, _=None):
-    if state == IDLE:
+    st = state.get()
+    if st == IDLE:
         return
-    if state == MFD_THREAD_ADD:
+    if st == MFD_THREAD_ADD:
         await mfd_add_thread(chat)
-    if state == MFD_THREAD_REMOVE:
+    if st == MFD_THREAD_REMOVE:
         await mfd_remove_thread(chat)
-    if state == MFD_USER_ADD:
+    if st == MFD_USER_ADD:
         await mfd_add_user(chat)
-    if state == MFD_USER_REMOVE:
+    if st == MFD_USER_REMOVE:
         await mfd_remove_user(chat)
 
 

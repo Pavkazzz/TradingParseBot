@@ -2,7 +2,7 @@
 
 import pytest
 
-from trading_bot.sources import MfdUserCommentSource
+from trading_bot.sources.sources import MfdUserCommentSource
 
 pytestmark = pytest.mark.asyncio
 

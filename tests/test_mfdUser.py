@@ -2,7 +2,7 @@
 import pytest
 
 from trading_bot.manager import Data
-from trading_bot.sources import MfdUserPostSource, MfdForumThreadSource
+from trading_bot.sources.sources import MfdUserPostSource, MfdForumThreadSource
 
 pytestmark = pytest.mark.asyncio
 

@@ -3,8 +3,8 @@ import logging
 import configargparse
 import requests_cache
 from aiomisc.entrypoint import entrypoint
-from aiomisc.utils import bind_socket
 from aiomisc.service.raven import RavenSender
+from aiomisc.utils import bind_socket
 from redis import Redis
 
 from trading_bot.services.telegram_app import TelegramWebhook

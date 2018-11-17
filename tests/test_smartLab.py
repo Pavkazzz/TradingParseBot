@@ -1,6 +1,6 @@
 import pytest
 
-from trading_bot.sources import SmartLab
+from trading_bot.sources.sources import SmartLab
 
 pytestmark = pytest.mark.asyncio
 

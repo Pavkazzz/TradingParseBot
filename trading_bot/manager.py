@@ -8,8 +8,9 @@ from typing import Tuple, List, Dict
 import fast_json
 from aiotg import Bot
 
-from trading_bot import sources
+from trading_bot.sources import sources
 from trading_bot.database import DataBase
+from trading_bot.telegram_sender import send_message, remove_message
 
 log = logging.getLogger(__name__)
 
@@ -25,6 +26,7 @@ class Data:
     mfd_user: typing.List[SingleData] = field(default_factory=list)
     mfd_thread: typing.List[SingleData] = field(default_factory=list)
     alenka: bool = field(default=False)
+    username: str = field(default="")
 
     def remove_duplicate(self):
         self.mfd_user = list(dict.fromkeys(self.mfd_user))
@@ -39,7 +41,7 @@ def serialize(value: Data):
     return {
         'mfd_user': [val.name for val in value.mfd_user],
         'mfd_thread': [val.name for val in value.mfd_thread],
-        'alenka': True
+        'alenka': value.alenka
     }
 
 
@@ -70,9 +72,18 @@ class Manager:
             "mfd_thread": sources.MfdForumThreadSource()
         }
 
-    async def send_to_all_users(self, bot: Bot, text: str):
-        for user in self.users_subscription.keys():
-            await bot.send_message(user, text)
+    async def send_to_all_users(self, bot, text: str):
+        for chat_id in self.users_subscription.keys():
+            await send_message(self, bot, chat_id, 0, text, 0)
+
+    async def remove_message(self, bot, message_id):
+        for chat_id in self.users_subscription.keys():
+            await remove_message(bot, chat_id, self.get_sended_id(chat_id, message_id))
+
+    async def manage_subscription_user(self, user_name, value):
+        for user in self.users_subscription.values():
+            if user_name == user:
+                user.alenka_confirmed = value
 
     def recreate_users(self, bot: Bot):
         for user in self.db.user_list():
@@ -87,9 +98,9 @@ class Manager:
 
         self.db.save_user_data(self.users_subscription)
 
-    def start(self, chat_id):
+    def start(self, chat_id, username):
         if chat_id not in self.users_subscription:
-            self.users_subscription[chat_id] = Data()
+            self.users_subscription[chat_id] = Data(username=username)
             self.sended_msg[chat_id] = {}
 
     def stop(self, chat_id):
@@ -140,7 +151,7 @@ class Manager:
 
     def settings(self, chat_id) -> typing.Union[str, Data]:
         if chat_id not in self.users_subscription:
-            self.start(chat_id)
+            self.start(chat_id, 'tests')
         return self.users_subscription[chat_id]
 
     async def check_new(self, chat_id) -> List[sources.SinglePost]:
@@ -203,10 +214,7 @@ class Manager:
             posts = await self.check_new(user)
             message_id = []
             for post in posts:
-                if post.id not in self.sended_msg[user]:
-                    message_id.append(0)
-                else:
-                    message_id.append(self.sended_msg[user][post.id])
+                message_id.append(self.get_sended_id(user, post))
             yield user, list(zip(posts, message_id))
         self.save_user_messages()
 
@@ -229,7 +237,7 @@ class Manager:
 
         tasks = [self.update_mfd_thread(data.id) for data in data_list.mfd_thread]
         tasks += [self.update_mfd_user_post(data.id) for data in data_list.mfd_user]
-        tasks += [self.update_mfd_user_comment(data.id) for data in data_list.mfd_thread]
+        tasks += [self.update_mfd_user_comment(data.id) for data in data_list.mfd_user]
         await asyncio.gather(*tasks)
 
     async def update_mfd_user_comment(self, data_id):
@@ -292,7 +300,13 @@ class Manager:
         self.sources[source].update_cache(url, text)
         await self.update_alenka()
 
-    def set_message_id(self, message_id, chat_id, post_id):
+    def get_sended_id(self, chat_id, post):
+        try:
+            return self.sended_msg[chat_id][post.id]
+        except KeyError:
+            return 0
+
+    def set_sended_id(self, message_id, chat_id, post_id):
         self.sended_msg[chat_id][post_id] = message_id
 
     def save_user_messages(self):
@@ -311,3 +325,6 @@ class Manager:
             actual_set = user_msg - frozenset(actual_id_list)
             for i in list(actual_set):
                 self.sended_msg[user].pop(i, None)
+
+    def set_username(self, chat_id, username):
+        self.users_subscription[chat_id].username = username

@@ -3,12 +3,12 @@
 from selectolax.parser import HTMLParser
 
 from tests.conftest import TestSource
-from trading_bot.sources import get_click_link_with_brackets
+from trading_bot.sources.sources import get_click_link
 
 
 async def test_pretty_text():
     html = """<div class="mfd-quote-text"><span class="mfd-emoticon mfd-emoticon-grin"></span><span class="mfd-emoticon mfd-emoticon-grin"></span><span class="mfd-emoticon mfd-emoticon-grin"></span></div><blockquote class="mfd-quote-14778526"><div class="mfd-quote-info"><a href="/forum/poster/?id=99552" rel="nofollow">chromatin</a> @ <a href="/forum/post/?id=14778526" rel="nofollow">19.07.2018 16:54</a></div><div class="mfd-quote-text">*TRUMP SAYS LOOKS FORWARD TO SECOND MEETING WITH PUTIN <br> Может быть, не надо. Второй такой встречи наш ФР может и не пережить 😁</div></blockquote>"""
-    text = TestSource("http://mfd.ru").pretty_text(html)
+    text = await TestSource("http://mfd.ru").pretty_text(html)
     res = ("😁😁😁\n"
            "\n"
            "| [chromatin](https://clck.ru/EZw2D) @ [19.07.2018 16:54](https://clck.ru/EZw2E)\n"
@@ -24,7 +24,7 @@ async def test_pretty_text():
 
 async def test_title_with_title():
     html = """<a class="mfd-poster-link" href="/forum/poster/?id=88887" rel="nofollow" title="ID: 88887">Спокойный Скрудж Макдак</a>"""
-    text = TestSource("http://mfd.ru").pretty_text(html)
+    text = await TestSource("http://mfd.ru").pretty_text(html)
     res = "[Спокойный Скрудж Макдак](https://clck.ru/EZvsG)"
     assert text == res
 
@@ -44,7 +44,7 @@ async def test_alenka_title_comment():
             "</li>")
     bs = HTMLParser(html, "html.parser")
     parse = [str(p.html) for p in bs.css('.news__side, .news__name')]
-    text = TestSource("https://alenka.capital").pretty_text(''.join(parse))
+    text = await TestSource("https://alenka.capital").pretty_text(''.join(parse))
     res = ("06:36\n"
            "\n"
            "##  [ Х5 и \"Магнит\" двигают фигуры](https://chatbase.com/r?api_key=dd11ff93-afcc-4253-ba2e-72fec6e46a35&platform=Telegram&url=https://alenka.capital/post/h5_i_magnit_dvigayut_figuryi_39017/)")
@@ -53,7 +53,7 @@ async def test_alenka_title_comment():
 
 async def test_mfd_title_comment():
     html = """<a href="http://forum.mfd.ru/blogs/posts/view/?id=37688" rel="nofollow">[Блоги] Июль</a>"""
-    res = TestSource("http://mfd.ru").pretty_text(html)
+    res = await TestSource("http://mfd.ru").pretty_text(html)
     text = """[{Блоги} Июль](https://chatbase.com/r?api_key=dd11ff93-afcc-4253-ba2e-72fec6e46a35&platform=Telegram&url=http://forum.mfd.ru/blogs/posts/view/?id=37688)"""
     assert res, text
 
@@ -65,19 +65,19 @@ async def test_link_text():
             "  \n"
             "[https://vk.com/nztrusfond?w=wall-165878204_639](https://clck.ru/EZw8n)   \n"
             "[https://smart-lab.ru/blog/483422.php](https://clck.ru/EZw8o)")
-    res = TestSource("http://mfd.ru").pretty_text(html)
+    res = await TestSource("http://mfd.ru").pretty_text(html)
     assert text == res
 
 
 async def test_link_title_text():
     html = """<a class="mfd-poster-link" href="/forum/poster/?id=106833" rel="nofollow" title="ID: 106833">wolf_rider</a>"""
-    res = TestSource("http://mfd.ru").pretty_text(html)
+    res = await TestSource("http://mfd.ru").pretty_text(html)
     assert res, "[wolf_rider](https://chatbase.com/r?api_key=dd11ff93-afcc-4253-ba2e-72fec6e46a35&platform=Telegram&url=http://mfd.ru/forum/poster/?id=106833)"
 
 
 async def test_dash():
     html = """<div>@Discl_Bot - бот, не канал, но удобный </div>"""
-    text = TestSource("https://alenka.capital").pretty_text(html)
+    text = await TestSource("https://alenka.capital").pretty_text(html)
     res = ("@Discl\_Bot - бот, не канал, но\n"
            "удобный")
     assert text == res
@@ -85,14 +85,14 @@ async def test_dash():
 
 async def test_smiles():
     html = """<span class="mfd-emoticon mfd-emoticon-grin"></span><span class="mfd-emoticon mfd-emoticon-grin"></span><span class="mfd-emoticon mfd-emoticon-grin"></span><span class="mfd-emoticon mfd-emoticon-grin"></span><span class="mfd-emoticon mfd-emoticon-grin"></span>"""
-    text = TestSource("http://mfd.ru").pretty_text(html)
+    text = await TestSource("http://mfd.ru").pretty_text(html)
     res = "😁😁😁😁😁"
     assert text == res
 
 
 async def test_dot():
     html = """Вот так просто взять и внести? <span class="mfd-emoticon mfd-emoticon-smile"></span> <br>  <br> <a href="http://www.consultant.ru/document/cons_doc_LAW_8743/9ca79eb480b2842d107d0fe21f8352b6b5e67916/" rel="nofollow" target="_blank">http://www.consultant.ru/document/cons_doc_LAW_...</a> <br> 1. Уставный капитал общества может быть увеличен путем увеличения номинальной стоимости акций или размещения дополнительных акций."""
-    text = TestSource("http://mfd.ru").pretty_text(html)
+    text = await TestSource("http://mfd.ru").pretty_text(html)
     res = ("Вот так просто взять и внести? 🙂  \n"
            "  \n"
            "[http://www.consultant.ru/document/cons_doc_LAW_...](https://clck.ru/EZw2H)   \n"
@@ -106,7 +106,7 @@ async def test_dot():
 
 async def test_quote():
     html = """<div><blockquote class="mfd-quote-14819322"><div class="mfd-quote-info"><a href="/forum/poster/?id=58730" rel="nofollow">DflbvSv</a> @ <a href="/forum/post/?id=14819322" rel="nofollow">27.07.2018 14:30</a></div><blockquote class="mfd-quote-14818813"><div class="mfd-quote-info"><a href="/forum/poster/?id=72299" rel="nofollow">Volshebnik</a> @ <a href="/forum/post/?id=14818813" rel="nofollow">27.07.2018 13:15</a></div><div class="mfd-quote-text">Тем не менее бяка по 4 коп фундаментально оч дешева, вопрос только в том когда в стакан придут большие кошельки...</div></blockquote><div class="mfd-quote-text">Открывашка попыталась, скупив почти 14% голосующих акций, но, судя по всему, надорвалась. После 24 мая у открывашки 7,8%, у собрата по несчастью (Бинбанка) - 5,99% (<a href="https://news.rambler.ru/business/39911599-bank-otkrytie-peredal-binbanku-aktsii-vtb-za-40-mlrd-rub/" rel="nofollow" target="_blank">https://news.rambler.ru/business/39911599-bank-...</a>). Исходя из свободного обращения на рынке 15% акций, то получается, что на рынке идет торговля 1,21% акций</div></blockquote><div class="mfd-quote-text">Sehr gut!!! <br> В нашем полку прибыло<span class="mfd-emoticon mfd-emoticon-smile"></span> <br> <a href="http://lite.mfd.ru/forum/post/?id=14635042" rel="nofollow" target="_blank">http://lite.mfd.ru/forum/post/?id=14635042</a> <br> <a href="http://lite.mfd.ru/forum/post/?id=14467774" rel="nofollow" target="_blank">http://lite.mfd.ru/forum/post/?id=14467774</a> <br> <a href="http://lite.mfd.ru/forum/post/?id=13651199" rel="nofollow" target="_blank">http://lite.mfd.ru/forum/post/?id=13651199</a> <br> я тут уже давно толкую, что ФФ не тот, что указан у аналов и на сайте мосбиржи <br>  <br> если этот факт признать, то ВТБ надо немедленно отправить в эшелон... <br> а последствия для капы очевидны</div></div><button class="mfd-button-attention" data-id="14819412" name="reportAbuse" title="Пожаловаться на это сообщение" type="button"></button>"""
-    text = TestSource("http://mfd.ru").pretty_text(html)
+    text = await TestSource("http://mfd.ru").pretty_text(html)
     res = (
         "| [DflbvSv](https://clck.ru/EZw2J) @ [27.07.2018 14:30](https://clck.ru/EZw2K)\n"
         "|\n"
@@ -139,7 +139,7 @@ async def test_quote():
 
 async def test_dot2():
     html = """<div><blockquote class="mfd-quote-14819862"><div class="mfd-quote-info"><a href="/forum/poster/?id=79103" rel="nofollow">Камаз Доходов</a> @ <a href="/forum/post/?id=14819862" rel="nofollow">27.07.2018 15:44</a></div><blockquote class="mfd-quote-14819835"><div class="mfd-quote-info"><a href="/forum/poster/?id=74012" rel="nofollow">калита</a> @ <a href="/forum/post/?id=14819835" rel="nofollow">27.07.2018 15:39</a></div><div class="mfd-quote-text">добро пожаловать ПФ РФ</div></blockquote><div class="mfd-quote-text">- ПФ РФ недавно отдали на разграбление Игорю Шувалову. <br> С чего ради вдруг он переведёт ПФ РФ из своего банка в ВТБ?</div></blockquote><div class="mfd-quote-text">Не про перевод речь, а про размещение акций ВТБ.</div></div><button class="mfd-button-attention" data-id="14819872" name="reportAbuse" title="Пожаловаться на это сообщение" type="button"></button>"""
-    text = TestSource("http://mfd.ru").pretty_text(html)
+    text = await TestSource("http://mfd.ru").pretty_text(html)
     res = (
         "| [Камаз Доходов](https://clck.ru/EZw2R) @ [27.07.2018 15:44](https://clck.ru/EZw2S)\n"
         "|\n"
@@ -159,7 +159,7 @@ async def test_dot2():
     assert text == res
 
 
-def test_links():
+async def test_links():
     html = """<div><blockquote class="mfd-quote-14819322"><div class="mfd-quote-info"><a href="/forum/poster/?id=58730" rel="nofollow">DflbvSv</a> @ <a href="/forum/post/?id=14819322" rel="nofollow">27.07.2018 14:30</a></div><blockquote class="mfd-quote-14818813"><div class="mfd-quote-info"><a href="/forum/poster/?id=72299" rel="nofollow">Volshebnik</a> @ <a href="/forum/post/?id=14818813" rel="nofollow">27.07.2018 13:15</a></div><div class="mfd-quote-text">Тем не менее бяка по 4 коп фундаментально оч дешева, вопрос только в том когда в стакан придут большие кошельки...</div></blockquote><div class="mfd-quote-text">Открывашка попыталась, скупив почти 14% голосующих акций, но, судя по всему, надорвалась. После 24 мая у открывашки 7,8%, у собрата по несчастью (Бинбанка) - 5,99% (<a href="https://news.rambler.ru/business/39911599-bank-otkrytie-peredal-binbanku-aktsii-vtb-za-40-mlrd-rub/" rel="nofollow" target="_blank">https://news.rambler.ru/business/39911599-bank-...</a>). Исходя из свободного обращения на рынке 15% акций, то получается, что на рынке идет торговля 1,21% акций</div></blockquote><div class="mfd-quote-text">Sehr gut!!! <br> В нашем полку прибыло<span class="mfd-emoticon mfd-emoticon-smile"></span> <br> <a href="http://lite.mfd.ru/forum/post/?id=14635042" rel="nofollow" target="_blank">http://lite.mfd.ru/forum/post/?id=14635042</a> <br> <a href="http://lite.mfd.ru/forum/post/?id=14467774" rel="nofollow" target="_blank">http://lite.mfd.ru/forum/post/?id=14467774</a> <br> <a href="http://lite.mfd.ru/forum/post/?id=13651199" rel="nofollow" target="_blank">http://lite.mfd.ru/forum/post/?id=13651199</a> <br> я тут уже давно толкую, что ФФ не тот, что указан у аналов и на сайте мосбиржи <br>  <br> если этот факт признать, то ВТБ надо немедленно отправить в эшелон... <br> а последствия для капы очевидны</div></div><button class="mfd-button-attention" data-id="14819412" name="reportAbuse" title="Пожаловаться на это сообщение" type="button"></button>"""
     res = """| [DflbvSv](https://clck.ru/EZw2J) @ [27.07.2018 14:30](https://clck.ru/EZw2K)
 |
@@ -187,7 +187,7 @@ Sehr gut!!!
 надо немедленно отправить в
 эшелон...  
 а последствия для капы очевидны"""
-    text = TestSource("http://mfd.ru").pretty_text(html)
+    text = await TestSource("http://mfd.ru").pretty_text(html)
     assert text == res
 
 
@@ -213,7 +213,7 @@ async def test_image():
 бесплатно =) Кому надо - пишите,
 скину."""
 
-    md = TestSource("http://mfd.ru").pretty_text(html)
+    md = await TestSource("http://mfd.ru").pretty_text(html)
     assert md == res
 
 
@@ -244,10 +244,70 @@ async def test_multiple_image():
            "🙂  \n"
            "  \n"
            "---|---")
-    assert res == TestSource("http://mfd.ru").pretty_text(html)
+    assert res == await TestSource("http://mfd.ru").pretty_text(html)
 
 
 async def test_russian_links():
     url = 'http://peretok.ru/articles/strategy/19079/ВИЭ'
-    res = '(https://clck.ru/EYqGb)'
-    assert res == get_click_link_with_brackets(url)
+    res = 'https://clck.ru/EYqGb'
+    assert res == (await get_click_link(url))[1]
+
+
+async def test_nzt_links():
+    html = '''<div class="mfd-post-body-right"><div><div class="mfd-quote-text"><a href="https://vk.com/@nztrusfond-obzor-portfelya-po-rezultatam-oktyabrya" rel="nofollow" target="_blank">https://vk.com/@nztrusfond-obzor-portfelya-po-r...</a> <br>  <br> октябрь подбил</div></div><button class="mfd-button-attention" data-id="15361389" name="reportAbuse" title="Пожаловаться на это сообщение" type="button"></button></div>'''
+    link = 'https://vk.com/@nztrusfond-obzor-portfelya-po-rezultatam-oktyabrya'
+    print((await get_click_link(url=link))[1])
+
+
+async def test_quoting():
+    html = '''<div class="mfd-post-body-right"><div><blockquote class="mfd-quote-15384866"><div class="mfd-quote-info"><a href="/forum/poster/?id=110132" rel="nofollow">Тул Равий</a> @ <a href="/forum/post/?id=15384866" rel="nofollow">09.11.2018 15:12</a></div><div class="mfd-quote-text">Пришел. Включил. Подумал. <br> Что, мол, таки да - накаркал.</div><blockquote class="mfd-quote-15372976"><div class="mfd-quote-info"><a href="/forum/poster/?id=110132" rel="nofollow">Тул Равий</a> @ <a href="/forum/post/?id=15372976" rel="nofollow">07.11.2018 22:33</a></div><div class="mfd-quote-text">Коррекция неминуема как победа пролетарской революции. Ибо.  <br> Во-первых: мне пора опять закупиться, потому, что «те, что были на прошлой неделе мы уже съели» (доедал сегодня, осталось немного и ВТБ, между прочим).  <br> Во-вторых,   <br> ... <br> Из того, что попадемся. Мы — попадемся в принципе.</div></blockquote><blockquote class="mfd-quote-15358318"><div class="mfd-quote-info"><a href="/forum/poster/?id=110132" rel="nofollow">Тул Равий</a> @ <a href="/forum/post/?id=15358318" rel="nofollow">05.11.2018 19:05</a></div><div class="mfd-quote-text">... нефть сколько стоить будет в декабре в след году?, <br> - Год длинный. ИМХО, в целом, не выше 80. Скорее около 70, как бы не ниже. Но не ниже 60. Это и удобная цена для сланцевиков. Лично я ориентируюсь на эти цифры. В 100 не верю. Даже в 90. Потом - да. Но больше по причине повышения себестоимости добычи в целом.  Нас, кстати, это касается чуть ли не в первую очередь. С Ираном до конца 2019, так или иначе, разрулят.</div></blockquote><div class="mfd-quote-text">Вот только брать, ИМХО, еще нечего... Так, по ощущениям (ибо с математикой - "не очень").</div></blockquote><div class="mfd-quote-text">так ничего и не падало считай, больше половины падения сегодня это сбер-газ-лук...</div></div><button class="mfd-button-attention" data-id="15385002" name="reportAbuse" title="Пожаловаться на это сообщение" type="button"></button></div>'''
+    res = await TestSource("http://mfd.ru").pretty_text(html)
+    expected = '''| [Тул Равий](https://clck.ru/EaGNR) @ [09.11.2018 15:12](https://clck.ru/EgPPR)
+|  
+|  Пришел. Включил. Подумал.  
+| Что, мол, таки да - накаркал.
+| 
+|
+| 
+| | [Тул Равий](https://clck.ru/EaGNR) @ [07.11.2018 22:33](https://clck.ru/EgP8Z)
+| |  
+| |  Коррекция неминуема как
+| | победа пролетарской революции.
+| | Ибо.  
+| | Во-первых: мне пора опять
+| | закупиться, потому, что «те, что
+| | были на прошлой неделе мы уже
+| | съели» (доедал сегодня, осталось
+| | немного и ВТБ, между прочим).  
+| | Во-вторых,  
+| | ...  
+| | Из того, что попадемся. Мы —
+| | попадемся в принципе.
+| | 
+|
+| 
+| | [Тул Равий](https://clck.ru/EaGNR) @ [05.11.2018 19:05](https://clck.ru/EgP8a)
+| |  
+| |  ... нефть сколько стоить
+| | будет в декабре в след году?,  
+| | - Год длинный. ИМХО, в целом, не
+| | выше 80. Скорее около 70, как бы
+| | не ниже. Но не ниже 60. Это и
+| | удобная цена для сланцевиков.
+| | Лично я ориентируюсь на эти цифры.
+| | В 100 не верю. Даже в 90. Потом -
+| | да. Но больше по причине повышения
+| | себестоимости добычи в целом. Нас,
+| | кстати, это касается чуть ли не в
+| | первую очередь. С Ираном до конца
+| | 2019, так или иначе, разрулят.
+| | 
+|  
+|  Вот только брать, ИМХО, еще
+| нечего... Так, по ощущениям (ибо с
+| математикой - "не очень").
+
+так ничего и не падало считай,
+больше половины падения сегодня
+это сбер-газ-лук...'''
+    assert res == expected
