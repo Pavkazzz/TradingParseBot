@@ -1,26 +1,32 @@
-kind: pipeline
-name: default
+pipeline:
+  restore-cache:
+    image: plugins/s3-cache:1
+    pull: true
+    endpoint: http://s3.nl-ams.scw.cloud
+    access_key: myaccesskey
+    secret_key: supersecretKey
+    restore: true
 
-steps:
-- name: linter
-  image: python:3.7
-  commands:
-  - pip install --upgrade pip setuptools wheel
-  - pip wheel -r requirements.txt --wheel-dir=wheeldir --find-links=wheeldir
-  - pip wheel -r requirements-dev.txt --wheel-dir=wheeldir --find-links=wheeldir
-  - pip install --no-index --find-links=wheeldir -r requirements.txt
-  - pip install --no-index --find-links=wheeldir -r requirements-dev.txt
-  - pylava trading_bot
+  linter:
+    image: python:3.7
+    commands:
+    - pip install --upgrade pip setuptools wheel
+    - pip wheel -r requirements.txt --wheel-dir=wheeldir --find-links=wheeldir
+    - pip wheel -r requirements-dev.txt --wheel-dir=wheeldir --find-links=wheeldir
+    - pip install --no-index --find-links=wheeldir -r requirements.txt
+    - pip install --no-index --find-links=wheeldir -r requirements-dev.txt
+    - pylava trading_bot
 
-- name: tests
-  image: python:3.7
-  commands:
-  - pip install --upgrade pip setuptools wheel
-  - pip wheel -r requirements.txt --wheel-dir=wheeldir --find-links=wheeldir
-  - pip wheel -r requirements-dev.txt --wheel-dir=wheeldir --find-links=wheeldir
-  - pip install --no-index --find-links=wheeldir -r requirements.txt
-  - pip install --no-index --find-links=wheeldir -r requirements-dev.txt
-  - pytest tests
+  tests:
+    image: python:3.7
+    commands:
+    - pip install --upgrade pip setuptools wheel
+    - pip wheel -r requirements.txt --wheel-dir=wheeldir --find-links=wheeldir
+    - pip wheel -r requirements-dev.txt --wheel-dir=wheeldir --find-links=wheeldir
+    - pip install --no-index --find-links=wheeldir -r requirements.txt
+    - pip install --no-index --find-links=wheeldir -r requirements-dev.txt
+    - cd tests
+    - PYTHONPATH=../ pytest . 
 
 
 services:
