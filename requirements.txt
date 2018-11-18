@@ -1,4 +1,5 @@
 aiohttp
+aiomisc
 ConfigArgParse
 fast-json
 git+git://github.com/Pavkazzz/html2text.git@b2c2233b2332539ebf5eeaa54526f966f543b03f#egg=html2text
