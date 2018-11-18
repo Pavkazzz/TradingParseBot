@@ -20,8 +20,7 @@ steps:
   - pip wheel -r requirements-dev.txt --wheel-dir=wheeldir --find-links=wheeldir
   - pip install --no-index --find-links=wheeldir -r requirements.txt
   - pip install --no-index --find-links=wheeldir -r requirements-dev.txt
-  - cd tests
-  - PYTHONPATH=../ pytest .
+  - cd tests && PYTHONPATH=../ pytest .
 
 
 services:
