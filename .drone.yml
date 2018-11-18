@@ -8,7 +8,7 @@ steps:
   - name: cache
     path: wheeldir
   commands:
-  - pip install -r requirments-dev.txt
+  - pip install -r requirements-dev.txt
   - pylava trading_bot
 
 - name: tests
