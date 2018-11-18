@@ -3,6 +3,8 @@ name: default
 
 steps:
 - name: build
+  image: python:3.7
+  comands:
   - pip install --upgrade pip setuptools wheel
   - pip wheel -r requirements.txt --wheel-dir=wheeldir --find-links=wheeldir
   - pip wheel -r requirements-dev.txt --wheel-dir=wheeldir --find-links=wheeldir
