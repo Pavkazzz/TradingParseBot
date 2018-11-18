@@ -39,5 +39,6 @@ async def test_tomd():
         "ней много шлака, выручка зависит\n"
         "от компаний - в металлах смотрю, в\n"
         "киви нет, например. Тут компании\n"
-        "разные")
+        "разные"
+    )
     assert await TestSource("http://mfd.ru").pretty_text(text) == res

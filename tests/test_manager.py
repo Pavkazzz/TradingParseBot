@@ -11,7 +11,7 @@ pytestmark = pytest.mark.asyncio
 async def test_start():
     manager = Manager(clear_start=True)
     chat_id = random.randint(0, 1000)
-    manager.start(chat_id, 'tests')
+    manager.start(chat_id, "tests")
     assert not manager.settings(chat_id).alenka
     await manager.new_command(chat_id, Manager.ADD_ALENKA)
     assert manager.settings(chat_id).alenka
@@ -36,7 +36,7 @@ async def test_start():
 async def test_me():
     manager = Manager(clear_start=True)
     chat_id = random.randint(0, 1000)
-    manager.start(chat_id, 'tests')
+    manager.start(chat_id, "tests")
     await manager.new_command(chat_id, Manager.ADD_ALENKA)
     await manager.new_command(chat_id, Manager.ADD_MFD_USER, SingleData(71921, "malishok"))
     await manager.new_command(chat_id, Manager.ADD_MFD_THREAD, SingleData(84424, "ФА и немного ТА"))
@@ -48,7 +48,7 @@ async def test_all():
     n = 10
     chats_id = [random.randint(i * n + 1, i * n + n) for i in range(n)]
     for chat_id in chats_id:
-        manager.start(chat_id, 'tests')
+        manager.start(chat_id, "tests")
         await manager.new_command(chat_id, Manager.ADD_ALENKA)
 
     res = tuple([post async for post in manager.check_new_all()])
@@ -64,12 +64,14 @@ async def test_all():
 async def test_some_user():
     manager = Manager(clear_start=True)
     chats_id = random.randint(0, 999)
-    manager.start(chats_id, 'tests')
+    manager.start(chats_id, "tests")
     await manager.new_command(chats_id, Manager.ADD_MFD_USER, SingleData(71921, "malishok"))
     await manager.new_command(chats_id, Manager.ADD_MFD_USER, SingleData(96540, "VVT5"))
-    res = [[post async for post in manager.check_new_all()],
-           [post async for post in manager.check_new_all()],
-           [post async for post in manager.check_new_all()]]
+    res = [
+        [post async for post in manager.check_new_all()],
+        [post async for post in manager.check_new_all()],
+        [post async for post in manager.check_new_all()],
+    ]
 
     for r in res:
         assert r[0][1] == []
@@ -77,31 +79,34 @@ async def test_some_user():
 
 async def test_alenka_unsubscr():
     manager = Manager(clear_start=True)
-    with open("html/test_alenkaResponse.json", 'r', encoding="utf8") as html:
+    with open("html/test_alenkaResponse.json", "r", encoding="utf8") as html:
         await manager.config_sources("alenka_news", alenka_url, html.read())
 
     n = 10
     chats_id = [random.randint(i * n + 1, i * n + n) for i in range(n)]
     for chat in chats_id:
-        manager.start(chat, 'tests')
+        manager.start(chat, "tests")
         if chat % 2:
             await manager.new_command(chat, Manager.ADD_ALENKA)
         if chat % 3:
             await manager.new_command(chat, Manager.ADD_MFD_USER, SingleData(id=random.randint(0, 100), name=str(chat)))
         if chat % 5:
-            await manager.new_command(chat, Manager.ADD_MFD_THREAD,
-                                      SingleData(id=random.randint(0, 100), name=str(chat)))
+            await manager.new_command(
+                chat, Manager.ADD_MFD_THREAD, SingleData(id=random.randint(0, 100), name=str(chat))
+            )
 
     async for user, post in manager.check_new_all():
         assert post == []
 
-    with open("html/test_alenkaResponseWithNewData.json", 'r', encoding="utf8") as html:
+    with open("html/test_alenkaResponseWithNewData.json", "r", encoding="utf8") as html:
         await manager.config_sources("alenka_news", alenka_url, html.read())
 
-    res = ("ALЁNKA CAPITAL\n"
-           "05.08.2018, 10:25\n"
-           "\n"
-           "[Media Markt начал ликвидацию ассортимента перед уходом из России](https://clck.ru/EZvYx)")
+    res = (
+        "ALЁNKA CAPITAL\n"
+        "05.08.2018, 10:25\n"
+        "\n"
+        "[Media Markt начал ликвидацию ассортимента перед уходом из России](https://clck.ru/EZvYx)"
+    )
 
     async for user, post in manager.check_new_all():
         if user % 2:
@@ -117,7 +122,7 @@ async def test_alenka_unsubscr():
 async def test_delete():
     m = Manager(clear_start=True)
     cid = random.randint(0, 100)
-    m.start(cid, 'tests')
+    m.start(cid, "tests")
     await m.new_command(cid, Manager.ADD_ALENKA)
     assert m.settings(cid).alenka
     m.stop(cid)
@@ -126,11 +131,11 @@ async def test_delete():
 
 async def test_alenka_editing():
     manager = Manager(clear_start=True)
-    with open("html/test_alenkaResponse.json", 'r', encoding="utf8") as html:
+    with open("html/test_alenkaResponse.json", "r", encoding="utf8") as html:
         await manager.config_sources("alenka_news", alenka_url, html.read())
 
     chats_id = random.randint(0, 100)
-    manager.start(chats_id, 'tests')
+    manager.start(chats_id, "tests")
     _, data = await manager.new_command(chats_id, Manager.ADD_ALENKA)
 
     for post in data:
@@ -139,7 +144,7 @@ async def test_alenka_editing():
     async for user, post in manager.check_new_all():
         assert post == []
 
-        with open("html/test_alenkaResponseEditing.json", 'r', encoding="utf8") as html:
+        with open("html/test_alenkaResponseEditing.json", "r", encoding="utf8") as html:
             await manager.config_sources("alenka_news", alenka_url, html.read())
 
         async for user, posts in manager.check_new_all():

@@ -13,7 +13,7 @@ async def test_update():
     res = db.update("alenka_news", Page(), cid)
     assert res == []
     res = db.update("alenka_news", Page(posts=[post]), cid)
-    assert res == [SinglePost(title='123', md='qwe', id=0)]
+    assert res == [SinglePost(title="123", md="qwe", id=0)]
     res = db.update("alenka_news", Page(posts=[post]), cid)
     assert res == []
 

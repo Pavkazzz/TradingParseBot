@@ -11,9 +11,9 @@ async def test_mfd_user_post_comment_eq():
     post = MfdUserPostSource()
     thread = MfdForumThreadSource()
 
-    with open("html/test_mfdUserPostEq.html", 'r', encoding="utf8") as html:
+    with open("html/test_mfdUserPostEq.html", "r", encoding="utf8") as html:
         post.update_cache("http://lite.mfd.ru/forum/poster/posts/?id=0", html.read())
-    with open("html/test_mfdThreadEq.html", 'r', encoding="utf8") as html:
+    with open("html/test_mfdThreadEq.html", "r", encoding="utf8") as html:
         thread.update_cache("http://lite.mfd.ru/forum/thread/?id=0", html.read())
 
     post_page = await post.check_update(0)

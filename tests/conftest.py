@@ -28,4 +28,4 @@ async def event_loop():
         loop.close()
 
 
-requests_cache.install_cache('click_cache', backend='redis', connection=Redis(host='127.0.0.1'))
+requests_cache.install_cache("click_cache", backend="redis", connection=Redis(host="127.0.0.1"))
