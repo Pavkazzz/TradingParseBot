@@ -112,42 +112,54 @@ class Manager:
         result: str = "Команда не найдена"
         current_data = []
         try:
-            # Alenka
-            if command == self.ADD_ALENKA:
-                self.users_subscription[chat_id].alenka = True
-                current_data = await self.check_new_alenka(chat_id)
-                result = "Теперь вы подписаны на https://alenka.capital"
-            if command == self.REMOVE_ALENKA:
-                self.users_subscription[chat_id].alenka = False
-                result = "Теперь вы отписаны от новостей с https://alenka.capital"
+            current_data, result = await self.new_alenka(chat_id, command, current_data, result)
 
-            # Mfd user
-            if command == self.ADD_MFD_USER:
-                if data not in self.users_subscription[chat_id].mfd_user:
-                    self.users_subscription[chat_id].mfd_user.append(data)
-                    current_data = await self.check_mfd_user(data, chat_id)
-                    result = f"Подписка на mfd пользователя {data.name}"
-                else:
-                    result = f"Вы уже подписаны на пользователя {data.name}"
-            if command == self.REMOVE_MFD_USER:
-                self.users_subscription[chat_id].mfd_user.remove(data)
-                result = f"Отписка от mfd пользователя {data.name}"
+            current_data, result = await self.new_mfd_user(chat_id, command, current_data, data, result)
             # Mfd thread
-            if command == self.ADD_MFD_THREAD:
-                if data not in self.users_subscription[chat_id].mfd_thread:
-                    self.users_subscription[chat_id].mfd_thread.append(data)
-                    current_data = await self.check_mfd_thread(data, chat_id)
-                    result = f"Подписка на mfd тему {data.name}"
-                else:
-                    result = f"Вы уже подписаны на тему {data.name}"
-            if command == self.REMOVE_MFD_THREAD:
-                self.users_subscription[chat_id].mfd_thread.remove(data)
-                result = f"Отписка от mfd форума {data.name}"
+            current_data, result = await self.new_mfd_thread(chat_id, command, current_data, data, result)
         except KeyError as e:
             print(f"Unexpected key error: {command} {data}, e:{e}")
 
         self.db.save_user_data(self.users_subscription)
         return result, current_data
+
+    async def new_mfd_thread(self, chat_id, command, current_data, data, result):
+        if command == self.ADD_MFD_THREAD:
+            if data not in self.users_subscription[chat_id].mfd_thread:
+                self.users_subscription[chat_id].mfd_thread.append(data)
+                current_data = await self.check_mfd_thread(data, chat_id)
+                result = f"Подписка на mfd тему {data.name}"
+            else:
+                result = f"Вы уже подписаны на тему {data.name}"
+        if command == self.REMOVE_MFD_THREAD:
+            self.users_subscription[chat_id].mfd_thread.remove(data)
+            result = f"Отписка от mfd форума {data.name}"
+        return current_data, result
+
+    async def new_mfd_user(self, chat_id, command, current_data, data, result):
+        # Mfd user
+        if command == self.ADD_MFD_USER:
+            if data not in self.users_subscription[chat_id].mfd_user:
+                self.users_subscription[chat_id].mfd_user.append(data)
+                current_data = await self.check_mfd_user(data, chat_id)
+                result = f"Подписка на mfd пользователя {data.name}"
+            else:
+                result = f"Вы уже подписаны на пользователя {data.name}"
+        if command == self.REMOVE_MFD_USER:
+            self.users_subscription[chat_id].mfd_user.remove(data)
+            result = f"Отписка от mfd пользователя {data.name}"
+        return current_data, result
+
+    async def new_alenka(self, chat_id, command, current_data, result):
+        # Alenka
+        if command == self.ADD_ALENKA:
+            self.users_subscription[chat_id].alenka = True
+            current_data = await self.check_new_alenka(chat_id)
+            result = "Теперь вы подписаны на https://alenka.capital"
+        if command == self.REMOVE_ALENKA:
+            self.users_subscription[chat_id].alenka = False
+            result = "Теперь вы отписаны от новостей с https://alenka.capital"
+        return current_data, result
 
     def settings(self, chat_id) -> typing.Union[str, Data]:
         if chat_id not in self.users_subscription:

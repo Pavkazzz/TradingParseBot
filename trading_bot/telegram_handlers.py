@@ -93,25 +93,35 @@ async def print_settings(chat: Chat, _=None):
     if current_settings.alenka:
         msg += "  Новости с [https://alenka.capital](alenka.capital)\n\n"
 
-    if len(current_settings.mfd_user) == 1:
-        for user in current_settings.mfd_user:
-            msg += f"  Пользователя [{user.name}](http://forum.mfd.ru/forum/poster/?id={user.id})\n"
-    if len(current_settings.mfd_user) > 1:
-        msg += "  На пользователей: \n"
-        for user in current_settings.mfd_user:
-            msg += f"    [{user.name}](http://forum.mfd.ru/forum/poster/?id={user.id})\n"
-
+    msg += fill_mfd_user(current_settings)
     msg += "\n"
-
-    if len(current_settings.mfd_thread) == 1:
-        for thread in current_settings.mfd_thread:
-            msg += f"  Тему [{thread.name}](http://forum.mfd.ru/forum/thread/?id={thread.id})\n"
-    if len(current_settings.mfd_thread) > 1:
-        msg += f"  На темы: \n"
-        for thread in current_settings.mfd_thread:
-            msg += f"    [{thread.name}](http://forum.mfd.ru/forum/thread/?id={thread.id})\n"
+    msg += fill_mfd_thread(current_settings)
 
     await chat.send_text(msg, parse_mode='Markdown')
+
+
+def fill_mfd_user(current_settings):
+    if len(current_settings.mfd_user) == 1:
+        for user in current_settings.mfd_user:
+            return f"  Пользователя [{user.name}](http://forum.mfd.ru/forum/poster/?id={user.id})\n"
+    elif len(current_settings.mfd_user) > 1:
+        msg = "  На пользователей: \n"
+        for user in current_settings.mfd_user:
+            msg += f"    [{user.name}](http://forum.mfd.ru/forum/poster/?id={user.id})\n"
+        return msg
+    return ""
+
+
+def fill_mfd_thread(current_settings):
+    if len(current_settings.mfd_thread) == 1:
+        for thread in current_settings.mfd_thread:
+            return f"  Тему [{thread.name}](http://forum.mfd.ru/forum/thread/?id={thread.id})\n"
+    elif len(current_settings.mfd_thread) > 1:
+        msg = f"  На темы: \n"
+        for thread in current_settings.mfd_thread:
+            msg += f"    [{thread.name}](http://forum.mfd.ru/forum/thread/?id={thread.id})\n"
+        return msg
+    return ""
 
 
 @bot.command(r'^Подписаться на ALЁNKA$')

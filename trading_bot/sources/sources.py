@@ -13,7 +13,7 @@ from urllib.parse import quote
 
 import fast_json
 import html2text
-from aiohttp import ClientSession, ClientResponse, ClientResponseError
+from aiohttp import ClientSession, ClientResponseError
 from selectolax.parser import HTMLParser
 from yarl import URL
 

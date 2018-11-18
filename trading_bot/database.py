@@ -63,7 +63,7 @@ class DataBase:
         try:
             with open(self.user_file, 'rb') as f:
                 res = pickle.load(f)
-        except FileNotFoundError as e:
+        except FileNotFoundError:
             self.save_user_data({})
 
         return res
@@ -77,7 +77,7 @@ class DataBase:
         try:
             with open(self.user_messages, 'rb') as f:
                 res = pickle.load(f)
-        except FileNotFoundError as e:
+        except FileNotFoundError:
             self.save_user_messages({})
         return res
 
