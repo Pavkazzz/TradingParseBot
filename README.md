@@ -11,6 +11,7 @@ silent mode at night
 
 # Requirements
 - Python 3.7+
+- gcc
 
 # Usage:
 1) git clone git@github.com:Pavkazzz/WebParserBot.git TradingBot
