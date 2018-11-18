@@ -7,7 +7,7 @@ steps:
   commands:
   - pip install --upgrade pip setuptools wheel
   - pip wheel -r requirements.txt --wheel-dir=wheeldir --find-links=wheeldir
-  - pip wheel -r requirements.txt.dev --wheel-dir=wheeldir --find-links=wheeldir
+  - pip wheel -r requirements-dev.txt --wheel-dir=wheeldir --find-links=wheeldir
   - pip install --no-index --find-links=wheeldir -r requirements.txt
   - pip install --no-index --find-links=wheeldir -r requirements-dev.txt
   - pylava trading_bot tests
@@ -17,7 +17,7 @@ steps:
   commands:
   - pip install --upgrade pip setuptools wheel
   - pip wheel -r requirements.txt --wheel-dir=wheeldir --find-links=wheeldir
-  - pip wheel -r requirements.txt.dev --wheel-dir=wheeldir --find-links=wheeldir
+  - pip wheel -r requirements-dev.txt --wheel-dir=wheeldir --find-links=wheeldir
   - pip install --no-index --find-links=wheeldir -r requirements.txt
   - pip install --no-index --find-links=wheeldir -r requirements-dev.txt
   - pytest tests
