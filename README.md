@@ -1,4 +1,7 @@
-# WebParserBot
+# TradingBot
+
+##Диплом МИФИ
+
 Telegram bot for parsing web
 
 # Todo: 
