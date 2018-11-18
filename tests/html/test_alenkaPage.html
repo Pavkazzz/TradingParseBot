@@ -369,6 +369,7 @@
 
 
 
+
         </style>
 
         <div class="header">
@@ -416,6 +417,7 @@
     top: -1px;
     left: 25px;
 }
+
 
 
 
@@ -1581,6 +1583,7 @@
 
 
 
+
         </script>
 
         <div class="footer__content">
@@ -1614,6 +1617,7 @@
 jQuery('#form_menu_search').yiiActiveForm([{"id":"formpostsearch-search","name":"search","container":".field-formpostsearch-search","input":"#formpostsearch-search","validate":function (attribute, value, messages, deferred, $form) {value = yii.validation.trim($form, attribute, []);yii.validation.required(value, messages, {"message":"Укажите поисковый текст"});yii.validation.string(value, messages, {"message":"Search must be a string.","min":3,"tooShort":"Длина текста должна быть не менее 3х символов","max":50,"tooLong":"Длина текста должна быть не более 50 символов","skipOnEmpty":1});}}], []);
 jQuery('#form_search').yiiActiveForm([{"id":"formpostsearch-search","name":"search","container":".field-formpostsearch-search","input":"#formpostsearch-search","validate":function (attribute, value, messages, deferred, $form) {value = yii.validation.trim($form, attribute, []);yii.validation.required(value, messages, {"message":"Укажите поисковый текст"});yii.validation.string(value, messages, {"message":"Search must be a string.","min":3,"tooShort":"Длина текста должна быть не менее 3х символов","max":50,"tooLong":"Длина текста должна быть не более 50 символов","skipOnEmpty":1});}}], []);
 });
+
 
 
 

@@ -1,7 +1,6 @@
 import logging
 
 import configargparse
-import requests_cache
 from aiomisc.entrypoint import entrypoint
 from aiomisc.service.raven import RavenSender
 from aiomisc.utils import bind_socket
