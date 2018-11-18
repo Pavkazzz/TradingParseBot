@@ -1,9 +1,9 @@
-pavkazzz.ru {
+{%ENV_HOSTNAME%} {
     proxy / bot-server:80 {
         transparent
     }
 
-    tls pavel-mosein@yandex.ru
+    tls {$ENV_EMAIL$}
     log stdout
     errors stderr
 }

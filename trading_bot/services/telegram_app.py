@@ -22,7 +22,7 @@ class TelegramWebhook(AIOHTTPService):
         log.info(await self.bot.api_call('getWebhookInfo'))
         url = blake2b(dev_hooks_token.encode('utf-8')).hexdigest()
         await self.bot.set_webhook(
-            webhook_url=f'https://pavkazzz.ru/webhook/{url}'
+            webhook_url=f'https://devbot.pavkazzz.ru/webhook/{url}'
         )
         app: Application = self.bot.create_webhook_app(f'/webhook/{url}')
         app.router.add_route('GET', '/api/v1/ping', PingHandler)

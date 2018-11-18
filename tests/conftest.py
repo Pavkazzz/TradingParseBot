@@ -1,11 +1,12 @@
 import asyncio
-# from asyncio import WindowsProactorEventLoopPolicy
 
 import pytest
 import requests_cache
 from redis import Redis
 
 from trading_bot.sources.sources import AbstractSource, Page
+
+# from asyncio import WindowsProactorEventLoopPolicy
 
 pytestmark = pytest.mark.asyncio
 
@@ -28,4 +29,3 @@ async def event_loop():
 
 
 requests_cache.install_cache('click_cache', backend='redis', connection=Redis(host='127.0.0.1'))
-

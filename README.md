@@ -1,6 +1,6 @@
 # TradingBot
 
-##Диплом МИФИ
+## Диплом МИФИ
 
 Telegram bot for parsing web
 
