@@ -1,6 +1,11 @@
-{%ENV_HOSTNAME%} {
+{%APP_HOST_URL%} {
     proxy / bot-server:80 {
         transparent
+    }
+
+    cors / {
+         methods GET,POST
+         allowed_headers Content-Type
     }
 
     tls {$ENV_EMAIL$}

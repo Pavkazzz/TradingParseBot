@@ -17,6 +17,7 @@ log = logging.getLogger(__name__)
 class TelegramWebhook(AIOHTTPService):
     bot: Bot = None
     manager: Manager = None
+    host: str = None
 
     async def create_application(self):
         log.info(await self.bot.api_call('getWebhookInfo'))

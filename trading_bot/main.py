@@ -17,30 +17,35 @@ p = configargparse.ArgParser(
     auto_env_var_prefix='APP_'
 )
 p.add_argument('--redis-url', default='127.0.0.1', help='Url for redis database', type=str)
-arguments = p.parse_args()
+p.add_argument('--host-url', required=True)
 
-redis = Redis(host=arguments.redis_url)
 
-socket = bind_socket(
-    address='0.0.0.0',
-    port=80,
-    proto_name='http'
-)
+if __name__ == '__main__':
+    arguments = p.parse_args()
 
-services = [
-    TelegramWebhook(
-        sock=socket,
-        bot=bot,
-        manager=manager,
-    ),
-    UpdaterService(bot=bot, manager=manager),
-    RavenSender(sentry_dsn=sentry_key)
-]
+    redis = Redis(host=arguments.redis_url)
 
-with entrypoint(*services) as loop:
-    if redis.ping():
-        log.info('Success connect to redis')
-    else:
-        log.info('Cannot connect to redis!')
-    log.info('Start')
-    loop.run_forever()
+    socket = bind_socket(
+        address='0.0.0.0',
+        port=80,
+        proto_name='http'
+    )
+
+    services = [
+        TelegramWebhook(
+            sock=socket,
+            bot=bot,
+            manager=manager,
+            host=arguments.host_url
+        ),
+        UpdaterService(bot=bot, manager=manager),
+        RavenSender(sentry_dsn=sentry_key)
+    ]
+
+    with entrypoint(*services) as loop:
+        if redis.ping():
+            log.info('Success connect to redis')
+        else:
+            log.info('Cannot connect to redis!')
+        log.info('Start')
+        loop.run_forever()
