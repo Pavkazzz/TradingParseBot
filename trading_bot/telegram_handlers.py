@@ -1,17 +1,13 @@
 import logging
-from contextvars import ContextVar
 
 from aiotg import Chat, Bot
 
-from trading_bot.manager import Manager
+from trading_bot.manager import Manager, State
 from trading_bot.settings import dev_hooks_token, chatbase_token, proxy_string
 from trading_bot.sources.sources import SmartLab
 from trading_bot.telegram_helper import keyboard_markup, build_menu
 
 log = logging.getLogger(__name__)
-
-IDLE, MFD_USER_ADD, MFD_USER_REMOVE, MFD_THREAD_ADD, MFD_THREAD_REMOVE = range(5)
-state = ContextVar('state', default=IDLE)
 
 bot = Bot(
     api_token=dev_hooks_token,
@@ -32,7 +28,7 @@ async def start(chat: Chat, match):
 
 @bot.command(r'/stop')
 async def stop(chat: Chat, match):
-    manager.stop(chat.message["from"]["id"])
+    manager.stop(chat.id)
     await key(chat, match)
 
 
@@ -67,9 +63,10 @@ async def smartlab(chat: Chat, _=None):
 
 @bot.command(r'^Подписки$')
 async def settings(chat: Chat, _=None):
-    state.set(IDLE)
+    user_id = chat.id
+    manager.set_state(user_id, State.IDLE)
 
-    if manager.settings(chat.message["from"]["id"]).alenka:
+    if manager.settings(user_id).alenka:
         alenka = "Отписаться от ALЁNKA"
     else:
         alenka = "Подписаться на ALЁNKA"
@@ -80,8 +77,7 @@ async def settings(chat: Chat, _=None):
 
 @bot.command(r'^Текущие подписки$')
 async def print_settings(chat: Chat, _=None):
-    chat_id = chat.message["from"]["id"]
-    current_settings = manager.settings(chat_id)
+    current_settings = manager.settings(chat.id)
     msg = ""
 
     if current_settings.alenka or len(current_settings.mfd_user) > 0 or len(current_settings.mfd_thread) > 0:
@@ -126,14 +122,14 @@ def fill_mfd_thread(current_settings):
 
 @bot.command(r'^Подписаться на ALЁNKA$')
 async def subscribe_alenka(chat: Chat, match):
-    text, _ = await manager.new_command(chat.message["from"]["id"], Manager.ADD_ALENKA)
+    text, _ = await manager.new_command(chat.id, Manager.ADD_ALENKA)
     await chat.send_text(text)
     await settings(chat, match)
 
 
 @bot.command(r'^Отписаться от ALЁNKA$')
 async def unsubscribe_alenka(chat: Chat, match):
-    text, _ = await manager.new_command(chat.message["from"]["id"], Manager.REMOVE_ALENKA)
+    text, _ = await manager.new_command(chat.id, Manager.REMOVE_ALENKA)
     await chat.send_text(text)
     await settings(chat, match)
 
@@ -148,17 +144,17 @@ async def mfd_forum(chat: Chat, _=None):
 async def mfd_forum_add(chat: Chat, _=None):
     await chat.send_text("Введите имя темы или ссылку на тему или любое сообщение этой темы ",
                          reply_markup=keyboard_markup())
-    state.set(MFD_THREAD_ADD)
+    manager.set_state(chat.id, State.MFD_THREAD_ADD)
 
 
 @bot.command(r'^Удалить mfd тему$')
 async def mfd_forum_remove(chat: Chat, _=None):
-    chat_id = chat.message["from"]["id"]
+    chat_id = chat.id
     await chat.send_text("Выберете тему для удаления: ",
                          reply_markup=keyboard_markup(
                              [data.name for data in manager.settings(chat_id).mfd_thread], n_col=1)
                          )
-    state.set(MFD_THREAD_REMOVE)
+    manager.set_state(chat.id, State.MFD_THREAD_REMOVE)
 
 
 @bot.command(r'^MFD.ru пользователи')
@@ -171,41 +167,39 @@ async def mfd_user(chat: Chat, _=None):
 async def mfd_user_add(chat: Chat, _=None):
     await chat.send_text("Введите имя темы или ссылку на пользователя.\nЕсли передумали, введите \"Отмена\" ",
                          reply_markup=keyboard_markup())
-    state.set(MFD_USER_ADD)
+    manager.set_state(chat.id, State.MFD_USER_ADD)
 
 
 @bot.command(r'^Удалить mfd пользователя$')
 async def mfd_user_remove(chat: Chat, _=None):
-    chat_id = chat.message["from"]["id"]
     await chat.send_text("Выберете пользователя для удаления: ",
                          reply_markup=keyboard_markup(
-                             [data.name for data in manager.settings(chat_id).mfd_user], n_col=1)
+                             [data.name for data in manager.settings(chat.id).mfd_user], n_col=1)
                          )
-    state.set(MFD_USER_REMOVE)
+    manager.set_state(chat.id, State.MFD_USER_REMOVE)
 
 
 @bot.default
 async def received_information(chat: Chat, _=None):
-    st = state.get()
-    if st == IDLE:
+    st = manager.state
+    if st == State.IDLE:
         return
-    if st == MFD_THREAD_ADD:
+    if st == State.MFD_THREAD_ADD:
         await mfd_add_thread(chat)
-    if st == MFD_THREAD_REMOVE:
+    if st == State.MFD_THREAD_REMOVE:
         await mfd_remove_thread(chat)
-    if st == MFD_USER_ADD:
+    if st == State.MFD_USER_ADD:
         await mfd_add_user(chat)
-    if st == MFD_USER_REMOVE:
+    if st == State.MFD_USER_REMOVE:
         await mfd_remove_user(chat)
 
 
 async def mfd_remove_user(chat: Chat):
     text = str(chat.message['text'])
-    cid = chat.message["from"]["id"]
     res = ""
-    for data in manager.settings(cid).mfd_user:
+    for data in manager.settings(chat.id).mfd_user:
         if data.name == text:
-            res, _ = await manager.new_command(cid, Manager.REMOVE_MFD_USER, data)
+            res, _ = await manager.new_command(chat.id, Manager.REMOVE_MFD_USER, data)
     if res:
         await chat.send_text(res)
         await settings(chat)
@@ -215,11 +209,10 @@ async def mfd_remove_user(chat: Chat):
 
 async def mfd_remove_thread(chat: Chat):
     text = str(chat.message['text'])
-    cid = chat.message["from"]["id"]
     res = ""
-    for data in manager.settings(cid).mfd_thread:
+    for data in manager.settings(chat.id).mfd_thread:
         if data.name == text:
-            res, _ = await manager.new_command(cid, Manager.REMOVE_MFD_THREAD, data)
+            res, _ = await manager.new_command(chat.id, Manager.REMOVE_MFD_THREAD, data)
 
     if res:
         await chat.send_text(res)
@@ -239,7 +232,7 @@ async def mfd_add_user(chat: Chat):
         except Exception:
             rating = 0
 
-    cid = chat.message["from"]["id"]
+    cid = chat.id
     if text.startswith('http'):
         answer = await manager.resolve_mfd_user_link(cid, text)
         if not answer:
@@ -262,7 +255,7 @@ async def mfd_add_user(chat: Chat):
 
 async def mfd_add_thread(chat: Chat):
     text = str(chat.message['text'])
-    cid = chat.message["from"]["id"]
+    cid = chat.id
 
     if text.startswith('http'):
         answer = await manager.resolve_mfd_thread_link(cid, text)

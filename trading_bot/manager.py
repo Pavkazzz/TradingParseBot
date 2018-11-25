@@ -3,6 +3,7 @@ import asyncio
 import logging
 import typing
 from dataclasses import dataclass, field
+from enum import IntEnum
 from typing import Tuple, List, Dict
 
 import fast_json
@@ -13,6 +14,14 @@ from trading_bot.sources import sources
 from trading_bot.telegram_sender import send_message, remove_message
 
 log = logging.getLogger(__name__)
+
+
+class State(IntEnum):
+    IDLE = 1
+    MFD_USER_ADD = 2
+    MFD_USER_REMOVE = 3
+    MFD_THREAD_ADD = 4
+    MFD_THREAD_REMOVE = 4
 
 
 @dataclass(unsafe_hash=True)
@@ -27,6 +36,7 @@ class Data:
     mfd_thread: typing.List[SingleData] = field(default_factory=list)
     alenka: bool = field(default=False)
     username: str = field(default="")
+    state: State = field(default=State.IDLE)
 
     def remove_duplicate(self):
         self.mfd_user = list(dict.fromkeys(self.mfd_user))
@@ -340,3 +350,9 @@ class Manager:
 
     def set_username(self, chat_id, username):
         self.users_subscription[chat_id].username = username
+
+    def set_state(self, chat_id, state):
+        self.users_subscription[chat_id].state = state
+
+    def state(self, chat_id):
+        return self.users_subscription[chat_id].state
