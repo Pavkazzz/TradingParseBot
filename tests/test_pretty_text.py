@@ -3,7 +3,7 @@ from PIL import ImageFont
 from selectolax.parser import HTMLParser
 
 from tests.conftest import TestSource
-from trading_bot.sources.sources import get_click_link
+from trading_bot.sources.sources import MarkdownFormatter
 
 
 async def test_pretty_text():
@@ -233,12 +233,12 @@ async def test_multiple_image():
 async def test_russian_links():
     url = "http://peretok.ru/articles/strategy/19079/ВИЭ"
     res = "https://clck.ru/EYqGb"
-    assert res == (await get_click_link(url))[1]
+    assert res == (await MarkdownFormatter(None).get_click_link(url))[1]
 
 
 async def test_nzt_links():
     link = "https://vk.com/@nztrusfond-obzor-portfelya-po-rezultatam-oktyabrya"
-    assert (await get_click_link(url=link))[1] == link
+    assert (await MarkdownFormatter(None).get_click_link(url=link))[1] == link
 
 
 async def test_quoting():

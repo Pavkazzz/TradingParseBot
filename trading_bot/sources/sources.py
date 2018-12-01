@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import asyncio
 import logging
 import re
 import typing
@@ -52,33 +51,34 @@ def get_chatbase_url(url):
     ))
 
 
-async def get_click_link(url, connector=None) -> typing.Tuple[str, str]:
-    if '@' in url:
-        return url, url
-    try:
-        req_url = f'https://clck.ru/--?url={quote(get_chatbase_url(url), encoding="ascii")}'
-    except UnicodeEncodeError:
-        log.exception('Failed to encode url %r', url)
-        req_url = url
-
-    async with ClientSession(
-            raise_for_status=True,
-            connector=connector,
-            connector_owner=False
-    ) as session:
-        async with session.get(req_url) as r:  # type: ClientResponse
-            res = await r.text()
-    return url, res
-
-
 class MarkdownFormatter:
 
     def __init__(self, base_url):
-        self.loop = asyncio.get_event_loop()
         self.base_url = base_url
         self.matcher = {}
         self.re = re.compile(r"(\(https?://\S+\))")
-        self.connector = TCPConnector(loop=self.loop)
+        self.connector = TCPConnector()
+
+    def __del__(self):
+        self.connector.close()
+
+    async def get_click_link(self, url) -> typing.Tuple[str, str]:
+        if '@' in url:
+            return url, url
+        try:
+            req_url = f'https://clck.ru/--?url={quote(get_chatbase_url(url), encoding="ascii")}'
+        except UnicodeEncodeError:
+            log.exception('Failed to encode url %r', url)
+            req_url = url
+
+        async with ClientSession(
+                raise_for_status=True,
+                connector=self.connector,
+                connector_owner=False
+        ) as session:
+            async with session.get(req_url) as r:  # type: ClientResponse
+                res = await r.text()
+        return url, res
 
     def collect_matches(self, match: typing.Match[str]):
         self.matcher[match.group(0)[1:-1]] = ""
@@ -87,7 +87,7 @@ class MarkdownFormatter:
         self.matcher = {}
         # noinspection PyTypeChecker
         self.re.sub(partial(self.collect_matches), markdown)
-        tasks = [get_click_link(url, self.connector) for url in self.matcher.keys()]
+        tasks = [self.get_click_link(url) for url in self.matcher.keys()]
         res = await gather(*tasks)
         return reduce(lambda md, b: md.replace(f'({b[0]})', f'({b[1]})'), res, markdown)
 
@@ -245,7 +245,7 @@ class AlenkaNews(AbstractSource):
                 md=(f"{post['post_date']}"
                     f"\n\n"
                     f"{utils.alert(post['post_alert'], False)}"
-                    f"[{post['post_name']}]({(await get_click_link(post['post_link']))[1]})"),
+                    f"[{post['post_name']}]({(await self._formatter.get_click_link(post['post_link']))[1]})"),
                 title=self.title,
                 id=post['post_id'])
             for post in [item for item in data if item['cat_name'] == "Лента новостей"]
@@ -265,8 +265,8 @@ class AlenkaPost(AbstractSource):
                 md=(f"{post['post_date']}"
                     f"\n\n"
                     f"{utils.alert(post['post_alert'], True)}"
-                    f"[{post['cat_name']}]({(await get_click_link(post['cat_link']))[1]})\n\n"
-                    f"[{post['post_name']}]({(await get_click_link(post['post_link']))[1]})"),
+                    f"[{post['cat_name']}]({(await self._formatter.get_click_link(post['cat_link']))[1]})\n\n"
+                    f"[{post['post_name']}]({(await self._formatter.get_click_link(post['post_link']))[1]})"),
                 title=self.title,
                 id=post['post_id'])
             for post in [item for item in data if item['cat_name'] != "Лента новостей"]

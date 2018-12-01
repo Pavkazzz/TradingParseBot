@@ -4,14 +4,13 @@ import configargparse
 from aiomisc.entrypoint import entrypoint
 from aiomisc.service.raven import RavenSender
 from aiomisc.service.tracer import MemoryTracer
-
 from aiomisc.utils import bind_socket
 from redis import Redis
 
 from trading_bot.services.telegram_app import TelegramWebhook
 from trading_bot.services.updater_service import UpdaterService
 from trading_bot.settings import sentry_key
-from trading_bot.telegram_handlers import manager, bot
+from trading_bot.telegram_handlers import manager, bot, loop
 
 log = logging.getLogger(__name__)
 
@@ -47,7 +46,7 @@ if __name__ == '__main__':
     if arguments.memory_tracer:
         services.append(MemoryTracer(interval=60))
 
-    with entrypoint(*services) as loop:
+    with entrypoint(loop=loop, *services) as loop:
         if redis.ping():
             log.info('Success connect to redis')
         else:

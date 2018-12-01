@@ -1,5 +1,6 @@
 import logging
 
+from aiomisc.utils import new_event_loop
 from aiotg import Chat, Bot
 
 from trading_bot.manager import Manager, State
@@ -16,7 +17,13 @@ bot = Bot(
     proxy=proxy_string
 )
 
-manager = Manager()
+
+async def create_manager() -> Manager:
+    return Manager()
+
+
+loop = new_event_loop()
+manager = loop.run_until_complete(create_manager())
 
 
 @bot.command(r'/start')
