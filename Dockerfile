@@ -4,7 +4,7 @@ WORKDIR app
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-    git build-essential gcc && \
+    git build-essential gcc libjpeg-dev zlib1g-dev && \
     apt-get clean && rm -fr /var/cache/apt/archives/*
 
 COPY requirements.txt ./

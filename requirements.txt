@@ -2,7 +2,7 @@ aiohttp
 aiomisc
 ConfigArgParse
 fast-json
-git+git://github.com/Pavkazzz/html2text.git@e7b247cf39602a04a2d822f14c386e2f4b634ecb#egg=html2text
+git+git://github.com/Pavkazzz/html2text.git@adb653662984b53661677f6dd0c3de7fd6aa5297#egg=html2text
 git+git://github.com/Pavkazzz/aiotg.git@dba8fa8521b6a40e40befa045389a6688f73667c#egg=aiotg
 pillow-simd
 raven-aiohttp
