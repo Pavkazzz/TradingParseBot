@@ -3,6 +3,8 @@ import logging
 import configargparse
 from aiomisc.entrypoint import entrypoint
 from aiomisc.service.raven import RavenSender
+from aiomisc.service.tracer import MemoryTracer
+
 from aiomisc.utils import bind_socket
 from redis import Redis
 
@@ -18,6 +20,8 @@ p = configargparse.ArgParser(
 )
 p.add_argument('--redis-url', default='127.0.0.1', help='Url for redis database', type=str)
 p.add_argument('--host-url', required=True)
+
+p.add_argument('--memory-tracer', action="store_true", default=False)
 
 if __name__ == '__main__':
     arguments = p.parse_args()
@@ -40,6 +44,8 @@ if __name__ == '__main__':
         UpdaterService(bot=bot, manager=manager),
         RavenSender(sentry_dsn=sentry_key)
     ]
+    if arguments.memory_tracer:
+        services.append(MemoryTracer(interval=60))
 
     with entrypoint(*services) as loop:
         if redis.ping():
