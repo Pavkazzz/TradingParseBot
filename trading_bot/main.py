@@ -19,7 +19,6 @@ p = configargparse.ArgParser(
 p.add_argument('--redis-url', default='127.0.0.1', help='Url for redis database', type=str)
 p.add_argument('--host-url', required=True)
 
-
 if __name__ == '__main__':
     arguments = p.parse_args()
 

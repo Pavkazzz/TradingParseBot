@@ -2,8 +2,9 @@ aiohttp
 aiomisc
 ConfigArgParse
 fast-json
-git+git://github.com/Pavkazzz/html2text.git@b2c2233b2332539ebf5eeaa54526f966f543b03f#egg=html2text
+git+git://github.com/Pavkazzz/html2text.git@e7b247cf39602a04a2d822f14c386e2f4b634ecb#egg=html2text
 git+git://github.com/Pavkazzz/aiotg.git@dba8fa8521b6a40e40befa045389a6688f73667c#egg=aiotg
+pillow-simd
 raven-aiohttp
 redis
 selectolax~=0.1

@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import asyncio
 import logging
 import re
 import typing
@@ -13,7 +14,7 @@ from urllib.parse import quote
 
 import fast_json
 import html2text
-from aiohttp import ClientSession, ClientResponseError
+from aiohttp import ClientSession, ClientResponseError, TCPConnector
 from selectolax.parser import HTMLParser
 from yarl import URL
 
@@ -51,7 +52,7 @@ def get_chatbase_url(url):
     ))
 
 
-async def get_click_link(url) -> typing.Tuple[str, str]:
+async def get_click_link(url, connector=None) -> typing.Tuple[str, str]:
     if '@' in url:
         return url, url
     try:
@@ -60,7 +61,11 @@ async def get_click_link(url) -> typing.Tuple[str, str]:
         log.exception('Failed to encode url %r', url)
         req_url = url
 
-    async with ClientSession(raise_for_status=True) as session:
+    async with ClientSession(
+            raise_for_status=True,
+            connector=connector,
+            connector_owner=False
+    ) as session:
         async with session.get(req_url) as r:  # type: ClientResponse
             res = await r.text()
     return url, res
@@ -69,30 +74,37 @@ async def get_click_link(url) -> typing.Tuple[str, str]:
 class MarkdownFormatter:
 
     def __init__(self, base_url):
+        self.loop = asyncio.get_event_loop()
         self.base_url = base_url
         self.matcher = {}
         self.re = re.compile(r"(\(https?://\S+\))")
+        self.connector = TCPConnector(loop=self.loop)
 
     def collect_matches(self, match: typing.Match[str]):
         self.matcher[match.group(0)[1:-1]] = ""
 
     async def convert_links(self, markdown: str) -> str:
-        # noinspection PyTypeChecker
         self.matcher = {}
+        # noinspection PyTypeChecker
         self.re.sub(partial(self.collect_matches), markdown)
-        tasks = [get_click_link(url) for url in self.matcher.keys()]
+        tasks = [get_click_link(url, self.connector) for url in self.matcher.keys()]
         res = await gather(*tasks)
         return reduce(lambda md, b: md.replace(f'({b[0]})', f'({b[1]})'), res, markdown)
 
-    async def parse_markdown(self, html, width=34) -> str:
+    async def parse_markdown(self, html, width=270, max_length=4096) -> str:
         h = html2text.HTML2Text(baseurl=self.base_url, bodywidth=width)
         # Небольшие изощрения с li
         html_to_parse = str(html).replace('<li', '<div').replace("</li>", "</div>")
         if '[' in html_to_parse and ']' in html_to_parse:
             html_to_parse = html_to_parse.replace('[', '{').replace(']', '}')
 
+        html_to_parse.replace('lite.mfd.ru', 'forum.mfd.ru')
+
         html_to_parse = utils.transform_emoji(html_to_parse)
-        return await self.convert_links(h.handle(html_to_parse).strip())
+        md = await self.convert_links(h.handle(html_to_parse).strip())
+        if len(md) > max_length:
+            md = f'{md[:max_length - 4]}...'
+        return md
 
 
 class AbstractSource(metaclass=ABCMeta):
@@ -209,7 +221,7 @@ class MfdForumThreadSource(MfdSource):
 
     async def find_thread(self, param):
         url = f"http://lite.mfd.ru/forum/search/?query=1+2+3+4+5+6+7+8+9+0+%D0%B0+%D0%B1+%D0%B2+%D0%B3+%D0%B4&method" \
-              f"=Or&userQuery=&threadQuery={quote(param)}&from=&till="
+            f"=Or&userQuery=&threadQuery={quote(param)}&from=&till="
         bs = HTMLParser(await self.session(custom_url=url))
         title = [post.text() for post in bs.css("h3.mfd-post-thread-subject > a")]
         title = list(set(title))

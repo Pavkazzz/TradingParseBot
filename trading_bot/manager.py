@@ -128,7 +128,7 @@ class Manager:
             # Mfd thread
             current_data, result = await self.new_mfd_thread(chat_id, command, current_data, data, result)
         except KeyError as e:
-            print(f"Unexpected key error: {command} {data}, e:{e}")
+            log.exception("Unexpected key error: %r, %r", command, data)
 
         self.db.save_user_data(self.users_subscription)
         return result, current_data
