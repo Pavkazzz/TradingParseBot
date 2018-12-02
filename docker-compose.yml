@@ -10,13 +10,19 @@ services:
       - ./.caddy:/root/.caddy
     networks:
       - server-net
+    environment:
+      - APP_HOST_URL=devhooks.pavkazzz.ru
 
   bot-server:
-    image: pavkazzz/telegram_bot:hooks-v0.6.0
+    image: pavkazzz/telegram_bot:hooks-v0.6.3
+    restart: always
     expose:
       - 80
     environment:
       - RHOST=redis
+      - APP_REDIS_URL=redis
+      - APP_HOST_URL=devhooks.pavkazzz.ru
+      - APP_MEMORY_TRACER=1
     volumes:
       - ./data:/app/data
     networks:
