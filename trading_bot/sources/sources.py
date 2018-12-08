@@ -91,7 +91,7 @@ class MarkdownFormatter:
         res = await gather(*tasks)
         return reduce(lambda md, b: md.replace(f'({b[0]})', f'({b[1]})'), res, markdown)
 
-    async def parse_markdown(self, html, width=270, max_length=4096) -> str:
+    async def parse_markdown(self, html, width=269, max_length=4096) -> str:
         h = html2text.HTML2Text(baseurl=self.base_url, bodywidth=width)
         # Небольшие изощрения с li
         html_to_parse = str(html).replace('<li', '<div').replace("</li>", "</div>")

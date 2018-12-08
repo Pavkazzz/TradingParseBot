@@ -11,18 +11,17 @@ services:
     networks:
       - server-net
     environment:
-      - APP_HOST_URL=devhooks.pavkazzz.ru
+      - APP_HOST_URL=prodhooks.pavkazzz.ru
 
   bot-server:
-    image: pavkazzz/telegram_bot:hooks-v0.6.3
+    image: pavkazzz/telegram_bot:hooks-prod-v1.0
     restart: always
     expose:
       - 80
     environment:
       - RHOST=redis
       - APP_REDIS_URL=redis
-      - APP_HOST_URL=devhooks.pavkazzz.ru
-      - APP_MEMORY_TRACER=1
+      - APP_HOST_URL=prodhooks.pavkazzz.ru
     volumes:
       - ./data:/app/data
     networks:
