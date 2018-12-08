@@ -115,7 +115,7 @@ class AbstractSource(metaclass=ABCMeta):
         self._last_request = {}
         self._caching_time = timedelta(seconds=caching_time)
         self._last_time_request = datetime.min
-        disable_short = os.environ.get('APP_DISABLE_SHORT', 0) == 1
+        disable_short = os.environ.get('APP_DISABLE_SHORT', '0') == '1'
         self._formatter = MarkdownFormatter(formatter_url or self._url, disable_short)
 
     def update_cache(self, url, value):

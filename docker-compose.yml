@@ -14,14 +14,14 @@ services:
       - APP_HOST_URL=prodhooks.pavkazzz.ru
 
   bot-server:
-    image: pavkazzz/telegram_bot:hooks-prod-v1.0.1
+    image: pavkazzz/telegram_bot:hooks-prod-v1.0.2
     restart: always
     expose:
       - 80
     environment:
       - RHOST=redis
       - APP_REDIS_URL=redis
-      - APP_HOST_URL=prodhooks.pavkazzz.ru,
+      - APP_HOST_URL=prodhooks.pavkazzz.ru
       - APP_DISABLE_SHORT=1
     volumes:
       - ./data:/app/data
