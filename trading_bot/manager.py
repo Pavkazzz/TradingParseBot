@@ -3,7 +3,7 @@ import asyncio
 import logging
 import typing
 from dataclasses import dataclass, field
-from enum import IntEnum
+from enum import IntEnum, unique
 from typing import Tuple, List, Dict
 
 import fast_json
@@ -16,12 +16,13 @@ from trading_bot.telegram_sender import send_message, remove_message
 log = logging.getLogger(__name__)
 
 
+@unique
 class State(IntEnum):
     IDLE = 1
     MFD_USER_ADD = 2
     MFD_USER_REMOVE = 3
     MFD_THREAD_ADD = 4
-    MFD_THREAD_REMOVE = 4
+    MFD_THREAD_REMOVE = 5
 
 
 @dataclass(unsafe_hash=True)
@@ -63,7 +64,7 @@ class Manager:
     ADD_MFD_THREAD = "add_mfd_thread"  # + id - Добавить mfd форум по id
     REMOVE_MFD_THREAD = "remove_mfd_tread"  # + id - Удалить mfd форум по id
 
-    def __init__(self, clear_start=False):
+    def __init__(self, clear_start=False, redis=None):
         self.current_data = {}
 
         self.db: DataBase = DataBase(clear_start)
@@ -75,11 +76,11 @@ class Manager:
                 self.sended_msg[user_id] = {}
 
         self.sources = {
-            "alenka_post": sources.AlenkaPost(),
-            "alenka_news": sources.AlenkaNews(),
-            "mfd_user_post": sources.MfdUserPostSource(),
-            "mfd_user_comment": sources.MfdUserCommentSource(),
-            "mfd_thread": sources.MfdForumThreadSource()
+            "alenka_post": sources.AlenkaPost(redis=redis),
+            "alenka_news": sources.AlenkaNews(redis=redis),
+            "mfd_user_post": sources.MfdUserPostSource(redis=redis),
+            "mfd_user_comment": sources.MfdUserCommentSource(redis=redis),
+            "mfd_thread": sources.MfdForumThreadSource(redis=redis)
         }
 
     async def send_to_all_users(self, bot, text: str):
@@ -234,9 +235,7 @@ class Manager:
 
         for user in list(self.users_subscription):
             posts = await self.check_new(user)
-            message_id = []
-            for post in posts:
-                message_id.append(self.get_sended_id(user, post))
+            message_id = [self.get_sended_id(user, post) for post in posts]
             yield user, list(zip(posts, message_id))
         self.save_user_messages()
 

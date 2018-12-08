@@ -2,12 +2,12 @@
 import logging
 import os
 import re
+import time
 import typing
 from abc import ABCMeta, abstractmethod
 from asyncio import gather
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
-from functools import partial, reduce
+from functools import partial, reduce, wraps
 from itertools import zip_longest
 from typing import Tuple
 from urllib.parse import quote
@@ -15,6 +15,7 @@ from urllib.parse import quote
 import fast_json
 import html2text
 from aiohttp import ClientSession, ClientResponseError, TCPConnector
+from aioredis import Redis
 from selectolax.parser import HTMLParser
 from yarl import URL
 
@@ -52,21 +53,44 @@ def get_chatbase_url(url):
     ))
 
 
+def cache(func):
+    @wraps(func)
+    async def func_wrapper(self, url):
+        if self.redis:
+            clck = await self.redis.get(url)
+            if clck:
+                log.info('Get link: %r from redis', clck)
+                return url, clck.decode()
+
+        url, res = await func(self, url)
+
+        if 'https://clck.ru/' in res and self.redis:
+            log.info('Save %r to redis', res)
+            await self.redis.set(url, res)
+
+        return url, res
+
+    return func_wrapper
+
+
 class MarkdownFormatter:
 
-    def __init__(self, base_url, disable_short=False):
+    def __init__(self, base_url, disable_short=False, redis=None):
         self.disable_short = disable_short
         self.base_url = base_url
         self.matcher = {}
         self.re = re.compile(r"(\(https?://\S+\))")
         self.connector = TCPConnector()
+        self.redis: Redis = redis
 
     def __del__(self):
         self.connector.close()
 
+    @cache
     async def get_click_link(self, url) -> typing.Tuple[str, str]:
         if self.disable_short or '@' in url:
             return url, url
+
         try:
             req_url = f'https://clck.ru/--?url={quote(get_chatbase_url(url), encoding="ascii")}'
         except UnicodeEncodeError:
@@ -74,12 +98,17 @@ class MarkdownFormatter:
             req_url = url
 
         async with ClientSession(
-            raise_for_status=True,
-            connector=self.connector,
-            connector_owner=False
+                raise_for_status=True,
+                connector=self.connector,
+                connector_owner=False
         ) as session:
             async with session.get(req_url) as r:  # type: ClientResponse
                 res = await r.text()
+
+        # Забанили урл
+        if len(res) > 30:
+            return url, url
+
         return url, res
 
     def collect_matches(self, match: typing.Match[str]):
@@ -110,22 +139,23 @@ class MarkdownFormatter:
 
 
 class AbstractSource(metaclass=ABCMeta):
-    def __init__(self, url, caching_time: int = 60, formatter_url=None):
+    def __init__(self, url, caching_time: int = 60, formatter_url=None, redis=None):
         self._url = url
         self._last_request = {}
-        self._caching_time = timedelta(seconds=caching_time)
-        self._last_time_request = datetime.min
+        self._caching_time = caching_time
+        self._last_time_request = 0
+
         disable_short = os.environ.get('APP_DISABLE_SHORT', '0') == '1'
-        self._formatter = MarkdownFormatter(formatter_url or self._url, disable_short)
+        self._formatter = MarkdownFormatter(formatter_url or self._url, disable_short, redis=redis)
 
     def update_cache(self, url, value):
         self._last_request[url] = value
-        self._last_time_request = datetime.utcnow()
+        self._last_time_request = time.monotonic()
 
     async def session(self, custom_url=None, **format_url):
         url = self._url.format(**format_url) if not custom_url else custom_url
 
-        if self._last_time_request + self._caching_time > datetime.utcnow() and url in list(self._last_request.keys()):
+        if (self._last_time_request + self._caching_time) > time.monotonic() and url in list(self._last_request.keys()):
             log.info('Not time for request url: %r', url)
             return self._last_request[url]
 
@@ -150,8 +180,8 @@ class AbstractSource(metaclass=ABCMeta):
 
 
 class MfdSource(AbstractSource):
-    def __init__(self, url, id_selector):
-        super().__init__(url, 60 * 2, formatter_url="http://mfd.ru")
+    def __init__(self, url, id_selector, redis=None):
+        super().__init__(url, 60 * 2, formatter_url="http://mfd.ru", redis=redis)
         self.id_selector = id_selector
 
     async def check_update(self, data) -> Page:
@@ -177,8 +207,8 @@ class MfdSource(AbstractSource):
 
 
 class MfdUserPostSource(MfdSource):
-    def __init__(self):
-        super().__init__("http://lite.mfd.ru/forum/poster/posts/?id={id}", "button.mfd-button-attention")
+    def __init__(self, redis=None):
+        super().__init__("http://lite.mfd.ru/forum/poster/posts/?id={id}", "button.mfd-button-attention", redis)
 
     async def thread_selector(self, parser):
         return [await self.pretty_text(p.text()) for p in parser.css("h3.mfd-post-thread-subject > a")]
@@ -202,16 +232,16 @@ class MfdUserPostSource(MfdSource):
 
 
 class MfdUserCommentSource(MfdSource):
-    def __init__(self):
-        super().__init__("http://lite.mfd.ru/forum/poster/comments/?id={id}", "button.mfd-button-quote")
+    def __init__(self, redis=None):
+        super().__init__("http://lite.mfd.ru/forum/poster/comments/?id={id}", "button.mfd-button-quote", redis)
 
     async def thread_selector(self, bs):
         return [await self.pretty_text(p.html) for p in bs.css("h3.mfd-post-thread-subject > a")]
 
 
 class MfdForumThreadSource(MfdSource):
-    def __init__(self):
-        super().__init__("http://lite.mfd.ru/forum/thread/?id={id}", "button.mfd-button-attention")
+    def __init__(self, redis=None):
+        super().__init__("http://lite.mfd.ru/forum/thread/?id={id}", "button.mfd-button-attention", redis)
 
     async def thread_selector(self, bs):
         return [await self.pretty_text(p.text()) for p in bs.css(".mfd-header > h1")]
@@ -236,8 +266,8 @@ class MfdForumThreadSource(MfdSource):
 
 
 class AlenkaNews(AbstractSource):
-    def __init__(self):
-        super().__init__(alenka_url, caching_time=30)
+    def __init__(self, redis=None):
+        super().__init__(alenka_url, caching_time=30, redis=redis)
         self.title = "ALЁNKA CAPITAL"
 
     async def check_update(self) -> Page:
@@ -256,8 +286,8 @@ class AlenkaNews(AbstractSource):
 
 
 class AlenkaPost(AbstractSource):
-    def __init__(self):
-        super().__init__(alenka_url, caching_time=30)
+    def __init__(self, redis=None):
+        super().__init__(alenka_url, caching_time=30, redis=redis)
         self.title = "ALЁNKA CAPITAL"
 
     async def check_update(self) -> Page:

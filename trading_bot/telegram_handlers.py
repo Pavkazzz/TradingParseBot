@@ -1,6 +1,6 @@
 import logging
 
-from aiomisc.utils import new_event_loop
+from aioredis import create_redis_pool, Redis
 from aiotg import Chat, Bot
 
 from trading_bot.manager import Manager, State
@@ -17,19 +17,21 @@ bot = Bot(
     proxy=proxy_string
 )
 
-
-async def create_manager() -> Manager:
-    return Manager()
+manager = None
 
 
-loop = new_event_loop()
-manager = loop.run_until_complete(create_manager())
+async def init(host):
+    global manager
+
+    redis: Redis = await create_redis_pool(host, minsize=5, maxsize=10)
+    manager = Manager(redis=redis)
+    return bot, manager
 
 
 @bot.command(r'/start')
 async def start(chat: Chat, match):
     user = chat.message["from"]
-    manager.start(user['id'], user['username'])
+    manager.start(user['id'], user.get('username'))
     await key(chat, match)
 
 
