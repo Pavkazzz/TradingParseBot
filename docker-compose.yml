@@ -21,7 +21,8 @@ services:
     environment:
       - RHOST=redis
       - APP_REDIS_URL=redis
-      - APP_HOST_URL=prodhooks.pavkazzz.ru
+      - APP_HOST_URL=prodhooks.pavkazzz.ru,
+      - APP_DISABLE_SHORT=1
     volumes:
       - ./data:/app/data
     networks:
