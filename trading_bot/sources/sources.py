@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import logging
+import os
 import re
 import typing
 from abc import ABCMeta, abstractmethod
@@ -53,7 +54,8 @@ def get_chatbase_url(url):
 
 class MarkdownFormatter:
 
-    def __init__(self, base_url):
+    def __init__(self, base_url, disable_short=False):
+        self.disable_short = disable_short
         self.base_url = base_url
         self.matcher = {}
         self.re = re.compile(r"(\(https?://\S+\))")
@@ -63,7 +65,7 @@ class MarkdownFormatter:
         self.connector.close()
 
     async def get_click_link(self, url) -> typing.Tuple[str, str]:
-        if '@' in url:
+        if self.disable_short or '@' in url:
             return url, url
         try:
             req_url = f'https://clck.ru/--?url={quote(get_chatbase_url(url), encoding="ascii")}'
@@ -72,9 +74,9 @@ class MarkdownFormatter:
             req_url = url
 
         async with ClientSession(
-                raise_for_status=True,
-                connector=self.connector,
-                connector_owner=False
+            raise_for_status=True,
+            connector=self.connector,
+            connector_owner=False
         ) as session:
             async with session.get(req_url) as r:  # type: ClientResponse
                 res = await r.text()
@@ -113,7 +115,8 @@ class AbstractSource(metaclass=ABCMeta):
         self._last_request = {}
         self._caching_time = timedelta(seconds=caching_time)
         self._last_time_request = datetime.min
-        self._formatter = MarkdownFormatter(formatter_url or self._url)
+        disable_short = os.environ.get('APP_DISABLE_SHORT', 0) == 1
+        self._formatter = MarkdownFormatter(formatter_url or self._url, disable_short)
 
     def update_cache(self, url, value):
         self._last_request[url] = value
