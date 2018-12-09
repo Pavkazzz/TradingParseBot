@@ -181,16 +181,17 @@ async def mfd_user_add(chat: Chat, _=None):
 
 @bot.command(r'^Удалить mfd пользователя$')
 async def mfd_user_remove(chat: Chat, _=None):
-    await chat.send_text("Выберете пользователя для удаления: ",
-                         reply_markup=keyboard_markup(
-                             [data.name for data in manager.settings(chat.id).mfd_user], n_col=1)
-                         )
+    await chat.send_text(
+        "Выберете пользователя для удаления: ",
+        reply_markup=keyboard_markup(
+            [data.name for data in manager.settings(chat.id).mfd_user], n_col=1)
+    )
     manager.set_state(chat.id, State.MFD_USER_REMOVE)
 
 
 @bot.default
 async def received_information(chat: Chat, _=None):
-    st = manager.state
+    st = manager.state(chat.id)
     if st == State.IDLE:
         return
     if st == State.MFD_THREAD_ADD:
