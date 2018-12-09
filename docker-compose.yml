@@ -22,7 +22,6 @@ services:
       - RHOST=redis
       - APP_REDIS_URL=redis://redis
       - APP_HOST_URL=devhooks.pavkazzz.ru
-      - APP_DISABLE_SHORT=1
     volumes:
       - ./data:/app/data
     networks:
