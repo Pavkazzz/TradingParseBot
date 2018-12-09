@@ -25,7 +25,7 @@ if __name__ == '__main__':
     arguments = p.parse_args()
 
     loop = new_event_loop()
-    bot, manager = loop.run_until_complete(init(arguments.host_url))
+    bot, manager = loop.run_until_complete(init(arguments.redis_url))
 
     socket = bind_socket(
         address='0.0.0.0',
@@ -38,6 +38,7 @@ if __name__ == '__main__':
             sock=socket,
             bot=bot,
             manager=manager,
+            host=arguments.host_url
         ),
         UpdaterService(
             bot=bot,

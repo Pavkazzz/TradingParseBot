@@ -14,7 +14,7 @@ services:
       - APP_HOST_URL=devhooks.pavkazzz.ru
 
   bot-server:
-    image: pavkazzz/telegram_bot:hooks-prod-v1.0.6
+    image: pavkazzz/telegram_bot:hooks-prod-v1.0.7
     restart: always
     expose:
       - 80
