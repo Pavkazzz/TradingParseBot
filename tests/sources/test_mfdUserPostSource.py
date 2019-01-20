@@ -10,10 +10,10 @@ pytestmark = pytest.mark.asyncio
 
 async def test_local_generator():
     res = (
-        "| [Роберт СПБ](https://clck.ru/EZvsS) @ [17.07.2018 13:42](https://clck.ru/EZvta)\n"
+        "| [Роберт СПБ](http://mfd.ru/forum/poster/?id=84758) @ [17.07.2018 13:42](http://mfd.ru/forum/post/?id=14765308)\n"
         "|\n"
         "| \n"
-        "| | [malishok](https://clck.ru/EZvFG) @ [17.07.2018 13:35](https://clck.ru/EZvtZ)\n"
+        "| | [malishok](http://mfd.ru/forum/poster/?id=71921) @ [17.07.2018 13:35](http://mfd.ru/forum/post/?id=14765273)\n"
         "| |  \n"
         "| |  есть) у меня она сложнее, смотрю\n"
         "| | ev/ebitda и p/e конечно, но\n"
@@ -47,7 +47,7 @@ async def test_local_generator():
     page = await post.check_update(0)
     assert len(page.posts) == 4
     assert page.posts[0].title == (
-        "ФА и немного ТА\n" "[malishok](https://clck.ru/EZvFG)\n" "[17.07.2018 13:48](https://clck.ru/EZvsy)"
+        "ФА и немного ТА\n" "[malishok](http://mfd.ru/forum/poster/?id=71921)\n" "[17.07.2018 13:48](http://lite.mfd.ru/forum/post/?id=14765341)"
     )
     assert page.posts[0].md == res
     for x in page.posts:
@@ -112,14 +112,14 @@ async def test_doka():
     assert (res.posts[0].title == (
         "МРСК Центра и Приволжья (МРСК ЦП,\n"
         "MRKP)\n"
-        "[ДОКА](https://clck.ru/Ea2xg)\n"
-        "[29.10.2018 07:50](https://clck.ru/EcUNm)"
+        "[ДОКА](http://mfd.ru/forum/poster/?id=62543)\n"
+        "[29.10.2018 07:50](http://lite.mfd.ru/forum/post/?id=15318902)"
     ))
     assert (res.posts[0].md == (
-        "| [loket](https://clck.ru/EcUNp) @ [29.10.2018 07:45](https://clck.ru/EcUNq)\n"
+        "| [loket](http://mfd.ru/forum/poster/?id=70074) @ [29.10.2018 07:45](http://mfd.ru/forum/post/?id=15318897)\n"
         "|\n"
         "| \n"
-        "| | [ДОКА](https://clck.ru/Ea2xg) @ [29.10.2018 07:35](https://clck.ru/EcUNr)\n"
+        "| | [ДОКА](http://mfd.ru/forum/poster/?id=62543) @ [29.10.2018 07:35](http://mfd.ru/forum/post/?id=15318886)\n"
         "| |  \n"
         "| |  Вчера кальвадос последний\n"
         "| | перегонял. Крепкость такая ,что\n"

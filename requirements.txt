@@ -1,4 +1,4 @@
-aiohttp<4
+aiohttp~=3.4.0
 aiomisc~=1.1.2
 aioredis~=1.2.0
 ConfigArgParse~=0.13.0

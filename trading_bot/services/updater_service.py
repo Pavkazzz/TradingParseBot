@@ -1,3 +1,4 @@
+import itertools
 import logging
 
 from aiomisc.periodic import PeriodicCallback
@@ -16,6 +17,10 @@ class UpdaterService(Service):
         pc = PeriodicCallback(self.check_update)
         pc.start(30)
 
+    def grouper(self, n, iterable, fillvalue=None):
+        args = [iter(iterable)] * n
+        return itertools.zip_longest(fillvalue=fillvalue, *args)
+
     async def check_update(self):
         async for chat_id, data in self.manager.check_new_all():
             for singlepost, message_id in data:
@@ -25,5 +30,5 @@ class UpdaterService(Service):
                     chat_id,
                     message_id,
                     singlepost.format(),
-                    singlepost.id
+                    singlepost.id,
                 )

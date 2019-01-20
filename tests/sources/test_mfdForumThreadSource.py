@@ -16,8 +16,8 @@ async def test_local_generator():
     assert len(page.posts) == 33
     assert page.posts[0].title == (
         "ФА и немного ТА\n"
-        "[Спокойный Скрудж Макдак](https://clck.ru/EZvsG)\n"
-        "[17.07.2018 12:02](https://clck.ru/EZvsW)"
+        "[Спокойный Скрудж Макдак](http://mfd.ru/forum/poster/?id=88887)\n"
+        "[17.07.2018 12:02](http://lite.mfd.ru/forum/post/?id=14764606)"
     )
 
     for x in page.posts:
@@ -70,8 +70,8 @@ async def test_akula_post():
 
     res = (
         "Московская Биржа (MOEX)\n"
-        "[Акул*O®aCool](https://clck.ru/EZvvd)\n"
-        "[04.08.2018 14:42](https://clck.ru/EZvve)\n"
+        "[Акул*O®aCool](http://mfd.ru/forum/poster/?id=91582)\n"
+        "[04.08.2018 14:42](http://forum.mfd.ru/forum/post/?id=14853474)\n"
         "Верните доктора верховцего!)))"
     )
 

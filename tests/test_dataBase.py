@@ -22,8 +22,10 @@ async def test_check_all():
     db = DataBase()
     cid = 9999
     thread = MfdForumThreadSource()
-    with open("html/test_mfdForumThreadSourcePage.html", encoding="utf8") as html_page:
-        thread.update_cache("http://lite.mfd.ru/forum/thread/?id=0", html_page.read())
+    with open("html/test_mfdForumThreadSourcePage.html",
+              encoding="utf8") as html_page:
+        thread.update_cache("http://lite.mfd.ru/forum/thread/?id=0",
+                            html_page.read())
 
     data = await thread.check_update(0)
     db.update("test", data, cid)

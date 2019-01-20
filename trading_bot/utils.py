@@ -29,14 +29,10 @@ _transform_smiles = {
     """<span class="mfd-emoticon mfd-emoticon-sleep"></span>""": "\U0001f634",
     """<span class="mfd-emoticon mfd-emoticon-tongue"></span>""": "\U0001f61b",
     """<span class="mfd-emoticon mfd-emoticon-unsure"></span>""": "\U0001f61f",
-    """<span class="mfd-emoticon mfd-emoticon-wink"></span>""": "\U0001f609"
+    """<span class="mfd-emoticon mfd-emoticon-wink"></span>""": "\U0001f609",
 }
 
-_transform_alert_news = {
-    0: "",
-    1: "\U00002757 ",
-    3: "\U000026A1 "
-}
+_transform_alert_news = {0: "", 1: "\U00002757 ", 3: "\U000026A1 "}
 
 
 def transform_emoji(html):

@@ -50,9 +50,9 @@ class Data:
 @fast_json.convert.register(Data)
 def serialize(value: Data):
     return {
-        'mfd_user': [val.name for val in value.mfd_user],
-        'mfd_thread': [val.name for val in value.mfd_thread],
-        'alenka': value.alenka
+        "mfd_user": [val.name for val in value.mfd_user],
+        "mfd_thread": [val.name for val in value.mfd_thread],
+        "alenka": value.alenka,
     }
 
 
@@ -78,9 +78,9 @@ class Manager:
         self.sources = {
             "alenka_post": sources.AlenkaPost(redis=redis),
             "alenka_news": sources.AlenkaNews(redis=redis),
-            "mfd_user_post": sources.MfdUserPostSource(redis=redis),
-            "mfd_user_comment": sources.MfdUserCommentSource(redis=redis),
-            "mfd_thread": sources.MfdForumThreadSource(redis=redis)
+            "mfd_user_post": sources.MfdUserPostSource(),
+            "mfd_user_comment": sources.MfdUserCommentSource(),
+            "mfd_thread": sources.MfdForumThreadSource(),
         }
 
     async def send_to_all_users(self, bot, text: str):
@@ -89,7 +89,9 @@ class Manager:
 
     async def remove_message(self, bot, message_id):
         for chat_id in self.users_subscription.keys():
-            await remove_message(bot, chat_id, self.get_sended_id(chat_id, message_id))
+            await remove_message(
+                bot, chat_id, self.get_sended_id(chat_id, message_id)
+            )
 
     async def manage_subscription_user(self, user_name, value):
         for user in self.users_subscription.values():
@@ -101,11 +103,14 @@ class Manager:
             if user not in self.users_subscription:
                 self.users_subscription[user] = Data()
                 try:
-                    bot.send_message(user, "По причине переноса на бота на новые мощности,"
-                                           " возникли проблемы с востановлением подписок. "
-                                           "Приношу извинения за доставленные неудобства.")
+                    bot.send_message(
+                        user,
+                        "По причине переноса на бота на новые мощности,"
+                        " возникли проблемы с востановлением подписок. "
+                        "Приношу извинения за доставленные неудобства.",
+                    )
                 except Exception:
-                    log.exception('Error recreate user: %r', user)
+                    log.exception("Error recreate user: %r", user)
 
         self.db.save_user_data(self.users_subscription)
 
@@ -119,22 +124,32 @@ class Manager:
             del self.users_subscription[chat_id]
             del self.sended_msg[chat_id]
 
-    async def new_command(self, chat_id, command, data=SingleData()) -> Tuple[str, List[sources.SinglePost]]:
+    async def new_command(
+        self, chat_id, command, data=SingleData()
+    ) -> Tuple[str, List[sources.SinglePost]]:
         result: str = "Команда не найдена"
         current_data = []
         try:
-            current_data, result = await self.new_alenka(chat_id, command, current_data, result)
+            current_data, result = await self.new_alenka(
+                chat_id, command, current_data, result
+            )
 
-            current_data, result = await self.new_mfd_user(chat_id, command, current_data, data, result)
+            current_data, result = await self.new_mfd_user(
+                chat_id, command, current_data, data, result
+            )
             # Mfd thread
-            current_data, result = await self.new_mfd_thread(chat_id, command, current_data, data, result)
+            current_data, result = await self.new_mfd_thread(
+                chat_id, command, current_data, data, result
+            )
         except KeyError:
             log.exception("Unexpected key error: %r, %r", command, data)
 
         self.db.save_user_data(self.users_subscription)
         return result, current_data
 
-    async def new_mfd_thread(self, chat_id, command, current_data, data, result):
+    async def new_mfd_thread(
+        self, chat_id, command, current_data, data, result
+    ):
         if command == self.ADD_MFD_THREAD:
             if data not in self.users_subscription[chat_id].mfd_thread:
                 self.users_subscription[chat_id].mfd_thread.append(data)
@@ -174,7 +189,7 @@ class Manager:
 
     def settings(self, chat_id) -> typing.Union[str, Data]:
         if chat_id not in self.users_subscription:
-            self.start(chat_id, 'tests')
+            self.start(chat_id, "tests")
         return self.users_subscription[chat_id]
 
     async def check_new(self, chat_id) -> List[sources.SinglePost]:
@@ -193,14 +208,22 @@ class Manager:
 
     async def check_new_alenka(self, chat_id):
         if "alenka_news" not in self.current_data:
-            self.current_data["alenka_news"] = await self.sources["alenka_news"].check_update()
+            self.current_data["alenka_news"] = await self.sources[
+                "alenka_news"
+            ].check_update()
 
         if "alenka_post" not in self.current_data:
-            self.current_data["alenka_post"] = await self.sources["alenka_post"].check_update()
+            self.current_data["alenka_post"] = await self.sources[
+                "alenka_post"
+            ].check_update()
 
         res = []
-        res += self.db.update(f"alenka_news", self.current_data["alenka_news"], chat_id)
-        res += self.db.update(f"alenka_post", self.current_data["alenka_post"], chat_id)
+        res += self.db.update(
+            f"alenka_news", self.current_data["alenka_news"], chat_id
+        )
+        res += self.db.update(
+            f"alenka_post", self.current_data["alenka_post"], chat_id
+        )
         return res
 
     async def check_mfd_user(self, user, chat_id):
@@ -214,11 +237,13 @@ class Manager:
         res = []
         res += self.db.update(
             f"mfd_user_comment {user.id} {chat_id}",
-            self.current_data[f"mfd_user_comment {user.id}"], chat_id
+            self.current_data[f"mfd_user_comment {user.id}"],
+            chat_id,
         )
         res += self.db.update(
             f"mfd_user_post {user.id} {chat_id}",
-            self.current_data[f"mfd_user_post {user.id}"], chat_id
+            self.current_data[f"mfd_user_post {user.id}"],
+            chat_id,
         )
         return res
 
@@ -227,25 +252,34 @@ class Manager:
         if f"mfd_thread {thread.id}" not in self.current_data:
             await self.update_mfd_thread(thread.id)
 
-        return self.db.update(f"mfd_thread {thread.id} {chat_id}",
-                              self.current_data[f"mfd_thread {thread.id}"], chat_id)
+        return self.db.update(
+            f"mfd_thread {thread.id} {chat_id}",
+            self.current_data[f"mfd_thread {thread.id}"],
+            chat_id,
+        )
 
-    async def check_new_all(self) -> typing.AsyncIterable:
+    async def check_new_all(self, save=True) -> typing.AsyncIterable:
         await self.prepare_cache()
 
         for user in list(self.users_subscription):
             posts = await self.check_new(user)
             message_id = [self.get_sended_id(user, post) for post in posts]
             yield user, list(zip(posts, message_id))
-        self.save_user_messages()
+
+        if save:
+            self.save_user_messages()
 
     async def prepare_cache(self):
         await self.update_alenka()
         await self.update_mfd()
 
     async def update_alenka(self):
-        self.current_data["alenka_news"] = await self.sources["alenka_news"].check_update()
-        self.current_data["alenka_post"] = await self.sources["alenka_post"].check_update()
+        self.current_data["alenka_news"] = await self.sources[
+            "alenka_news"
+        ].check_update()
+        self.current_data["alenka_post"] = await self.sources[
+            "alenka_post"
+        ].check_update()
 
     async def update_mfd(self):
         data_list = Data()
@@ -256,47 +290,67 @@ class Manager:
                 data_list.mfd_user.append(mfd_user)
         data_list.remove_duplicate()
 
-        tasks = [self.update_mfd_thread(data.id) for data in data_list.mfd_thread]
-        tasks += [self.update_mfd_user_post(data.id) for data in data_list.mfd_user]
-        tasks += [self.update_mfd_user_comment(data.id) for data in data_list.mfd_user]
+        tasks = [
+            self.update_mfd_thread(data.id) for data in data_list.mfd_thread
+        ]
+        tasks += [
+            self.update_mfd_user_post(data.id) for data in data_list.mfd_user
+        ]
+        tasks += [
+            self.update_mfd_user_comment(data.id) for data in data_list.mfd_user
+        ]
         await asyncio.gather(*tasks)
 
     async def update_mfd_user_comment(self, data_id):
-        self.current_data[f"mfd_user_comment {data_id}"] = await self.sources["mfd_user_comment"].check_update(data_id)
+        self.current_data[f"mfd_user_comment {data_id}"] = await self.sources[
+            "mfd_user_comment"
+        ].check_update(data_id)
 
     async def update_mfd_user_post(self, data_id):
-        self.current_data[f"mfd_user_post {data_id}"] = await self.sources["mfd_user_post"].check_update(data_id)
+        self.current_data[f"mfd_user_post {data_id}"] = await self.sources[
+            "mfd_user_post"
+        ].check_update(data_id)
 
     async def update_mfd_thread(self, data_id):
-        self.current_data[f"mfd_thread {data_id}"] = await self.sources["mfd_thread"].check_update(data_id)
+        self.current_data[f"mfd_thread {data_id}"] = await self.sources[
+            "mfd_thread"
+        ].check_update(data_id)
 
     async def resolve_mfd_thread_link(self, cid, text):
         try:
             tid, name = await self.sources["mfd_thread"].resolve_link(text)
-            await self.new_command(cid, Manager.ADD_MFD_THREAD, SingleData(tid, name))
+            await self.new_command(
+                cid, Manager.ADD_MFD_THREAD, SingleData(tid, name)
+            )
             return name
         except Exception:
-            log.exception('Exception while resolve mfd thread: %r', text)
+            log.exception("Exception while resolve mfd thread: %r", text)
             return None
 
     async def resolve_mfd_user_link(self, cid, text):
         try:
             tid, name = await self.sources["mfd_user_post"].resolve_link(text)
-            await self.new_command(cid, Manager.ADD_MFD_USER, SingleData(tid, name))
+            await self.new_command(
+                cid, Manager.ADD_MFD_USER, SingleData(tid, name)
+            )
             return name
         except Exception:
-            log.exception('Exception while resolve user link: %r', text)
+            log.exception("Exception while resolve user link: %r", text)
             return None
 
     async def find_mfd_thread(self, cid, text):
         title = []
         res = ""
         try:
-            title, tid, name = await self.sources["mfd_thread"].find_thread(text)
+            title, tid, name = await self.sources["mfd_thread"].find_thread(
+                text
+            )
             if tid is not None and len(title) == 1:
-                res, _ = await self.new_command(cid, Manager.ADD_MFD_THREAD, SingleData(tid, name))
+                res, _ = await self.new_command(
+                    cid, Manager.ADD_MFD_THREAD, SingleData(tid, name)
+                )
         except Exception:
-            log.exception('Exception while find thread: %r', text)
+            log.exception("Exception while find thread: %r", text)
         finally:
             return title, res
 
@@ -307,13 +361,21 @@ class Manager:
             users = await self.sources["mfd_user_post"].find_user(text)
             # Если есть рейтинг, пытаемся найти нашего(Нажали на кнопку)
             if rating > -1:
-                users = tuple(filter(lambda x: x[1] == text and x[3] == rating, users))
+                users = tuple(
+                    filter(lambda x: x[1] == text and x[3] == rating, users)
+                )
 
             if len(users) == 1:
-                res, _ = await self.new_command(cid, Manager.ADD_MFD_USER, SingleData(users[0][0], users[0][1]))
+                res, _ = await self.new_command(
+                    cid,
+                    Manager.ADD_MFD_USER,
+                    SingleData(users[0][0], users[0][1]),
+                )
 
         except Exception:
-            log.exception('Exception while find user text: %r, rating %r', text, rating)
+            log.exception(
+                "Exception while find user text: %r, rating %r", text, rating
+            )
         finally:
             return users, res
 
@@ -339,7 +401,11 @@ class Manager:
         Remove message_id from cache which cannot be accuse now
         :return:
         """
-        actual_id_list = [post.id for item in self.current_data.values() for post in item.posts]
+        actual_id_list = [
+            post.id
+            for item in self.current_data.values()
+            for post in item.posts
+        ]
 
         for user in self.sended_msg:
             user_msg = frozenset(self.sended_msg[user].keys())

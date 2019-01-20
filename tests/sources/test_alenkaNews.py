@@ -4,8 +4,8 @@ from trading_bot.settings import alenka_url
 from trading_bot.sources.sources import AlenkaNews, Page
 
 
-async def test_local_generator():
-    alenka = AlenkaNews()
+async def test_local_generator(redis):
+    alenka = AlenkaNews(redis)
     with open("html/test_alenkaResponse.json", "r", encoding="utf8") as json:
         alenka.update_cache(alenka_url, json.read())
 
@@ -18,11 +18,11 @@ async def test_local_generator():
     assert page.posts[0].md == (
         "05.08.2018, 10:22\n"
         "\n"
-        "[Индийская ONGC раскрыла суть претензий госкомпании к партнерам по проекту «Сахалин-1»](https://clck.ru/EZvEM)"
+        "[Индийская ONGC раскрыла суть претензий госкомпании к партнерам по проекту «Сахалин-1»](https://clck.ru/F54uo)"
     )
 
     assert page.posts[-1].md == (
         "03.08.2018, 12:01\n"
         "\n"
-        "[ОБЩИЙ ОБЪЕМ ПОКУПКИ МИНФИНОМ РФ ВАЛЮТЫ НА РЫНКЕ С 7 АВГУСТА ПО 6 СЕНТЯБРЯ БУДЕТ РЕКОРДНЫМ ](https://clck.ru/EZvEc)"
+        "[ОБЩИЙ ОБЪЕМ ПОКУПКИ МИНФИНОМ РФ ВАЛЮТЫ НА РЫНКЕ С 7 АВГУСТА ПО 6 СЕНТЯБРЯ БУДЕТ РЕКОРДНЫМ ](https://clck.ru/F54v4)"
     )

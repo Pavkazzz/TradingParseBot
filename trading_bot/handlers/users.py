@@ -8,5 +8,5 @@ class UserHandler(BaseView):
     async def get(self):
         return json_response(
             data={"users": self.manager.users_subscription},
-            dumps=fast_json.dumps
+            dumps=fast_json.dumps,
         )

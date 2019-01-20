@@ -22,12 +22,12 @@ class DataBase:
         if not file.is_file():
             self.create_db(file)
 
-        with open(self.data_file.format(id=chat_id), 'r+') as database:
+        with open(self.data_file.format(id=chat_id), "r+") as database:
             data = fast_json.load(database)
             database.truncate(0)
             hash_list = []
             for post in page.posts:
-                bhash = blake2s(post.format().encode('utf-8')).hexdigest()
+                bhash = blake2s(post.format().encode("utf-8")).hexdigest()
                 hash_list.append(bhash)
                 try:
                     if bhash not in data[key]:
@@ -50,18 +50,18 @@ class DataBase:
                     self.create_db(f"data/{file}")
 
     def create_db(self, file):
-        with open(file, 'w+') as database:
+        with open(file, "w+") as database:
             init = {}
             fast_json.dump(init, database)
 
     def save_user_data(self, users):
-        with open(self.user_file, 'wb') as f:
+        with open(self.user_file, "wb") as f:
             pickle.dump(users, f)
 
     def load_user_data(self):
         res = {}
         try:
-            with open(self.user_file, 'rb') as f:
+            with open(self.user_file, "rb") as f:
                 res = pickle.load(f)
         except FileNotFoundError:
             self.save_user_data({})
@@ -69,13 +69,13 @@ class DataBase:
         return res
 
     def save_user_messages(self, messages):
-        with open(self.user_messages, 'wb') as f:
+        with open(self.user_messages, "wb") as f:
             pickle.dump(messages, f)
 
     def load_user_messages(self):
         res = {}
         try:
-            with open(self.user_messages, 'rb') as f:
+            with open(self.user_messages, "rb") as f:
                 res = pickle.load(f)
         except FileNotFoundError:
             self.save_user_messages({})

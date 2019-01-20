@@ -15,7 +15,9 @@ async def test_local_generator():
     page = await post.check_update(0)
     assert len(page.posts) == 4
     assert page.posts[0].title == (
-        "[{Блоги} Июль](https://clck.ru/EZvyy)\n" "[malishok](https://clck.ru/EZvFG)\n" "сегодня, 12:35"
+        "[{Блоги} Июль](http://lite.mfd.ru/blogs/posts/view/?id=37688)\n"
+        "[malishok](http://mfd.ru/forum/poster/?id=71921)\n"
+        "сегодня, 12:35"
     )
     for x in page.posts:
         assert len(x.title) > 0

@@ -1,0 +1,14 @@
+@startuml
+participant Sources
+box "System" #LightBlue
+	entity SourcesSystem
+    entity ControlSystem
+    entity SenderSystem
+end box
+actor User
+
+SourcesSystem <-> Sources: Get actual batch of messages
+SourcesSystem -> ControlSystem: Update current messages
+ControlSystem -> SenderSystem: New messages
+SenderSystem -> User: Send messages
+@enduml

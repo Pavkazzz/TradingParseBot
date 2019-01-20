@@ -33,13 +33,7 @@
     <link href="https://smart-lab.ru/" rel="canonical">
     <link href="/rss/index/" rel="alternate" title="sMart-lab.ru" type="application/rss+xml">
     <script type="text/javascript">
-	   var DIR_WEB_ROOT = 'https://smart-lab.ru';
-
-
-
-
-
-
+        var DIR_WEB_ROOT = 'https://smart-lab.ru';
 
 
     </script>
@@ -53,19 +47,27 @@
 
     <!-- Facebook Pixel Code -->
     <script>
-	!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-	n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
-	n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
-	t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,
-	document,'script','https://connect.facebook.net/en_US/fbevents.js');
+        !function (f, b, e, v, n, t, s) {
+            if (f.fbq) return;
+            n = f.fbq = function () {
+                n.callMethod ?
+                    n.callMethod.apply(n, arguments) : n.queue.push(arguments)
+            };
+            if (!f._fbq) f._fbq = n;
+            n.push = n;
+            n.loaded = !0;
+            n.version = '2.0';
+            n.queue = [];
+            t = b.createElement(e);
+            t.async = !0;
+            t.src = v;
+            s = b.getElementsByTagName(e)[0];
+            s.parentNode.insertBefore(t, s)
+        }(window,
+            document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
 
-	fbq('init', '863983546988323');
-	fbq('track', "PageView");
-
-
-
-
-
+        fbq('init', '863983546988323');
+        fbq('track', "PageView");
 
 
     </script>
@@ -178,12 +180,6 @@
                     p2: 'fuct'
                 }
             });
-
-
-
-
-
-
 
 
         </script>
@@ -372,82 +368,67 @@
 
 
         <script type="text/javascript">
-	(function($)
-	{
-		var console_params = {
+            (function ($) {
+                var console_params = {
 
-			commands : console_commands,
-			aliases : console_aliases,
-		};
+                    commands: console_commands,
+                    aliases: console_aliases,
+                };
 
-		var login = $($('a', '.fastlinks').get(1)).attr('href').match(/\/my\/([^\/]+)\//i);
-		if (login != null) console_params['login'] = login[1];
-		$('.console').smart_console(console_params);
-
-
-		function hideClickMenu(e)
-		{
-			if (e.target.nodeName == 'A')
-			{
-				$('body').off('click', hideClickMenu);
-				$('.clickmenu').hide();
-				return;
-			}
-
-			var cm = $(e.target);
-			if (!cm.hasClass('clickmenu') && !cm.hasClass('popupmenu')) cm = cm.parents('.clickmenu, .popupmenu');
-			if (!cm.length)
-			{
-				$('body').off('click', hideClickMenu);
-				$('.clickmenu').hide();
-			}
-		}
-
-		$('.undermenu').find('.more').find('a,span').on('click', function(e)
-		{
-			e.preventDefault();
-			var menu = $(e.target).parents('li').attr('submenu');
-			var bOpened = ($('#'+menu).css('display') == 'block');
-
-			$('.clickmenu').hide();
-			if (!bOpened)
-			{
-				var menuitem = $($(e.target).parents('li').get(0));
-				var offset = menuitem.offset();
-
-				$('#'+menu).css('left', offset.left + 'px');
-				$('#'+menu).show();
-
-				e.stopPropagation();
-				$('body').on('click', hideClickMenu);
-			}
-		});
+                var login = $($('a', '.fastlinks').get(1)).attr('href').match(/\/my\/([^\/]+)\//i);
+                if (login != null) console_params['login'] = login[1];
+                $('.console').smart_console(console_params);
 
 
-		$('.undermenu_more_main').on('mouseover', '.popupmenu', function(e)
-		{
-			var menuItem = $(e.target).parents('.submenu');
-			if (!menuItem.hasClass('selected'))
-			{
-				menuItem.addClass('selected');
-				var subMenu = $(e.target);
-				if (!subMenu.hasClass('.popupmenu')) subMenu = subMenu.parents('.popupmenu');
+                function hideClickMenu(e) {
+                    if (e.target.nodeName == 'A') {
+                        $('body').off('click', hideClickMenu);
+                        $('.clickmenu').hide();
+                        return;
+                    }
 
-				subMenu.on('mouseleave', function(e)
-				{
-					subMenu.off('mouseleave');
-					menuItem.removeClass('selected');
-				});
-			}
-		});
+                    var cm = $(e.target);
+                    if (!cm.hasClass('clickmenu') && !cm.hasClass('popupmenu')) cm = cm.parents('.clickmenu, .popupmenu');
+                    if (!cm.length) {
+                        $('body').off('click', hideClickMenu);
+                        $('.clickmenu').hide();
+                    }
+                }
 
-	})(jQuery);
+                $('.undermenu').find('.more').find('a,span').on('click', function (e) {
+                    e.preventDefault();
+                    var menu = $(e.target).parents('li').attr('submenu');
+                    var bOpened = ($('#' + menu).css('display') == 'block');
+
+                    $('.clickmenu').hide();
+                    if (!bOpened) {
+                        var menuitem = $($(e.target).parents('li').get(0));
+                        var offset = menuitem.offset();
+
+                        $('#' + menu).css('left', offset.left + 'px');
+                        $('#' + menu).show();
+
+                        e.stopPropagation();
+                        $('body').on('click', hideClickMenu);
+                    }
+                });
 
 
+                $('.undermenu_more_main').on('mouseover', '.popupmenu', function (e) {
+                    var menuItem = $(e.target).parents('.submenu');
+                    if (!menuItem.hasClass('selected')) {
+                        menuItem.addClass('selected');
+                        var subMenu = $(e.target);
+                        if (!subMenu.hasClass('.popupmenu')) subMenu = subMenu.parents('.popupmenu');
 
+                        subMenu.on('mouseleave', function (e) {
+                            subMenu.off('mouseleave');
+                            menuItem.removeClass('selected');
+                        });
+                    }
+                });
 
-
-
+            })(jQuery);
 
 
         </script>
@@ -506,21 +487,15 @@
                     <div id="adfox_15314668107745341"></div>
 
                     <script>
-	window.Ya.adfoxCode.create({
-	ownerId: 264040,
-	containerId: 'adfox_15314668107745341',
-	params: {
-	pp: 'g',
-	ps: 'cqfw',
-	p2: 'ftzv'
-	}
-	});
-
-
-
-
-
-
+                        window.Ya.adfoxCode.create({
+                            ownerId: 264040,
+                            containerId: 'adfox_15314668107745341',
+                            params: {
+                                pp: 'g',
+                                ps: 'cqfw',
+                                p2: 'ftzv'
+                            }
+                        });
 
 
                     </script>
@@ -536,69 +511,63 @@
                         </div>
                         <script type="text/javascript"><!--
 
-				window.addEvent('domready', function()
-				{
-					var isPost = false;
-					//временно отключим панельку внизу
-					//if ($$('div#content div.topic').length == 1) isPost = true;
-					//if (isPost && ($$('div#content div.topic')[0].get('paidCompanyBlog') == 'true')) isPost = false;
+                        window.addEvent('domready', function () {
+                            var isPost = false;
+                            //временно отключим панельку внизу
+                            //if ($$('div#content div.topic').length == 1) isPost = true;
+                            //if (isPost && ($$('div#content div.topic')[0].get('paidCompanyBlog') == 'true')) isPost = false;
 
-					var adsAdditional = null;
-					if (isPost && ($$('div.comments').length != 0))
-					{
-						var adsAdditionalContainer = new Element('div', {id: 'advAdditionalContainer'});
-					//	$$('div.comments')[0].insertBefore(adsAdditionalContainer, $('comment-children-0').nextSibling);
-					//	$$('div.comments')[0].parentNode.insertBefore(adsAdditionalContainer, $$('div.comments')[0]);
-						$$('div.comments')[0].parentNode.appendChild(adsAdditionalContainer);
+                            var adsAdditional = null;
+                            if (isPost && ($$('div.comments').length != 0)) {
+                                var adsAdditionalContainer = new Element('div', {id: 'advAdditionalContainer'});
+                                //	$$('div.comments')[0].insertBefore(adsAdditionalContainer, $('comment-children-0').nextSibling);
+                                //	$$('div.comments')[0].parentNode.insertBefore(adsAdditionalContainer, $$('div.comments')[0]);
+                                $$('div.comments')[0].parentNode.appendChild(adsAdditionalContainer);
 
-						var adsAdditionalBtn = new Element('a', {'class': 'adv', href : '/blog/83245.php', html : 'Смартлаб.Объявы', target:'_blank'});
-						adsAdditionalContainer.appendChild(adsAdditionalBtn);
+                                var adsAdditionalBtn = new Element('a', {
+                                    'class': 'adv',
+                                    href: '/blog/83245.php',
+                                    html: 'Смартлаб.Объявы',
+                                    target: '_blank'
+                                });
+                                adsAdditionalContainer.appendChild(adsAdditionalBtn);
 
-						var adsAdditional = new Element('div', {id: 'advAdditional'});
-						adsAdditionalContainer.appendChild(adsAdditional);
-					}
+                                var adsAdditional = new Element('div', {id: 'advAdditional'});
+                                adsAdditionalContainer.appendChild(adsAdditional);
+                            }
 
-					var placesDiv = $$('div.imp_messages')[0];
-					for (var i = 1; i <= 10; i++)
-					{
-						var newPlace = new Element('span', {'id': 'rtm' + i});
-						if (!isPost || i > 2)
-						{
-							placesDiv.insertBefore(newPlace, $$('div.imp_messages div.buy_info')[0]);
-						} else
-						{
-							if (adsAdditional != null) adsAdditional.appendChild(newPlace);
-						}
-					}
+                            var placesDiv = $$('div.imp_messages')[0];
+                            for (var i = 1; i <= 10; i++) {
+                                var newPlace = new Element('span', {'id': 'rtm' + i});
+                                if (!isPost || i > 2) {
+                                    placesDiv.insertBefore(newPlace, $$('div.imp_messages div.buy_info')[0]);
+                                } else {
+                                    if (adsAdditional != null) adsAdditional.appendChild(newPlace);
+                                }
+                            }
 
-					window.adt_design = isPost ? function (span_name,url,text,meaning)
-					{
-						if (parseInt(span_name.substr(3)) > 2)
-						{
-							return "<table class='advItemTable' border=0 cellspacing=0 cellpadding=0><tr><td> <a href='"+url+"' target=_blank>"+text+"</a><br>"+meaning+"</td></tr></table>";
-						} else
-						{
-							return "<table class='advItemTablePost' border=0 cellspacing=0 cellpadding=0><tr><td> <a href='"+url+"' target=_blank>"+text+"</a><br>"+meaning+"</td></tr></table>";
-						}
+                            window.adt_design = isPost ? function (span_name, url, text, meaning) {
+                                if (parseInt(span_name.substr(3)) > 2) {
+                                    return "<table class='advItemTable' border=0 cellspacing=0 cellpadding=0><tr><td> <a href='" + url + "' target=_blank>" + text + "</a><br>" + meaning + "</td></tr></table>";
+                                } else {
+                                    return "<table class='advItemTablePost' border=0 cellspacing=0 cellpadding=0><tr><td> <a href='" + url + "' target=_blank>" + text + "</a><br>" + meaning + "</td></tr></table>";
+                                }
 
-					} : function (span_name,url,text,meaning)
-					{
-						return "<table class='advItemTable' border=0 cellspacing=0 cellpadding=0><tr><td> <a href='"+url+"' target=_blank>"+text+"</a><br>"+meaning+"</td></tr></table>";
-					};
+                            } : function (span_name, url, text, meaning) {
+                                return "<table class='advItemTable' border=0 cellspacing=0 cellpadding=0><tr><td> <a href='" + url + "' target=_blank>" + text + "</a><br>" + meaning + "</td></tr></table>";
+                            };
 
-					var adsLoader = new Element('iframe', {'src': '/adv.html', 'style' : 'position:absolute;top:0;left:0;width:1px;height:1px;visibility:hidden; border:0px outset;', 'scrolling' : 'no', 'frameborder' : '0'});
-					placesDiv.parentNode.appendChild(adsLoader);
-				});
-
-
-
-
-                                //-->
+                            var adsLoader = new Element('iframe', {
+                                'src': '/adv.html',
+                                'style': 'position:absolute;top:0;left:0;width:1px;height:1px;visibility:hidden; border:0px outset;',
+                                'scrolling': 'no',
+                                'frameborder': '0'
+                            });
+                            placesDiv.parentNode.appendChild(adsLoader);
+                        });
 
 
-
-
-
+                        //-->
 
 
                         </script>
@@ -861,104 +830,86 @@
         <script src="https://dwq4do82y8xi7.cloudfront.net/static/js/tv.js" type="text/javascript"></script>
         <script type="text/javascript">
 
-	(function ($)
-	{
-		var symbols = [];
-		function success(data)
-		{
-			//console.log(data.short_name, data.original_name);
-			var tr = $('.trade tr[tkr="' + data.original_name + '"]');
-			if (tr.length)
-			{
-				var chg = (Math.round(parseFloat(data.change_percent) * 10) / 10);
-				var val = data.last_price.toString().replace('.', ',');
-				var z = val.indexOf(',');
-				if (z !== -1)
-				{
-					switch (data.original_name)
-					{
-						case 'BITSTAMP:BTCUSD':
-						case 'CME_MINI_DL:ES1!':
-						case 'FX_IDC:USDRUB':
-						case 'FX_IDC:XAUUSD':
-						{
-							val = val.substr(0, val.indexOf(',') + 2);
-							break;
-						}
+            (function ($) {
+                var symbols = [];
 
-						case 'FX:USDJPY':
-						case 'FX_IDC:USDBRO':
-						case 'FX_IDC:XAGUSD':
-						{
-							val = val.substr(0, val.indexOf(',') + 3);
-							break;
-						}
+                function success(data) {
+                    //console.log(data.short_name, data.original_name);
+                    var tr = $('.trade tr[tkr="' + data.original_name + '"]');
+                    if (tr.length) {
+                        var chg = (Math.round(parseFloat(data.change_percent) * 10) / 10);
+                        var val = data.last_price.toString().replace('.', ',');
+                        var z = val.indexOf(',');
+                        if (z !== -1) {
+                            switch (data.original_name) {
+                                case 'BITSTAMP:BTCUSD':
+                                case 'CME_MINI_DL:ES1!':
+                                case 'FX_IDC:USDRUB':
+                                case 'FX_IDC:XAUUSD': {
+                                    val = val.substr(0, val.indexOf(',') + 2);
+                                    break;
+                                }
 
-						case 'EUSTX50':
-						case 'UK100':
-						case 'OANDA:DE30EUR':
-						case 'FRA40':
-						case 'SHCOMP':
-						case 'ESP35':
-						case 'OANDA:JP225USD':
-						case 'OANDA:EU50EUR':
-						case 'AUS200':
-						{
-							if (val.indexOf(',')) val = val.substr(0, val.indexOf(','));
-							break;
-						}
+                                case 'FX:USDJPY':
+                                case 'FX_IDC:USDBRO':
+                                case 'FX_IDC:XAGUSD': {
+                                    val = val.substr(0, val.indexOf(',') + 3);
+                                    break;
+                                }
 
-						case 'OANDA:CN50USD':
-						{
-							val = Math.round(data.last_price);
-							break;
-						}
+                                case 'EUSTX50':
+                                case 'UK100':
+                                case 'OANDA:DE30EUR':
+                                case 'FRA40':
+                                case 'SHCOMP':
+                                case 'ESP35':
+                                case 'OANDA:JP225USD':
+                                case 'OANDA:EU50EUR':
+                                case 'AUS200': {
+                                    if (val.indexOf(',')) val = val.substr(0, val.indexOf(','));
+                                    break;
+                                }
 
-						default:
-						{
-							val = val.substr(0, val.indexOf(',') + 5);
-							break;
-						}
-					}
-				}
+                                case 'OANDA:CN50USD': {
+                                    val = Math.round(data.last_price);
+                                    break;
+                                }
 
-				$($('td', tr)[1]).text(val);
-				$($('td', tr)[2]).text(((chg > 0) ? '+' : '') + chg.toString().replace('.', ',') + '%');
-				if (chg < 0)
-				{
-					$($('td', tr)[2]).addClass('down');
+                                default: {
+                                    val = val.substr(0, val.indexOf(',') + 5);
+                                    break;
+                                }
+                            }
+                        }
 
-				} else
-				{
-					$($('td', tr)[2]).removeClass('down');
-				}
-			}
-		}
+                        $($('td', tr)[1]).text(val);
+                        $($('td', tr)[2]).text(((chg > 0) ? '+' : '') + chg.toString().replace('.', ',') + '%');
+                        if (chg < 0) {
+                            $($('td', tr)[2]).addClass('down');
 
-		$('.trade tr').each(function(i, el)
-		{
-			if ($(el).attr('tkr'))
-			{
-				symbols.push({'symbol' : $(el).attr('tkr'), success: success, error : function(){}});
-			}
-		});
+                        } else {
+                            $($('td', tr)[2]).removeClass('down');
+                        }
+                    }
+                }
 
-		if (symbols.length)
-		{
-			new TradingView.QuotesProvider({container_id: 'hif', symbols:symbols});
-			//console.log(symbols);
-		};
+                $('.trade tr').each(function (i, el) {
+                    if ($(el).attr('tkr')) {
+                        symbols.push({
+                            'symbol': $(el).attr('tkr'), success: success, error: function () {
+                            }
+                        });
+                    }
+                });
+
+                if (symbols.length) {
+                    new TradingView.QuotesProvider({container_id: 'hif', symbols: symbols});
+                    //console.log(symbols);
+                }
+                ;
 
 
-
-	})(jQuery);
-
-
-
-
-
-
-
+            })(jQuery);
 
 
         </script>
@@ -1393,40 +1344,34 @@
             </div><!-- /Topic -->                <!-- Яндекс.Директ -->
             <div id="yandex_ad" style="margin-bottom: 1em"></div>
             <script type="text/javascript">
-				(function(w, d, n, s, t) {
-				w[n] = w[n] || [];
-				w[n].push(function() {
-				Ya.Direct.insertInto(159020, "yandex_ad", {
-				ad_format: "direct",
-				type: "adaptive",
-				border_type: "block",
-				limit: 4,
-				links_underline: false,
-				site_bg_color: "FFFFFF",
-				border_color: "FF8000",
-				title_color: "FF8000",
-				url_color: "666666",
-				text_color: "999999",
-				hover_color: "FF6600",
-				favicon: true,
-				no_sitelinks: true,
-				height: 180,
-				width: 550
-				});
-				});
-				t = d.getElementsByTagName("script")[0];
-				s = d.createElement("script");
-				s.src = "//an.yandex.ru/system/context.js";
-				s.type = "text/javascript";
-				s.async = true;
-				t.parentNode.insertBefore(s, t);
-				})(window, document, "yandex_context_callbacks");
-
-
-
-
-
-
+                (function (w, d, n, s, t) {
+                    w[n] = w[n] || [];
+                    w[n].push(function () {
+                        Ya.Direct.insertInto(159020, "yandex_ad", {
+                            ad_format: "direct",
+                            type: "adaptive",
+                            border_type: "block",
+                            limit: 4,
+                            links_underline: false,
+                            site_bg_color: "FFFFFF",
+                            border_color: "FF8000",
+                            title_color: "FF8000",
+                            url_color: "666666",
+                            text_color: "999999",
+                            hover_color: "FF6600",
+                            favicon: true,
+                            no_sitelinks: true,
+                            height: 180,
+                            width: 550
+                        });
+                    });
+                    t = d.getElementsByTagName("script")[0];
+                    s = d.createElement("script");
+                    s.src = "//an.yandex.ru/system/context.js";
+                    s.type = "text/javascript";
+                    s.async = true;
+                    t.parentNode.insertBefore(s, t);
+                })(window, document, "yandex_context_callbacks");
 
 
             </script>
@@ -2036,47 +1981,35 @@
             <!-- Banner -->
             <span id="smartlab_518" style="display: block; margin: 8px auto; width: 540px"></span>
             <script language="JavaScript"><!--
-				jQuery(document).ready(function($)
-				{
-					jQuery.getScript("//www.liveinternet.ru/cgi-bin/adv.fcgi?p=518&qtype=javascript&span-name=smartlab_518");
-				});
+            jQuery(document).ready(function ($) {
+                jQuery.getScript("//www.liveinternet.ru/cgi-bin/adv.fcgi?p=518&qtype=javascript&span-name=smartlab_518");
+            });
 
-				// document.write("<sc"+"ript src='//www.liveinternet.ru/cgi-bin/adv.fcgi?p=518&qtype=javascript&span-name=smartlab_518'></sc"+"ript>");
-			//-->
-
-
-
-
-
+            // document.write("<sc"+"ript src='//www.liveinternet.ru/cgi-bin/adv.fcgi?p=518&qtype=javascript&span-name=smartlab_518'></sc"+"ript>");
+            //-->
 
 
             </script>
             <!-- /Banner --><!-- Яндекс.Директ -->
             <script type="text/javascript">
-		yandex_partner_id = 159020;
-		yandex_site_bg_color = 'FFFFFF';
-		yandex_ad_format = 'direct';
-		yandex_font_size = 0.8;
-		yandex_direct_type = 'horizontal';
-		yandex_direct_border_type = 'block';
-		yandex_direct_limit = 2;
-		yandex_direct_title_font_size = 1;
-		yandex_direct_links_underline = true;
-		yandex_direct_header_bg_color = 'CCCCCC';
-		yandex_direct_border_color = 'CCCCCC';
-		yandex_direct_title_color = '666666';
-		yandex_direct_url_color = '666666';
-		yandex_direct_text_color = '666666';
-		yandex_direct_hover_color = '666666';
-		yandex_direct_favicon = false;
-		yandex_no_sitelinks = true;
-		document.write('<scr'+'ipt type="text/javascript" src="//an.yandex.ru/system/context.js"></scr'+'ipt>');
-
-
-
-
-
-
+                yandex_partner_id = 159020;
+                yandex_site_bg_color = 'FFFFFF';
+                yandex_ad_format = 'direct';
+                yandex_font_size = 0.8;
+                yandex_direct_type = 'horizontal';
+                yandex_direct_border_type = 'block';
+                yandex_direct_limit = 2;
+                yandex_direct_title_font_size = 1;
+                yandex_direct_links_underline = true;
+                yandex_direct_header_bg_color = 'CCCCCC';
+                yandex_direct_border_color = 'CCCCCC';
+                yandex_direct_title_color = '666666';
+                yandex_direct_url_color = '666666';
+                yandex_direct_text_color = '666666';
+                yandex_direct_hover_color = '666666';
+                yandex_direct_favicon = false;
+                yandex_no_sitelinks = true;
+                document.write('<scr' + 'ipt type="text/javascript" src="//an.yandex.ru/system/context.js"></scr' + 'ipt>');
 
 
             </script>
@@ -2089,18 +2022,12 @@
             <span id="smartlab_498" style="display: block; margin: 0px auto; width: 240px"></span>
             <script language="JavaScript"><!--
 
-			jQuery(document).ready(function($)
-			{
-				jQuery.getScript("//www.liveinternet.ru/cgi-bin/adv.fcgi?p=498&qtype=javascript&span-name=smartlab_498");
-			});
+            jQuery(document).ready(function ($) {
+                jQuery.getScript("//www.liveinternet.ru/cgi-bin/adv.fcgi?p=498&qtype=javascript&span-name=smartlab_498");
+            });
 
-			// document.write("<sc"+"ript src='//www.liveinternet.ru/cgi-bin/adv.fcgi?p=498&qtype=javascript&span-name=smartlab_498'></sc"+"ript>");
-		//-->
-
-
-
-
-
+            // document.write("<sc"+"ript src='//www.liveinternet.ru/cgi-bin/adv.fcgi?p=498&qtype=javascript&span-name=smartlab_498'></sc"+"ript>");
+            //-->
 
 
             </script>
@@ -2284,31 +2211,21 @@
 
             <script type="text/javascript">
 
-			(function($)
-			{
-				$('#sbc_toplinks > a').on('click', function(e)
-				{
-					e.preventDefault();
-					$('#sbc_toplinks > a').each(function(i, el)
-					{
-						$(el).css('fontWeight', 'normal');
-					});
+                (function ($) {
+                    $('#sbc_toplinks > a').on('click', function (e) {
+                        e.preventDefault();
+                        $('#sbc_toplinks > a').each(function (i, el) {
+                            $(el).css('fontWeight', 'normal');
+                        });
 
-					$('.sbc_frame').hide();
-					$('#' + $(e.target).attr('id').replace('_a_', '_')).show();
+                        $('.sbc_frame').hide();
+                        $('#' + $(e.target).attr('id').replace('_a_', '_')).show();
 
-					$(e.target).css('fontWeight', 'bold');
-					return false;
-				});
+                        $(e.target).css('fontWeight', 'bold');
+                        return false;
+                    });
 
-			})(jQuery);
-
-
-
-
-
-
-
+                })(jQuery);
 
 
             </script>
@@ -2488,59 +2405,49 @@
 
 
                 <script type="text/javascript">
-						jQuery(document).ready(function($)
-						{
-							var bRemove = false;
-							$('html').find('link[rel="stylesheet"]').each(function()
-							{
-								if ($(this).attr('href').match(/\/templates\/skin\/smart-lab-x\d+\/themes\//))
-								{
-									$('.companies_blogs').remove();
-									bRemove = true;
-									return false;
-								}
-							});
+                    jQuery(document).ready(function ($) {
+                        var bRemove = false;
+                        $('html').find('link[rel="stylesheet"]').each(function () {
+                            if ($(this).attr('href').match(/\/templates\/skin\/smart-lab-x\d+\/themes\//)) {
+                                $('.companies_blogs').remove();
+                                bRemove = true;
+                                return false;
+                            }
+                        });
 
-							if (bRemove) return;
-							$('.companies_blogs').removeClass('hidden');
+                        if (bRemove) return;
+                        $('.companies_blogs').removeClass('hidden');
 
-							$('.companies_blogs_list2').bxSlider({
-								mode: 'vertical',
-								pager: false,
-								controls: true,
-								slideMargin: 2,
-								minSlides: 6,
-								maxSlides: 6,
-								slideWidth: 80,
-								nextText: '<img src="/plugins/company/templates/skin/default/img/arrow_down.svg">',
-								prevText: '<img src="/plugins/company/templates/skin/default/img/arrow_up.svg">',
-								infiniteLoop: false,
-								adaptiveHeight: true,
-								moveSlides: 1,
-								onSliderLoad: function(){
-									$('.product-gallery .image-thumb').css('opacity', '1');
-								}
-							});
+                        $('.companies_blogs_list2').bxSlider({
+                            mode: 'vertical',
+                            pager: false,
+                            controls: true,
+                            slideMargin: 2,
+                            minSlides: 6,
+                            maxSlides: 6,
+                            slideWidth: 80,
+                            nextText: '<img src="/plugins/company/templates/skin/default/img/arrow_down.svg">',
+                            prevText: '<img src="/plugins/company/templates/skin/default/img/arrow_up.svg">',
+                            infiniteLoop: false,
+                            adaptiveHeight: true,
+                            moveSlides: 1,
+                            onSliderLoad: function () {
+                                $('.product-gallery .image-thumb').css('opacity', '1');
+                            }
+                        });
 
-							var elementBreaker = $('.block.blogs');
-							var staticHeigth =  1010;
+                        var elementBreaker = $('.block.blogs');
+                        var staticHeigth = 1010;
 
-							$(window).scroll(function()
-							{
-								var thisScroll = $(this).scrollTop() - 100;
-								if (thisScroll > staticHeigth){
-									$('.companies_blogs').addClass('sticky');
-								} else{
-									$('.companies_blogs').removeClass('sticky');
-								}
-							});
-						});
-
-
-
-
-
-
+                        $(window).scroll(function () {
+                            var thisScroll = $(this).scrollTop() - 100;
+                            if (thisScroll > staticHeigth) {
+                                $('.companies_blogs').addClass('sticky');
+                            } else {
+                                $('.companies_blogs').removeClass('sticky');
+                            }
+                        });
+                    });
 
 
                 </script>
@@ -2567,21 +2474,25 @@
 
         <!-- Rating@Mail.ru counter -->
         <script type="text/javascript">
-var _tmr = window._tmr || (window._tmr = []);
-_tmr.push({id: "1861019", type: "pageView", start: (new Date()).getTime()});
-(function (d, w, id) {
-  if (d.getElementById(id)) return;
-  var ts = d.createElement("script"); ts.type = "text/javascript"; ts.async = true; ts.id = id;
-  ts.src = (d.location.protocol == "https:" ? "https:" : "http:") + "//top-fwz1.mail.ru/js/code.js";
-  var f = function () {var s = d.getElementsByTagName("script")[0]; s.parentNode.insertBefore(ts, s);};
-  if (w.opera == "[object Opera]") { d.addEventListener("DOMContentLoaded", f, false); } else { f(); }
-})(document, window, "topmailru-code");
-
-
-
-
-
-
+            var _tmr = window._tmr || (window._tmr = []);
+            _tmr.push({id: "1861019", type: "pageView", start: (new Date()).getTime()});
+            (function (d, w, id) {
+                if (d.getElementById(id)) return;
+                var ts = d.createElement("script");
+                ts.type = "text/javascript";
+                ts.async = true;
+                ts.id = id;
+                ts.src = (d.location.protocol == "https:" ? "https:" : "http:") + "//top-fwz1.mail.ru/js/code.js";
+                var f = function () {
+                    var s = d.getElementsByTagName("script")[0];
+                    s.parentNode.insertBefore(ts, s);
+                };
+                if (w.opera == "[object Opera]") {
+                    d.addEventListener("DOMContentLoaded", f, false);
+                } else {
+                    f();
+                }
+            })(document, window, "topmailru-code");
 
 
         </script>
@@ -2602,21 +2513,15 @@ _tmr.push({id: "1861019", type: "pageView", start: (new Date()).getTime()});
 
         <!--LiveInternet counter-->
         <script type="text/javascript">
-document.write("<a href='//www.liveinternet.ru/click' "+
-"target=_blank><img src='//counter.yadro.ru/hit?t18.2;r"+
-escape(document.referrer)+((typeof(screen)=="undefined")?"":
-";s"+screen.width+"*"+screen.height+"*"+(screen.colorDepth?
-screen.colorDepth:screen.pixelDepth))+";u"+escape(document.URL)+
-";"+Math.random()+
-"' alt='' title='LiveInternet: показано число просмотров за 24"+
-" часа, посетителей за 24 часа и за сегодня' "+
-"border='0' width='88' height='31'><\/a>")
-
-
-
-
-
-
+            document.write("<a href='//www.liveinternet.ru/click' " +
+                "target=_blank><img src='//counter.yadro.ru/hit?t18.2;r" +
+                escape(document.referrer) + ((typeof (screen) == "undefined") ? "" :
+                    ";s" + screen.width + "*" + screen.height + "*" + (screen.colorDepth ?
+                    screen.colorDepth : screen.pixelDepth)) + ";u" + escape(document.URL) +
+                ";" + Math.random() +
+                "' alt='' title='LiveInternet: показано число просмотров за 24" +
+                " часа, посетителей за 24 часа и за сегодня' " +
+                "border='0' width='88' height='31'><\/a>")
 
 
         </script><!--/LiveInternet-->
@@ -2627,35 +2532,34 @@ screen.colorDepth:screen.pixelDepth))+";u"+escape(document.URL)+
 
         <!-- Top100 (Kraken) Counter -->
         <script>
-    (function (w, d, c) {
-    (w[c] = w[c] || []).push(function() {
-        var options = {
-            project: 2336271,
-            element: 'top100_widget'
-        };
-        try {
-            w.top100Counter = new top100(options);
-        } catch(e) { }
-    });
-    var n = d.getElementsByTagName("script")[0],
-    s = d.createElement("script"),
-    f = function () { n.parentNode.insertBefore(s, n); };
-    s.type = "text/javascript";
-    s.async = true;
-    s.src =
-    (d.location.protocol == "https:" ? "https:" : "http:") +
-    "//st.top100.ru/top100/top100.js";
+            (function (w, d, c) {
+                (w[c] = w[c] || []).push(function () {
+                    var options = {
+                        project: 2336271,
+                        element: 'top100_widget'
+                    };
+                    try {
+                        w.top100Counter = new top100(options);
+                    } catch (e) {
+                    }
+                });
+                var n = d.getElementsByTagName("script")[0],
+                    s = d.createElement("script"),
+                    f = function () {
+                        n.parentNode.insertBefore(s, n);
+                    };
+                s.type = "text/javascript";
+                s.async = true;
+                s.src =
+                    (d.location.protocol == "https:" ? "https:" : "http:") +
+                    "//st.top100.ru/top100/top100.js";
 
-    if (w.opera == "[object Opera]") {
-    d.addEventListener("DOMContentLoaded", f, false);
-} else { f(); }
-})(window, document, "_top100q");
-
-
-
-
-
-
+                if (w.opera == "[object Opera]") {
+                    d.addEventListener("DOMContentLoaded", f, false);
+                } else {
+                    f();
+                }
+            })(window, document, "_top100q");
 
 
         </script>
@@ -2665,21 +2569,18 @@ screen.colorDepth:screen.pixelDepth))+";u"+escape(document.URL)+
         <!-- END Top100 (Kraken) Counter -->
 
         <script type="text/javascript">
-  var _gaq = _gaq || [];
-  _gaq.push(['_setAccount', 'UA-16537214-3']);
-  _gaq.push(['_trackPageview']);
+            var _gaq = _gaq || [];
+            _gaq.push(['_setAccount', 'UA-16537214-3']);
+            _gaq.push(['_trackPageview']);
 
-  (function() {
-    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-  })();
-
-
-
-
-
-
+            (function () {
+                var ga = document.createElement('script');
+                ga.type = 'text/javascript';
+                ga.async = true;
+                ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+                var s = document.getElementsByTagName('script')[0];
+                s.parentNode.insertBefore(ga, s);
+            })();
 
 
         </script>
@@ -2687,35 +2588,34 @@ screen.colorDepth:screen.pixelDepth))+";u"+escape(document.URL)+
 
         <!-- Yandex.Metrika counter -->
         <script type="text/javascript">
-(function (d, w, c) {
-(w[c] = w[c] || []).push(function() {
-try {
-w.yaCounter32877692 = new Ya.Metrika({
-id:32877692,
-clickmap:true,
-trackLinks:true,
-accurateTrackBounce:true
-});
-} catch(e) { }
-});
+            (function (d, w, c) {
+                (w[c] = w[c] || []).push(function () {
+                    try {
+                        w.yaCounter32877692 = new Ya.Metrika({
+                            id: 32877692,
+                            clickmap: true,
+                            trackLinks: true,
+                            accurateTrackBounce: true
+                        });
+                    } catch (e) {
+                    }
+                });
 
-var n = d.getElementsByTagName("script")[0],
-s = d.createElement("script"),
-f = function () { n.parentNode.insertBefore(s, n); };
-s.type = "text/javascript";
-s.async = true;
-s.src = "https://mc.yandex.ru/metrika/watch.js";
+                var n = d.getElementsByTagName("script")[0],
+                    s = d.createElement("script"),
+                    f = function () {
+                        n.parentNode.insertBefore(s, n);
+                    };
+                s.type = "text/javascript";
+                s.async = true;
+                s.src = "https://mc.yandex.ru/metrika/watch.js";
 
-if (w.opera == "[object Opera]") {
-d.addEventListener("DOMContentLoaded", f, false);
-} else { f(); }
-})(document, window, "yandex_metrika_callbacks");
-
-
-
-
-
-
+                if (w.opera == "[object Opera]") {
+                    d.addEventListener("DOMContentLoaded", f, false);
+                } else {
+                    f();
+                }
+            })(document, window, "yandex_metrika_callbacks");
 
 
         </script>
@@ -2753,18 +2653,12 @@ d.addEventListener("DOMContentLoaded", f, false);
 <!-- Google Code for Smart-lab tag -->
 <!-- Remarketing tags may not be associated with personally identifiable information or placed on pages related to sensitive categories. For instructions on adding this tag and more information on the above requirements, read the setup guide: google.com/ads/remarketingsetup -->
 <script type="text/javascript">
-/* <![CDATA[ */
-var google_conversion_id = 997902847;
-var google_conversion_label = "4TYQCN69wWcQ_5Pr2wM";
-var google_custom_params = window.google_tag_params;
-var google_remarketing_only = true;
-/* ]]> */
-
-
-
-
-
-
+    /* <![CDATA[ */
+    var google_conversion_id = 997902847;
+    var google_conversion_label = "4TYQCN69wWcQ_5Pr2wM";
+    var google_custom_params = window.google_tag_params;
+    var google_remarketing_only = true;
+    /* ]]> */
 
 
 </script>

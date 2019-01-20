@@ -1,0 +1,15 @@
+@startuml
+actor User
+box "System" #LightBlue
+    entity SenderModule
+    entity ControlModule
+	entity SourcesModule
+end box
+
+User -> SenderModule: Messages
+
+alt controll message case
+SenderModule -> ControlModule: Control messages
+end
+SenderModule -> User: Confirm
+@enduml
