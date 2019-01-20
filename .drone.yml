@@ -16,7 +16,9 @@ steps:
   commands:
   - pip install -r requirements.txt
   - pip install -r requirements-dev.txt
-  - pytest tests
+  - cd tests
+  - PYTHONPATH=../trading_bot pytest . --cov=../trading_bot --cov-report=term-missing
+
 
 services:
 - name: redis

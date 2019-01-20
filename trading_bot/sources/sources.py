@@ -65,8 +65,10 @@ def cache(func):
 
         url, res = await func(self, url)
 
-        if (
-                'https://clck.ru/' in res or 'https://is.gd/' in res) and self.redis:
+        if self.redis and any((
+                'https://clck.ru/' in res,
+                'https://is.gd/' in res
+        )):
             log.info('Save %r to redis', res)
             await self.redis.set(url, res)
 
@@ -106,7 +108,8 @@ class MarkdownFormatter:
 
     async def get_click(self, url):
         try:
-            req_url = (f'https://clck.ru/--?url={quote(get_chatbase_url(url), encoding="ascii")}')
+            chatbase = quote(get_chatbase_url(url), encoding="ascii")
+            req_url = (f'https://clck.ru/--?url={chatbase}')
         except UnicodeEncodeError:
             log.exception('Failed to encode url %r', url)
             req_url = url
@@ -120,7 +123,8 @@ class MarkdownFormatter:
 
     async def get_isgd(self, url):
         try:
-            req_url = f'https://is.gd/create.php?format=simple&url={quote(get_chatbase_url(url), encoding="ascii")}'
+            chatbase = quote(get_chatbase_url(url), encoding="ascii")
+            req_url = f'https://is.gd/create.php?format=simple&url={chatbase}'
         except UnicodeEncodeError:
             log.exception('Failed to encode url %r', url)
             req_url = url
@@ -180,7 +184,7 @@ class AbstractSource(metaclass=ABCMeta):
 
         if (
                 self._last_time_request + self._caching_time) > time.monotonic() and url in list(
-                self._last_request.keys()):
+            self._last_request.keys()):
             log.info('Not time for request url: %r', url)
             return self._last_request[url]
 
@@ -303,8 +307,9 @@ class MfdForumThreadSource(MfdSource):
         url = f"http://lite.mfd.ru/forum/search/?query=1+2+3+4+5+6+7+8+9+0+%D0%B0+%D0%B1+%D0%B2+%D0%B3+%D0%B4&method" \
             f"=Or&userQuery=&threadQuery={quote(param)}&from=&till="
         bs = HTMLParser(await self.session(custom_url=url))
-        title = [post.text() for post in
-                 bs.css("h3.mfd-post-thread-subject > a")]
+        title = [
+            post.text() for post in bs.css("h3.mfd-post-thread-subject > a")
+        ]
         title = list(set(title))
         if len(title) == 1:
             href = f"http://lite.mfd.ru{bs.css_first('h3.mfd-post-thread-subject > a').attributes['href']}"
