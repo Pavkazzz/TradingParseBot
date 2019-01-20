@@ -1,5 +1,7 @@
 # TradingBot
 
+[![Build Status](https://cloud.drone.io/api/badges/Pavkazzz/TradingParseBot/status.svg)](https://cloud.drone.io/Pavkazzz/TradingParseBot)
+
 ## Диплом МИФИ
 
 Telegram bot for parsing web
