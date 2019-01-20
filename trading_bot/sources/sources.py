@@ -181,10 +181,12 @@ class AbstractSource(metaclass=ABCMeta):
 
     async def session(self, custom_url=None, **format_url):
         url = self._url.format(**format_url) if not custom_url else custom_url
+        time_is = (self._last_time_request + self._caching_time)
 
-        if (
-                self._last_time_request + self._caching_time) > time.monotonic() and url in list(
-            self._last_request.keys()):
+        if all((
+                time_is > time.monotonic(),
+                url in list(self._last_request.keys())
+        )):
             log.info('Not time for request url: %r', url)
             return self._last_request[url]
 
